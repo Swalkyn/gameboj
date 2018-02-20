@@ -30,9 +30,10 @@ public final class Rom {
     }
     
     /**
+     * Reads memory at specified index
      * @param index: index of memory to be accessed
      * @throws IndexOutOfBoundsException
-     * @return the byte at specified index
+     * @return the unsigned byte at specified index
      */
     public int read(int index) {
         if (index < 0 || index >= size()) {
