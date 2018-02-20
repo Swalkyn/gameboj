@@ -1,5 +1,7 @@
 package ch.epfl.gameboj.component;
 
+import ch.epfl.gameboj.Bus;
+
 /**
  * Interface representing a component of the gameboy, connected to a bus
  * @author luca
