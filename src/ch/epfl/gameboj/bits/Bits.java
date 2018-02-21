@@ -67,8 +67,12 @@ public final class Bits {
     }
     
     public static int clip(int size, int bits) {
-        if (size < 0 || size >= 32) {
-            throw new IllegalArgumentException("Size must be between 0 (included) and 32 (excluded)");
+        if (size < 0 || size > 32) {
+            throw new IllegalArgumentException("Size must be between 0 (included) and 32 (included)");
+        }
+        
+        if (size == 32) {
+            return bits;
         }
         
         return ~(~0 << size) & bits;
@@ -77,12 +81,15 @@ public final class Bits {
     public static int extract(int bits, int start, int size) {
         Objects.checkFromIndexSize(start, size, Integer.SIZE);
         
+        if (size == 32) {
+            return bits; // Because it works.
+        }
         return (~(~0 << size) << start & bits) >>> start;
     }
     
     public static int rotate(int size, int bits, int distance) {
-        if (size < 0 || size >= 32 || bits >>> size != 0) { // 3rd condition : checks if number of bits in 'bits' <= size
-            throw new IllegalArgumentException("Size must be between 0 (included) and 32 (excluded)");
+        if (size <= 0 || size > 32) { // 3rd condition : checks if number of bits in 'bits' <= size
+            throw new IllegalArgumentException("Size must be between 0 (excluded) and 32 (included)");
         }
         
         int d = Math.floorMod(distance, size);
@@ -91,6 +98,8 @@ public final class Bits {
     }
     
     public static int signExtend8(int b) {
+        Preconditions.checkBits8(b);
+
         return (int) (byte) b;
     }
     
@@ -107,6 +116,9 @@ public final class Bits {
     }
     
     public static int make16(int highB, int lowB) {
+        Preconditions.checkBits8(highB);
+        Preconditions.checkBits8(lowB);
+        
         return highB << 8 | lowB;
     }  
 }
