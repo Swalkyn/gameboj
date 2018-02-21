@@ -3,9 +3,12 @@ package ch.epfl.gameboj.bits;
 import java.util.Objects;
 
 import ch.epfl.gameboj.Preconditions;
-
+/**
+ * Utility class used to manipulate bits
+ * @author sylvainkuchen
+ */
 public final class Bits {
-    
+   
     private static final int[] REVERSE_TABLE = new int[] {
             0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0,
             0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
@@ -43,10 +46,23 @@ public final class Bits {
         
     private Bits() {}
     
+    /**
+     * Returns an int where only the bit at index is 1, the rest is 0
+     * @param index : between 0 (incl) and 32 (excl)
+     * @throws IndexOutOfBoundsException if index invalid
+     * @return the mask
+     */
     public static int mask(int index) {
         return 1 << Objects.checkIndex(index, Integer.SIZE);
     }
     
+    /**
+     * Returns true if bit at index is 1
+     * @param bits : the int to be tested
+     * @param index : between 0 (incl) and 32 (excl)
+     * @throws IndexOutOfBoundsException if index invalid
+     * @return a boolean
+     */
     public static boolean test(int bits, int index) {
         Objects.checkIndex(index, Integer.SIZE);
         
@@ -54,10 +70,24 @@ public final class Bits {
         return bitmask == (bitmask & bits);
     }
     
+    /**
+     * Obtains index given by Bit object. Returns true if bit at index is 1
+     * @param bits : the int to be tested
+     * @param bit : Bit object 
+     * @throws IndexOutOfBoundsException if index invalid
+     * @return a boolean
+     */
     public static boolean test(int bits, Bit bit) {
         return test(bits, bit.index());
     }
     
+    /**
+     * Sets bit at index to new value, leaves rest intact
+     * @param bits
+     * @param index
+     * @param newValue
+     * @return the modified int
+     */
     public static int set(int bits, int index, boolean newValue) {
         if (newValue) {
             return mask(index) | bits;
@@ -66,6 +96,13 @@ public final class Bits {
         }
     }
     
+    /**
+     * Clips a value so that the "size" least significant bits are the same as "bits", the rest set to 0
+     * @param size : number of lsb to be clipped (between 0 (incl) and 32 (excl))
+     * @param bits : value to be modified
+     * @throws IllegalArgumentException
+     * @return the clipped value
+     */
     public static int clip(int size, int bits) {
         if (size < 0 || size > 32) {
             throw new IllegalArgumentException("Size must be between 0 (included) and 32 (included)");
@@ -78,6 +115,14 @@ public final class Bits {
         return ~(~0 << size) & bits;
     }
     
+    /**
+     * Extracts a section of "bits" from start (incl) to start + size (excl)
+     * @param bits : value to be modified
+     * @param start : starting position of section
+     * @param size : the size of section
+     * @throws IndexOutOfBoundsException if start and size are an incorrect range
+     * @return the extracted section
+     */
     public static int extract(int bits, int start, int size) {
         Objects.checkFromIndexSize(start, size, Integer.SIZE);
         
@@ -87,6 +132,14 @@ public final class Bits {
         return (~(~0 << size) << start & bits) >>> start;
     }
     
+    /**
+     * Rotates the "size" least significant bits by a certain distance
+     * @param size : number of lsb to be rotated, must be between 0 (excl) and 32 (incl)
+     * @param bits : value to be rotated
+     * @param distance : if >0 rotates left | if <0, rotates right
+     * @throws IllegalArgumentException 
+     * @return the rotated value
+     */
     public static int rotate(int size, int bits, int distance) {
         if (size <= 0 || size > 32) { // 3rd condition : checks if number of bits in 'bits' <= size
             throw new IllegalArgumentException("Size must be between 0 (excluded) and 32 (included)");
@@ -97,24 +150,48 @@ public final class Bits {
         return clip(size, (bits << d) | (bits >>> size - d));
     }
     
+    /**
+     * Extends value of 7th bit to bits 8-32
+     * @param b : an 8-bit value
+     * @throws IllegalArgumentException if not 8 bits
+     * @return the extended value
+     */
     public static int signExtend8(int b) {
         Preconditions.checkBits8(b);
 
         return (int) (byte) b;
     }
     
+    /**
+     * Reverses an 8-bit value
+     * @param b : an 8-bit int
+     * @throws IllegalArgumentException if not 8 bits
+     * @return the reversed value
+     */
     public static int reverse8(int b) {
         Preconditions.checkBits8(b);
         
         return REVERSE_TABLE[b];
     }
 
+    /**
+     * Applies one's complement to value
+     * @param b : must be 8 bits
+     * @throws IllegalArgumentException if not 8 bits
+     * @return one's complement
+     */
     public static int complement8(int b) {
         Preconditions.checkBits8(b);
         
         return b ^ 0xFF;
     }
     
+    /**
+     * Returns a new 16bit value composed of highB concatenated with lowB
+     * @param highB : 8 bits, the first byte
+     * @param lowB : 8 bits, the second byte
+     * @return the concatenated value
+     */
     public static int make16(int highB, int lowB) {
         Preconditions.checkBits8(highB);
         Preconditions.checkBits8(lowB);
