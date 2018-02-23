@@ -15,12 +15,10 @@ public final class Ram implements Component {
     /**
      * Creates a new Ram object
      * @param size : the size of memory in bytes
+     * @throws IllegalArgumentException if size strictly negative
      */
     public Ram(int size) {
-        if (size < 0) {
-            throw new IllegalArgumentException("Size cannot be strictly negative");
-        }
-        
+        Preconditions.checkArgument(size < 0);
         memory = new byte[size];
     }
     

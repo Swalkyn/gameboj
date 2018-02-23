@@ -100,13 +100,11 @@ public final class Bits {
      * Clips a value so that the "size" least significant bits are the same as "bits", the rest set to 0
      * @param size : number of lsb to be clipped (between 0 (incl) and 32 (excl))
      * @param bits : value to be modified
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if invalid size
      * @return the clipped value
      */
     public static int clip(int size, int bits) {
-        if (size < 0 || size > 32) {
-            throw new IllegalArgumentException("Size must be between 0 (included) and 32 (included)");
-        }
+        Preconditions.checkArgument(size < 0 || size > 32);           
         
         if (size == 32) {
             return bits; // Because it works.
@@ -137,13 +135,11 @@ public final class Bits {
      * @param size : number of lsb to be rotated, must be between 0 (excl) and 32 (incl)
      * @param bits : value to be rotated
      * @param distance : if >0 rotates left | if <0, rotates right
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException if invalid size
      * @return the rotated value
      */
     public static int rotate(int size, int bits, int distance) {
-        if (size <= 0 || size > 32) { // 3rd condition : checks if number of bits in 'bits' <= size
-            throw new IllegalArgumentException("Size must be between 0 (excluded) and 32 (included)");
-        }
+        Preconditions.checkArgument(size <= 0 || size > 32);
         
         int d = Math.floorMod(distance, size);
         

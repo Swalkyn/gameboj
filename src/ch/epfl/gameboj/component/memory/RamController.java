@@ -25,17 +25,12 @@ public final class RamController implements Component {
      * @throws IllegalArgumentException if addresses are invalid or address range is too large or negative
      */
     public RamController(Ram ram, int startAddress, int endAddress) {
-        RAM = Objects.requireNonNull(ram);
         START_ADDRESS = Preconditions.checkBits16(startAddress);
         END_ADDRESS = Preconditions.checkBits16(endAddress);
-        
-        if (START_ADDRESS > END_ADDRESS) {
-            throw new IllegalArgumentException("End Address must be bigger than Start Address");
-        }
-        
-        if (END_ADDRESS - START_ADDRESS > RAM.size()) {
-            throw new IllegalArgumentException("Ram is not big enough for given address range");
-        }
+        RAM = Objects.requireNonNull(ram);
+
+        Preconditions.checkArgument(startAddress > endAddress);
+        Preconditions.checkArgument(endAddress - startAddress > RAM.size());
     }
     
     /**
