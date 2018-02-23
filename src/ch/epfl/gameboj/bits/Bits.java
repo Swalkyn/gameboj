@@ -72,7 +72,7 @@ public final class Bits {
         }
         
         if (size == 32) {
-            return bits;
+            return bits; // Because it works.
         }
         
         return ~(~0 << size) & bits;
