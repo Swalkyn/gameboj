@@ -98,10 +98,13 @@ public final class Alu {
         Preconditions.checkBits8(r);
         
         int result = l + r + (c0 ? 1 : 0);
-        boolean z = result == 0 ? true : false;
         boolean n = false;
-        boolean h = Bits.clip(4, l) + Bits.clip(4, r) > 0xF;
+        boolean h = Bits.clip(4, l) + Bits.clip(4, r) + (c0 ? 1 : 0) > 0xF;
         boolean c = result > 0xFF;
+        
+        // Clip value
+        result = Bits.clip(8, result);
+        boolean z = result == 0 ? true : false;
         
         return packValueZNHC(result, z, n, h, c);
     }

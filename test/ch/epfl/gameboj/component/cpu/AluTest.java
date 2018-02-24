@@ -19,7 +19,7 @@ class AluTest {
 	}
 	
 	@Test
-	void maskZHCNWorksForGivenValue() {
+	void maskZHCNWorksForKnownValue() {
 		assertEquals(0x70, Alu.maskZNHC(false, true, true, true));
 	}
 	
@@ -68,7 +68,7 @@ class AluTest {
 	}
 	
 	@Test
-	void unpackFlagsWorkdForArbitraryValues() {
+	void unpackFlagsWorkdForKnownValues() {
 		int[] values = {0x1270, 0x0707, 0x1111, 0xAC12, 0xFFAA07, 0x321FF, 0x3F276, 0xFF1111};
 		int[] expected = {0x70, 0x07, 0x11, 0x12, 0x07, 0xFF, 0x76, 0x11};
 		
@@ -77,6 +77,51 @@ class AluTest {
 		}
 	}
 	
+	/* add tests */
+	
+	@Test
+	void addFailsForInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.add(0x100, 0, false));
+        assertThrows(IllegalArgumentException.class, () -> Alu.add(0, 0x100, false));
+        assertThrows(IllegalArgumentException.class, () -> Alu.add(0, 0x100));
+        assertThrows(IllegalArgumentException.class, () -> Alu.add(0, 0x100));
+	}
+	
+	@Test
+    void addReturnsCorrectValuesForMaxValues() {
+        assertEquals(0x00, Alu.unpackValue(Alu.add(0, 0)));
+        assertEquals(0xFF, Alu.unpackValue(Alu.add(0xFF, 0)));
+        assertEquals(0xFE, Alu.unpackValue(Alu.add(0xFF, 0xFF)));
+        assertEquals(0x01, Alu.unpackValue(Alu.add(0, 0, true)));
+        assertEquals(0x00, Alu.unpackValue(Alu.add(0xFF, 0, true)));
+        assertEquals(0xFF, Alu.unpackValue(Alu.add(0xFF, 0xFF, true)));
+    }
+	
+	@Test
+    void addReturnsCorrectFlagsForMaxValues() {
+        assertEquals(0x80, Alu.unpackFlags(Alu.add(0, 0)));
+        assertEquals(0x10, Alu.unpackFlags(Alu.add(0xFF, 0)));
+        assertEquals(0xFE, Alu.unpackFlags(Alu.add(0xFF, 0xFF)));
+        assertEquals(0x01, Alu.unpackFlags(Alu.add(0, 0, true)));
+        assertEquals(0x00, Alu.unpackFlags(Alu.add(0xFF, 0, true)));
+        assertEquals(0xFF, Alu.unpackFlags(Alu.add(0xFF, 0xFF, true)));
+    }
+	
+	@Test
+	void addReturnsCorrectValuesForKnownValues() {
+	    assertEquals(0x25, Alu.unpackValue(Alu.add(0x10, 0x15)));
+	    assertEquals(0x10, Alu.unpackValue(Alu.add(0x08, 0x08)));
+	    assertEquals(0x00, Alu.unpackValue(Alu.add(0x80, 0x7F, true)));
+	}
+	
+	@Test
+    void addReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.add(0x10, 0x15)));
+        assertEquals(0x20, Alu.unpackFlags(Alu.add(0x08, 0x08)));
+        assertEquals(0xB0, Alu.unpackFlags(Alu.add(0x80, 0x7F, true)));
+    }
+	
+	/* add16 tests */
 	
 	
 }
