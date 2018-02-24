@@ -128,9 +128,32 @@ class AluTest {
 	void add16FailsForInvalidValues() {
 	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0x10000, 0));
 	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0, 0x10000));
-	    assertThrows(IllegalArgumentException.class, () -> Alu.add16H(0x10000, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.add16H(0, 0x10000));
+        assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0x10000, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0, 0x10000));
+
 	}
+	
+	@Test
+	void add16WorksForMaxValues() {
+	    assertEquals(0, Alu.unpackValue(Alu.add16L(0, 0)));
+	    assertEquals(0, Alu.unpackValue(Alu.add16L(0, 0x01)));
+	}
+	
+	@Test
+	void add16ReturnsCorrectValuesForKnownValues() {
+	    assertEquals(0x1200, Alu.unpackValue(Alu.add16L(0x11FF, 0x0001)));
+	    assertEquals(0x1200, Alu.unpackValue(Alu.add16H(0x11FF, 0x0001)));
+	}
+	
+	@Test
+	void add16LReturnsCorrectFlagsForKnownValues() {
+	    assertEquals(0x30, Alu.unpackFlags(Alu.add16L(0x11FF, 0x0001)));
+	}
+	
+	@Test
+    void add16HReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.add16H(0x11FF, 0x0001)));
+    }
 	
 	@Test
 	void testBitThrowsOnInvalidIndex() {

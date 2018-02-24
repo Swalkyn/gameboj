@@ -135,7 +135,12 @@ public final class Alu {
         
         int resultLSB = add(Bits.clip(8, l), Bits.clip(8, r));
         int resultMSB = add(Bits.extract(l, 8, 8), Bits.extract(r, 8, 8), Bits.test(resultLSB, Flag.C));
-        return Bits.clip(16, resultLSB) | Bits.extract(resultMSB, 16, 8) << 8;        
+        
+        int result = Bits.make16(unpackValue(resultMSB), unpackValue(resultLSB));
+        boolean h = Bits.test(resultLSB, Flag.H.index());
+        boolean c = Bits.test(resultLSB, Flag.C.index());
+        
+        return packValueZNHC(result, false, false, h, c);
     }
     
     /**
@@ -152,8 +157,12 @@ public final class Alu {
         
         int resultLSB = add(Bits.clip(8, l), Bits.clip(8, r));
         int resultMSB = add(Bits.extract(l, 8, 8), Bits.extract(r, 8, 8), Bits.test(resultLSB, Flag.C));
-        return Bits.extract(resultMSB, 8, 8) << 16 | Bits.extract(resultLSB, 8, 8) << 8 | Bits.clip(8, resultMSB);
-    }
+        
+        int result = Bits.make16(unpackValue(resultMSB), unpackValue(resultLSB));
+        boolean h = Bits.test(resultMSB, Flag.H.index());
+        boolean c = Bits.test(resultMSB, Flag.C.index());
+        
+        return packValueZNHC(result, false, false, h, c);    }
     
     /**
      * Subtracts two 8-bit numbers, with initial borrow
