@@ -123,7 +123,10 @@ class AluTest {
 	
 	/* add16 tests */
 	
-	
+	@Test
+	void testBitThrowsOnInvalidIndex() {
+	    assertThrows(IndexOutOfBoundsException.class, () -> Alu.testBit(0, 8));
+	}
 }
 
 
