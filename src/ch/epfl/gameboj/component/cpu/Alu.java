@@ -44,7 +44,7 @@ public final class Alu {
      * @param c
      * @return the bit mask
      */
-    public static int maskZHNC(boolean z, boolean n, boolean h, boolean c) {
+    public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
         return Bits.set(0, Flag.Z.index(), z) | Bits.set(0, Flag.N.index(), n)
                | Bits.set(0, Flag.H.index(), h) | Bits.set(0, Flag.C.index(), c);
     }
@@ -63,7 +63,7 @@ public final class Alu {
     private static int packValueZNHC(int value, boolean z, boolean n, boolean h, boolean c) {
         Preconditions.checkBits16(value);
         
-        return (value << 8) | maskZHNC(z, n, h, c);
+        return (value << 8) | maskZNHC(z, n, h, c);
     }
     
     /**

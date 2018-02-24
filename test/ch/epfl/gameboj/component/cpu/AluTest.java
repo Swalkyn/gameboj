@@ -10,17 +10,17 @@ class AluTest {
 	
 	@Test
 	void maskZHCNWorksForAllFalse() {
-		assertEquals(0, Alu.maskZHNC(false, false, false, false));
+		assertEquals(0, Alu.maskZNHC(false, false, false, false));
 	}
 
 	@Test
 	void maskZHCNWorksForAllTrue() {
-		assertEquals(0b11110000, Alu.maskZHNC(true, true, true, true));
+		assertEquals(0b11110000, Alu.maskZNHC(true, true, true, true));
 	}
 	
 	@Test
 	void maskZHCNWorksForGivenValue() {
-		assertEquals(0x70, Alu.maskZHNC(false, true, true, true));
+		assertEquals(0x70, Alu.maskZNHC(false, true, true, true));
 	}
 	
 	/* unpackValue tests */
@@ -76,4 +76,26 @@ class AluTest {
 			assertEquals(expected[i], Alu.unpackFlags(values[i]));
 		}
 	}
+	
+	
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
