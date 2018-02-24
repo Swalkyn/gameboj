@@ -123,12 +123,18 @@ class AluTest {
 	
 	/* add16 tests */
 	
+
 	@Test 
 	void add16FailsForInvalidValues() {
 	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0x10000, 0));
 	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0, 0x10000));
 	    assertThrows(IllegalArgumentException.class, () -> Alu.add16H(0x10000, 0));
         assertThrows(IllegalArgumentException.class, () -> Alu.add16H(0, 0x10000));
+	}
+	
+	@Test
+	void testBitThrowsOnInvalidIndex() {
+	    assertThrows(IndexOutOfBoundsException.class, () -> Alu.testBit(0, 8));
 	}
 }
 
