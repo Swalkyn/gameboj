@@ -100,11 +100,11 @@ class AluTest {
 	@Test
     void addReturnsCorrectFlagsForMaxValues() {
         assertEquals(0x80, Alu.unpackFlags(Alu.add(0, 0)));
-        assertEquals(0x10, Alu.unpackFlags(Alu.add(0xFF, 0)));
-        assertEquals(0xFE, Alu.unpackFlags(Alu.add(0xFF, 0xFF)));
-        assertEquals(0x01, Alu.unpackFlags(Alu.add(0, 0, true)));
-        assertEquals(0x00, Alu.unpackFlags(Alu.add(0xFF, 0, true)));
-        assertEquals(0xFF, Alu.unpackFlags(Alu.add(0xFF, 0xFF, true)));
+        assertEquals(0x00, Alu.unpackFlags(Alu.add(0xFF, 0)));
+        assertEquals(0x30, Alu.unpackFlags(Alu.add(0xFF, 0xFF)));
+        assertEquals(0x00, Alu.unpackFlags(Alu.add(0, 0, true)));
+        assertEquals(0xB0, Alu.unpackFlags(Alu.add(0xFF, 0, true)));
+        assertEquals(0x30, Alu.unpackFlags(Alu.add(0xFF, 0xFF, true)));
     }
 	
 	@Test
@@ -123,7 +123,13 @@ class AluTest {
 	
 	/* add16 tests */
 	
-	
+	@Test 
+	void add16FailsForInvalidValues() {
+	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0x10000, 0));
+	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0, 0x10000));
+	    assertThrows(IllegalArgumentException.class, () -> Alu.add16H(0x10000, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.add16H(0, 0x10000));
+	}
 }
 
 
