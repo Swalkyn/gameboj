@@ -133,6 +133,35 @@ class AluTest {
 	}
 	
 	@Test
+	void swapThrowsOnInvalidValues() {
+	    assertThrows(IllegalArgumentException.class, () -> Alu.swap(0xFF00));
+	}
+	
+	@Test
+	void swapWorksForKnownValues() {
+	    assertEquals(0b11010001, Alu.unpackValue(Alu.swap(0b00011101)));
+	    assertEquals(0b01111110, Alu.unpackValue(Alu.swap(0b11100111)));
+	}
+	
+	@Test
+	void swapReturnsCorrectFlags() {
+	    assertEquals(Alu.maskZNHC(false, false, false, false), Alu.unpackFlags(Alu.swap(0b011011111)));
+	    assertEquals(Alu.maskZNHC(true, false, false, false), Alu.unpackFlags(Alu.swap(0)));
+	}
+	
+	
+	@Test
+	void testBitThrowsOnInvalidValues() {
+	    assertThrows(IllegalArgumentException.class, () -> Alu.testBit(0b101011110011,  5));
+	}
+
+	@Test
+	void testBitWorksForKnownValues() {
+	    assertEquals(0b00100000, Alu.testBit(0b00011010, 6));
+	    assertEquals(0b10100000, Alu.testBit(0b00111001, 3));
+	}
+	
+	@Test
 	void testBitThrowsOnInvalidIndex() {
 	    assertThrows(IndexOutOfBoundsException.class, () -> Alu.testBit(0, 8));
 	}
