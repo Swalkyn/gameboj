@@ -15,7 +15,7 @@ public final class Alu {
      * Represents the bits for the flags of the ALU
      * For example, flag C is at index 4 in a packed output int
      */
-    private enum Flag implements Bit {
+    public enum Flag implements Bit {
         UNUSED_0, UNUSED_1, UNESED_2, UNUSED_3, C, H, N, Z
     }
     
