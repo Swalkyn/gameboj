@@ -198,7 +198,7 @@ public final class Alu {
      * @throws IllegalArgumentException if value not 8 bits
      * @return the packed bcd value and flags
      */
-    public static int bcdAjust(int v, boolean n, boolean h, boolean c) {
+    public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
         Preconditions.checkBits8(v);
         
         int fixL = (h || (!n && Bits.clip(4, v) > 9)) ? 1 : 0;
