@@ -120,6 +120,8 @@ class AluTest {
         assertEquals(0x20, Alu.unpackFlags(Alu.add(0x08, 0x08)));
         assertEquals(0xB0, Alu.unpackFlags(Alu.add(0x80, 0x7F, true)));
     }
+	
+	/* add16 tests */
 
 	@Test 
 	void add16FailsForInvalidValues() {
@@ -145,34 +147,119 @@ class AluTest {
 	    assertEquals(0x1200, Alu.unpackValue(Alu.add16H(0x11FF, 0x0001)));
 	}
 	
-	void add16LReturnsCorrectFlagsForKnownValues() {
+	void add16ReturnsCorrectFlagsForKnownValues() {
         assertEquals(0x30, Alu.unpackFlags(Alu.add16L(0x11FF, 0x0001)));
-    }
-    
-    @Test
-    void add16HReturnsCorrectFlagsForKnownValues() {
         assertEquals(0x00, Alu.unpackFlags(Alu.add16H(0x11FF, 0x0001)));
     }
 	
     /* sub tests */
     
+	@Test
+	void subFailsForInvalidValues() {
+	    assertThrows(IllegalArgumentException.class, () -> Alu.and(0x100, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, 0x100));
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(-1, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, -1));
+	}
+	
+	@Test
+	void subWorksForMaxValues() {
+	    assertEquals(0,0);
+	}
+	
+    @Test
+    void subReturnsCorrectValuesForKnownValues() {
+        assertEquals(0x00, Alu.unpackValue(Alu.sub(0x10, 0x10)));
+        assertEquals(0x90, Alu.unpackValue(Alu.sub(0x10, 0x80)));
+        assertEquals(0xFF, Alu.unpackValue(Alu.sub(0x01, 0x01, true)));
+    }
     
+    @Test
+    void subReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0xC0, Alu.unpackFlags(Alu.sub(0x10, 0x10)));
+        assertEquals(0x50, Alu.unpackFlags(Alu.sub(0x10, 0x80)));
+        assertEquals(0x70, Alu.unpackFlags(Alu.sub(0x01, 0x01, true)));
+    }
     
     /* bcdAdjust tests */
     
+    @Test
+    void bcdAdjustFailsForInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.bcdAdjust(0x100, false, false, false));
+        assertThrows(IllegalArgumentException.class, () -> Alu.bcdAdjust(-1, false, false, false));
+    }
     
+    @Test
+    void bcdAdjustReturnsCorrectValuesForKnownValues() {
+        assertEquals(0x73, Alu.unpackValue(Alu.bcdAdjust(0x6D, false, false, false)));
+        assertEquals(0x09, Alu.unpackValue(Alu.bcdAdjust(0x0F, true, true, false)));
+    }
+    
+    @Test
+    void bcdAdjustReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.bcdAdjust(0x6D, false, false, false)));
+        assertEquals(0x40, Alu.unpackFlags(Alu.bcdAdjust(0x0F, true, true, false)));
+    }
     
     /* and tests */
     
+    @Test 
+    void andFailsForInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(0x100, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, 0x100));
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(-1, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, -1));
+    }
     
+    @Test
+    void andReturnsCorrectValuesForKnownValues() {
+        assertEquals(0x03, Alu.unpackValue(Alu.and(0x53, 0xA7)));
+    }
+    
+    @Test
+    void andReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0x20, Alu.unpackFlags(Alu.and(0x53, 0xA7)));
+    }
     
     /* or tests */
     
+    @Test 
+    void orFailsForInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.or(0x100, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.or(0, 0x100));
+        assertThrows(IllegalArgumentException.class, () -> Alu.or(-1, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.or(0, -1));
+    }
     
+    @Test
+    void orReturnsCorrectValuesForKnownValues() {
+        assertEquals(0xF7, Alu.unpackValue(Alu.or(0x53, 0xA7)));
+    }
+    
+    @Test
+    void orReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.or(0x53, 0xA7)));
+    }
     
     /* xor tests */
     
+    @Test 
+    void xorFailsForInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.xor(0x100, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.xor(0, 0x100));
+        assertThrows(IllegalArgumentException.class, () -> Alu.xor(-1, 0));
+        assertThrows(IllegalArgumentException.class, () -> Alu.xor(0, -1));
+    }
     
+    @Test
+    void xorReturnsCorrectValuesForKnownValues() {
+        assertEquals(0xF4, Alu.unpackValue(Alu.xor(0x53, 0xA7)));
+    }
+    
+    @Test
+    void xorReturnsCorrectFlagsForKnownValues() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.xor(0x53, 0xA7)));
+    }
     
     /* shiftLeft tests */
     
