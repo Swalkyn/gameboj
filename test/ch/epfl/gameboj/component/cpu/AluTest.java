@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import ch.epfl.gameboj.component.cpu.Alu.RotDir;
+
 class AluTest {
 
 	/* maskZHCN tests */
@@ -176,19 +178,83 @@ class AluTest {
     
     /* shiftLeft tests */
     
+    @Test
+    void shiftLeftThrowsOnInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.shiftLeft(0xFF00));
+    }
     
+    @Test
+    void shiftLeftWorksForKnownValues() {
+        assertEquals(0x00, Alu.unpackValue(Alu.shiftLeft(0x80)));
+    }
+    
+    @Test
+    void shiftLeftReturnsCorrectFlags() {
+        assertEquals(0x90, Alu.unpackFlags(Alu.shiftLeft(0x80)));        
+    }
     
     /* shiftRightA tests */
     
+    @Test
+    void shiftRightAThrowsOnInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.shiftRightA(0xFF00));
+    }
     
+    @Test
+    void shiftRightAWorksForKnownValues() {
+        assertEquals(0xC0, Alu.unpackValue(Alu.shiftRightA(0x80)));
+    }
+    
+    @Test
+    void shiftRightAReturnsCorrectFlags() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.shiftRightA(0x80)));        
+    }
     
     /* shiftRightL tests */
     
+    @Test
+    void shiftRightLThrowsOnInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.shiftRightL(0xFF00));
+    }
     
+    @Test
+    void shiftRightLWorksForKnownValues() {
+        assertEquals(0x40, Alu.unpackValue(Alu.shiftRightL(0x80)));
+    }
+    
+    @Test
+    void shiftRightLReturnsCorrectFlags() {
+        assertEquals(0x00, Alu.unpackFlags(Alu.shiftRightL(0x80)));        
+    }
     
     /* rotate tests */
     
+    @Test
+    void rotateThrowsOnInvalidValues() {
+        assertThrows(IllegalArgumentException.class, () -> Alu.rotate(RotDir.LEFT, 0xFF00));
+    }
     
+    @Test
+    void rotateWorksForKnownValues() {
+        assertEquals(0x01, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80)));
+        assertEquals(0x00, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80, false)));
+        assertEquals(0x01, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x00, true)));
+        
+        assertEquals(0x40, Alu.unpackValue(Alu.rotate(RotDir.RIGHT, 0x80)));
+        assertEquals(0x40, Alu.unpackValue(Alu.rotate(RotDir.RIGHT, 0x80, false)));
+        assertEquals(0xC0, Alu.unpackValue(Alu.rotate(RotDir.RIGHT, 0x80, true)));
+    }
+    
+    @Test
+    void rotateReturnsCorrectFlags() {
+        assertEquals(0x10, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80)));
+        assertEquals(0x90, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80, false)));
+        assertEquals(0x00, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x00, true)));
+        
+        assertEquals(0x00, Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, 0x80)));
+        assertEquals(0x90, Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, 0x01, false)));
+        assertEquals(0x00, Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, 0x80, true)));
+    }
     
     /* swap tests */
     
