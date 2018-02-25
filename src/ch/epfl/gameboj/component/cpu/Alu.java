@@ -310,7 +310,7 @@ public final class Alu {
         Preconditions.checkBits8(v);
         
         boolean c = Bits.test(v, 0);
-        int result = v >> 1;
+        int result = Bits.clip(8, Bits.signExtend8(v) >> 1);
         boolean z = result == 0;
         
         return packValueZNHC(Bits.clip(8, result), z, false, false, c);
