@@ -132,7 +132,11 @@ class AluTest {
 	@Test
 	void add16WorksForMaxValues() {
 	    assertEquals(0, Alu.unpackValue(Alu.add16L(0, 0)));
-	    assertEquals(0, Alu.unpackValue(Alu.add16L(0, 0x01)));
+	    assertEquals(0x01, Alu.unpackValue(Alu.add16L(0, 0x01)));
+	    assertEquals(0, Alu.unpackValue(Alu.add16H(0, 0)));
+        assertEquals(0x01, Alu.unpackValue(Alu.add16H(0, 0x01)));
+        assertEquals(0xFFFF, Alu.unpackValue(Alu.add16L(0xFFFF, 0)));
+        assertEquals(0, Alu.unpackValue(Alu.add16L(0xFFFF, 0x01)));
 	}
 	
 	@Test
@@ -150,6 +154,44 @@ class AluTest {
         assertEquals(0x00, Alu.unpackFlags(Alu.add16H(0x11FF, 0x0001)));
     }
 	
+    /* sub tests */
+    
+    
+    
+    /* bcdAdjust tests */
+    
+    
+    
+    /* and tests */
+    
+    
+    
+    /* or tests */
+    
+    
+    
+    /* xor tests */
+    
+    
+    
+    /* shiftLeft tests */
+    
+    
+    
+    /* shiftRightA tests */
+    
+    
+    
+    /* shiftRightL tests */
+    
+    
+    
+    /* rotate tests */
+    
+    
+    
+    /* swap tests */
+    
 	@Test
 	void swapThrowsOnInvalidValues() {
 	    assertThrows(IllegalArgumentException.class, () -> Alu.swap(0xFF00));
@@ -167,6 +209,7 @@ class AluTest {
 	    assertEquals(Alu.maskZNHC(true, false, false, false), Alu.unpackFlags(Alu.swap(0)));
 	}
 	
+	/* testBit tests */
 	
 	@Test
 	void testBitThrowsOnInvalidValues() {
