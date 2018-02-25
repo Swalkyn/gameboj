@@ -290,11 +290,11 @@ public final class Alu {
     public static int shiftLeft(int v) {
         Preconditions.checkBits8(v);
         
-        int result = v << 1;
-        boolean z = result == 0;
         boolean c = Bits.test(v, 7);
+        int result = Bits.clip(8, v << 1);
+        boolean z = result == 0;
         
-        return packValueZNHC(Bits.clip(8, result), z, false, false, c);
+        return packValueZNHC(result, z, false, false, c);
     }
     
     /**
