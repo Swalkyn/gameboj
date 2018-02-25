@@ -346,10 +346,10 @@ public final class Alu {
     public static int rotate(RotDir d, int v) {
         Preconditions.checkBits8(v);
         
+        int index = (d == RotDir.LEFT) ? 7 : 0;
+        boolean c = Bits.test(v, index);
         int result = Bits.rotate(8, v, d.dirCode);
         boolean z = result == 0;
-        int index = (d == RotDir.LEFT) ? 7 : 0;
-        boolean c = Bits.test(result, index);
         
         return packValueZNHC(result, z, false, false, c);
     }
@@ -369,9 +369,9 @@ public final class Alu {
     public static int rotate(RotDir d, int v, boolean c) {
         Preconditions.checkBits8(v);
         
-        int cMask = c ? Bits.mask(9) : 0;
+        int cMask = c ? Bits.mask(8) : 0;
         int result = Bits.rotate(9, cMask | v, d.dirCode);
-        boolean z = result == 0;
+        boolean z = Bits.clip(8, result) == 0;
         boolean finalC = Bits.test(result, 8);
         
         return packValueZNHC(Bits.clip(8, result), z, false, false, finalC);
