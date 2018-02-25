@@ -18,7 +18,7 @@ public final class Ram implements Component {
      * @throws IllegalArgumentException if size strictly negative
      */
     public Ram(int size) {
-        Preconditions.checkArgument(size < 0);
+        Preconditions.checkArgument(size >= 0);
         memory = new byte[size];
     }
     
