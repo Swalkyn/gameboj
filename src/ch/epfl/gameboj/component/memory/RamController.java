@@ -29,8 +29,8 @@ public final class RamController implements Component {
         END_ADDRESS = Preconditions.checkBits16(endAddress);
         RAM = Objects.requireNonNull(ram);
 
-        Preconditions.checkArgument(startAddress > endAddress);
-        Preconditions.checkArgument(endAddress - startAddress > RAM.size());
+        Preconditions.checkArgument(startAddress <= endAddress);
+        Preconditions.checkArgument(endAddress - startAddress <= RAM.size());
     }
     
     /**
