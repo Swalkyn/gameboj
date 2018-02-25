@@ -104,7 +104,7 @@ public final class Bits {
      * @return the clipped value
      */
     public static int clip(int size, int bits) {
-        Preconditions.checkArgument(size < 0 || size > 32);           
+        Preconditions.checkArgument(size >= 0 && size <= 32);           
         
         if (size == 32) {
             return bits; // Because it works.
@@ -139,7 +139,7 @@ public final class Bits {
      * @return the rotated value
      */
     public static int rotate(int size, int bits, int distance) {
-        Preconditions.checkArgument(size <= 0 || size > 32);
+        Preconditions.checkArgument(size > 0 && size <= 32);
         
         int d = Math.floorMod(distance, size);
         
