@@ -26,7 +26,7 @@ public final class Alu {
     public enum RotDir {
         LEFT(1), RIGHT(-1);
         
-        private final int dirCode;
+        public final int dirCode;
         
         private RotDir(int dirCode) {
             this.dirCode = dirCode;
