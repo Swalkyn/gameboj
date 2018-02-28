@@ -2,7 +2,6 @@ package ch.epfl.gameboj.component.cpu;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
@@ -42,15 +41,48 @@ public final class Cpu implements Component, Clocked {
     }
     
     private int read8AtHl() {
-        return bus.read(rf16.get(Reg16.HL));
+        return read8(rf16.get(Reg16.HL));
     }
     
     private int read8AfterOpcode() {
-        return bus.read(rf16.get(Reg16.PC) + 1);
+        return read8(rf16.get(Reg16.PC) + 1);
         // TODO set PC to 0 ?
     }
     
+    private int read16(int address) {
+        Preconditions.checkBits16(address);
+        
+        return bus.read(address);
+    }
     
+    private int read16AfterOpcode() {
+        return read16(rf16.get(Reg16.PC) + 1);
+    }
+    
+    private void write8(int address, int v) {
+        Preconditions.checkBits16(address);
+        Preconditions.checkBits8(v);
+        
+        bus.write(address, v);
+    }
+    
+    private void write16(int address, int v) {
+        Preconditions.checkBits16(address);
+        Preconditions.checkBits16(v);
+        
+        bus.write(address, v);
+    }
+    
+    private void write8AtHl(int v) {        
+        write8(rf16.get(Reg16.HL), v);
+    }
+    
+    private void push16(int v) {
+        int newSpAddress = rf16.get(Reg16.SP) - 2;
+        
+        rf16.set(Reg16.SP, newSpAddress);
+        write16(newSpAddress, v);
+    }    
     
     @Override
     public int read(int address) {
