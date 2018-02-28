@@ -7,30 +7,31 @@ import ch.epfl.gameboj.component.Component;
 
 public final class Cpu implements Component, Clocked {
     
+    private long nextNonIdleCycle = 0;
+    
     private enum Reg implements Register {
         A, F, B, C, D, E, H, L
     }
     
-    private enum Reg16 {}
-    
-    
-    @Override
-    public void cycle(long cycle) {
-        // TODO Auto-generated method stub
-        
-    }
+    private enum Reg16 {}  
 
     @Override
     public int read(int address) {
-        // TODO Auto-generated method stub
-        return 0;
+        return Component.NO_DATA;
     }
 
     @Override
     public void write(int address, int data) {
-        // TODO Auto-generated method stub
-        
+        // Does nothing
     }
     
+    @Override
+    public void cycle(long cycle) {
+        
+        // If processor has something to do
+        if (cycle == nextNonIdleCycle) {
+            
+        }
+    }
     
 }
