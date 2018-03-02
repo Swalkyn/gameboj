@@ -229,7 +229,7 @@ public final class Cpu implements Component, Clocked {
         Preconditions.checkBits8(opcodeEncoding);
         
         Opcode opcode = searchOpcodeTable(opcodeEncoding); 
-        // TDOD INCR PC
+        // TODO INCR PC
         
         switch (opcode.family) {
             case NOP: {
@@ -244,47 +244,73 @@ public final class Cpu implements Component, Clocked {
                 setReg16(Reg16.HL, read8AtHl() + extractHlIncrement(opcode));
             } break;
             case LD_A_N8R: {
-                rf.set(Reg.A, 0xFF + read8AfterOpcode());
+                rf.set(Reg.A, 0xFF00 + read8AfterOpcode());
             } break;
             case LD_A_CR: {
-                rf.set(Reg.A, 0xFF + rf.get(Reg.C));
+                rf.set(Reg.A, 0xFF00 + rf.get(Reg.C));
             } break;
             case LD_A_N16R: {
                 rf.set(Reg.A, read16AfterOpcode());
             } break;
             case LD_A_BCR: {
+                rf.set(Reg.A, read8(reg16(Reg16.BC)));
             } break;
             case LD_A_DER: {
+                rf.set(Reg.A, read8(reg16(Reg16.DE)));
             } break;
             case LD_R8_N8: {
+                Reg reg = extractReg(opcode, 3);
+                rf.set(reg, read8AfterOpcode());
             } break;
             case LD_R16SP_N16: {
+                Reg16 reg16 = extractReg16(opcode);
+                setReg16SP(reg16, read16AfterOpcode());
             } break;
             case POP_R16: {
+                Reg16 reg16 = extractReg16(opcode);
+                setReg16(reg16, pop16());
             } break;
             case LD_HLR_R8: {
+                Reg reg = extractReg(opcode, 0);
+                write8AtHl(rf.get(reg));
             } break;
             case LD_HLRU_A: {
+                write8AtHl(rf.get(Reg.A));
+                setReg16(Reg16.HL, reg16(Reg16.HL) + extractHlIncrement(opcode));
             } break;
             case LD_N8R_A: {
+                write8(0xFF00 + read16AfterOpcode(), rf.get(Reg.A));
             } break;
             case LD_CR_A: {
+                write8(0xFF00 + rf.get(Reg.C), rf.get(Reg.A));
             } break;
             case LD_N16R_A: {
+                write8(read16AfterOpcode(), rf.get(Reg.A));
             } break;
             case LD_BCR_A: {
+                write8(reg16(Reg16.BC), rf.get(Reg.A));
             } break;
             case LD_DER_A: {
+                write8(reg16(Reg16.DE), rf.get(Reg.A));
             } break;
             case LD_HLR_N8: {
+                write8AtHl(read8AfterOpcode());
             } break;
             case LD_N16R_SP: {
-            } break;
-            case LD_R8_R8: {
-            } break;
-            case LD_SP_HL: {
+                write16(read16AfterOpcode(), SP);
             } break;
             case PUSH_R16: {
+                Reg16 reg16 = extractReg16(opcode);
+                push16(reg16(reg16));
+            } break;
+            case LD_R8_R8: {
+                Reg reg1 = extractReg(opcode, 0);
+                Reg reg2 = extractReg(opcode, 3);
+                
+                rf.set(reg2, rf.get(reg1));
+            } break;
+            case LD_SP_HL: {
+                SP = reg16(Reg16.HL);
             } break;
     
             default:
