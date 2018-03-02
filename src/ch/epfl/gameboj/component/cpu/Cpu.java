@@ -23,12 +23,25 @@ public final class Cpu implements Component, Clocked {
         A, F, B, C, D, E, H, L
     }
     
-    private enum Reg16 implements Register{
-        AF, BC, DE, HL, PC, SP
+    private enum Reg16 {
+        AF(Reg.A, Reg.F), 
+        BC(Reg.B, Reg.C), 
+        DE(Reg.D, Reg.F), 
+        HL(Reg.H, Reg.L);
+        
+        public final Reg r1;
+        public final Reg r2;
+        
+        Reg16(Reg r1, Reg r2) {
+            this.r1 = r1;
+            this.r2 = r2;
+        }
     }
     
+    private int PC = 0;
+    private int SP;
+    
     private RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
-    private RegisterFile<Reg16> rf16 = new RegisterFile<>(Reg16.values());
     
     @Override
     public void attachTo(Bus bus) {
@@ -40,7 +53,7 @@ public final class Cpu implements Component, Clocked {
     /* Read and write */
     
     private int read8(int address) {
-        Preconditions.checkBits8(address);
+        Preconditions.checkBits16(address);
         
         return bus.read(address);
     }
@@ -50,18 +63,20 @@ public final class Cpu implements Component, Clocked {
     }
     
     private int read8AfterOpcode() {
-        return read8(reg16(Reg16.PC) + 1);
-        // TODO set PC to 0 ?
+        return read8(PC + 1);
     }
     
     private int read16(int address) {
         Preconditions.checkBits16(address);
         
-        return bus.read(address);
+        int lsb = bus.read(address);
+        int msb = bus.read(address + 1);
+        
+        return Bits.make16(msb, lsb);
     }
     
     private int read16AfterOpcode() {
-        return read16(reg16(Reg16.PC) + 1);
+        return read16(PC + 1);
     }
     
     private void write8(int address, int v) {
@@ -75,7 +90,11 @@ public final class Cpu implements Component, Clocked {
         Preconditions.checkBits16(address);
         Preconditions.checkBits16(v);
         
-        bus.write(address, v);
+        int lsb = Bits.clip(8, v);
+        int msb = Bits.extract(v, 8, 8);
+        
+        bus.write(address, lsb);
+        bus.write(address + 1, msb);
     }
     
     private void write8AtHl(int v) {        
@@ -83,39 +102,43 @@ public final class Cpu implements Component, Clocked {
     }
     
     private void push16(int v) {
-        int newSpAddress = reg16(Reg16.SP) - 2;
-        
-        setReg16(Reg16.SP, newSpAddress);
-        write16(newSpAddress, v);
+        SP -= 2;
+        write16(SP, v);
     }
     
     private int pop16() {
-        int address = reg16(Reg16.SP);
-        setReg16(Reg16.SP, address + 2);
-        
-        return bus.read(address);
+        int value = read16(SP);
+        SP += 2;
+        return value;
     }
     
     
-    /* Getters and setters for registers */
+    /* Getters and setters for 16-bit registers */
     
     private int reg16(Reg16 r) {
-        return rf16.get(r);
+        int lsb = rf.get(r.r1);
+        int msb = rf.get(r.r2);
+        
+        return Bits.make16(msb, lsb);
     }
     
     private void setReg16(Reg16 r, int newV) {
         Preconditions.checkBits16(newV);
         
+        int lsb = Bits.clip(newV, 8);
+        int msb = Bits.extract(newV, 8, 8);
+        
         if (r == Reg16.AF) {
-            newV = Bits.extract(newV, 8, 8) << 8;
+            lsb = 0;
         }
         
-        rf16.set(r, newV);
+        rf.set(r.r1, lsb);
+        rf.set(r.r2, msb);
     }
     
     private void setReg16SP(Reg16 r, int newV) {
         if (r == Reg16.AF) {
-            setReg16(Reg16.SP, newV);
+            SP = newV;
         } else {
             setReg16(r, newV);
         }
@@ -155,8 +178,7 @@ public final class Cpu implements Component, Clocked {
     }
     
     private int extractHlIncrement(Opcode opcode) {
-        // TODO : return order ?
-        return Bits.test(opcode.encoding, 4) ? 1 : -1;
+        return Bits.test(opcode.encoding, 4) ? -1 : 1;
     }
     
     
@@ -207,19 +229,28 @@ public final class Cpu implements Component, Clocked {
         Preconditions.checkBits8(opcodeEncoding);
         
         Opcode opcode = searchOpcodeTable(opcodeEncoding); 
+        // TDOD INCR PC
         
         switch (opcode.family) {
             case NOP: {
+                // Does nothing
             } break;
             case LD_R8_HLR: {
+                Reg reg = extractReg(opcode, 3);
+                rf.set(reg, read8AtHl());
             } break;
             case LD_A_HLRU: {
+                rf.set(Reg.A, read8AtHl());
+                setReg16(Reg16.HL, read8AtHl() + extractHlIncrement(opcode));
             } break;
             case LD_A_N8R: {
+                rf.set(Reg.A, 0xFF + read8AfterOpcode());
             } break;
             case LD_A_CR: {
+                rf.set(Reg.A, 0xFF + rf.get(Reg.C));
             } break;
             case LD_A_N16R: {
+                rf.set(Reg.A, read16AfterOpcode());
             } break;
             case LD_A_BCR: {
             } break;

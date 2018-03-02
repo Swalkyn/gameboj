@@ -6,21 +6,21 @@ import ch.epfl.gameboj.bits.Bits;
 public final class RegisterFile<E extends Register> {
 
     private int size;
-    private int[] registerFile;
+    private byte[] registerFile;
     
     public RegisterFile(E[] allRegs) {
         size = allRegs.length;
-        registerFile = new int[size];
+        registerFile = new byte[size];
     }
     
     public int get(E reg) {
-        return registerFile[reg.index()];
+        return Byte.toUnsignedInt(registerFile[reg.index()]);
     }
     
     public void set(E reg, int newValue) {        
-        Preconditions.checkBits16(newValue);
+        Preconditions.checkBits8(newValue);
         
-        registerFile[reg.index()] = newValue;
+        registerFile[reg.index()] = (byte) newValue;
     }
     
     public boolean testBit(E reg, Bit b) {
