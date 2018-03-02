@@ -371,8 +371,8 @@ class AluTest {
 
 	@Test
 	void testBitWorksForKnownValues() {
-	    assertEquals(0b00100000, Alu.testBit(0b00011010, 6));
-	    assertEquals(0b10100000, Alu.testBit(0b00111001, 3));
+	    assertEquals(0b10100000, Alu.testBit(0b00011010, 6));
+	    assertEquals(0b00100000, Alu.testBit(0b00111001, 3));
 	}
 	
 	@Test

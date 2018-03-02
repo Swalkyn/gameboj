@@ -406,7 +406,7 @@ public final class Alu {
             throw new IndexOutOfBoundsException("Index must be between 0 and 7 (included)");
         }
         
-        return packValueZNHC(0, Bits.test(v, bitIndex), false, true, false);
+        return packValueZNHC(0, !Bits.test(v, bitIndex), false, true, false);
     }
 }
 

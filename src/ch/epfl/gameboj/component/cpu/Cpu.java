@@ -7,6 +7,8 @@ import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
+import ch.epfl.gameboj.bits.Bit;
+import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
@@ -34,6 +36,9 @@ public final class Cpu implements Component, Clocked {
         Component.super.attachTo(bus);
     }
     
+    
+    /* Read and write */
+    
     private int read8(int address) {
         Preconditions.checkBits8(address);
         
@@ -41,11 +46,11 @@ public final class Cpu implements Component, Clocked {
     }
     
     private int read8AtHl() {
-        return read8(rf16.get(Reg16.HL));
+        return read8(reg16(Reg16.HL));
     }
     
     private int read8AfterOpcode() {
-        return read8(rf16.get(Reg16.PC) + 1);
+        return read8(reg16(Reg16.PC) + 1);
         // TODO set PC to 0 ?
     }
     
@@ -56,7 +61,7 @@ public final class Cpu implements Component, Clocked {
     }
     
     private int read16AfterOpcode() {
-        return read16(rf16.get(Reg16.PC) + 1);
+        return read16(reg16(Reg16.PC) + 1);
     }
     
     private void write8(int address, int v) {
@@ -74,15 +79,86 @@ public final class Cpu implements Component, Clocked {
     }
     
     private void write8AtHl(int v) {        
-        write8(rf16.get(Reg16.HL), v);
+        write8(reg16(Reg16.HL), v);
     }
     
     private void push16(int v) {
-        int newSpAddress = rf16.get(Reg16.SP) - 2;
+        int newSpAddress = reg16(Reg16.SP) - 2;
         
-        rf16.set(Reg16.SP, newSpAddress);
+        setReg16(Reg16.SP, newSpAddress);
         write16(newSpAddress, v);
-    }    
+    }
+    
+    private int pop16() {
+        int address = reg16(Reg16.SP);
+        setReg16(Reg16.SP, address + 2);
+        
+        return bus.read(address);
+    }
+    
+    
+    /* Getters and setters for registers */
+    
+    private int reg16(Reg16 r) {
+        return rf16.get(r);
+    }
+    
+    private void setReg16(Reg16 r, int newV) {
+        Preconditions.checkBits16(newV);
+        
+        if (r == Reg16.AF) {
+            newV = Bits.extract(newV, 8, 8) << 8;
+        }
+        
+        rf16.set(r, newV);
+    }
+    
+    private void setReg16SP(Reg16 r, int newV) {
+        if (r == Reg16.AF) {
+            setReg16(Reg16.SP, newV);
+        } else {
+            setReg16(r, newV);
+        }
+    }
+    
+
+    /* Bit extraction */
+    
+    private Reg extractReg(Opcode opcode, int startBit) {
+        int registerCode = Bits.extract(opcode.encoding, startBit, 3);
+        
+        switch(registerCode) {
+            case 0b000: return Reg.B;
+            case 0b001: return Reg.C;
+            case 0b010: return Reg.D;
+            case 0b011: return Reg.E;
+            case 0b100: return Reg.H;
+            case 0b101: return Reg.L;
+            case 0b111: return Reg.A;
+            
+            default : throw new IllegalArgumentException("Invalid register code");
+        }
+    }
+    
+    private Reg16 extractReg16(Opcode opcode) {
+        int registerCode = Bits.extract(opcode.encoding, 4, 2);
+        
+        // TODO : ask for AF/SP conflict
+        switch(registerCode) {
+            case 0b00: return Reg16.BC;
+            case 0b01: return Reg16.DE;
+            case 0b10: return Reg16.HL;
+            case 0b11: return Reg16.AF;
+
+            default : throw new IllegalArgumentException("Invalid register code");
+        }
+    }
+    
+    private int extractHlIncrement(Opcode opcode) {
+        // TODO : return order ?
+        return Bits.test(opcode.encoding, 4) ? 1 : -1;
+    }
+    
     
     @Override
     public int read(int address) {

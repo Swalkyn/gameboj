@@ -17,8 +17,8 @@ public final class RegisterFile<E extends Register> {
         return registerFile[reg.index()];
     }
     
-    public void set(E reg, int newValue) {
-        Preconditions.checkBits8(newValue);
+    public void set(E reg, int newValue) {        
+        Preconditions.checkBits16(newValue);
         
         registerFile[reg.index()] = newValue;
     }
