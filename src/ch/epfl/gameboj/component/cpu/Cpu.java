@@ -231,10 +231,10 @@ public final class Cpu implements Component, Clocked {
     /* Bit extraction */
     
     /**
-     * Extracts the 8-bit reg's code from an opcode at a specified index
-     * @param opcode : the opcode from which the reg's code will be extracted
+     * Extracts the 8-bit register's code from an opcode at a specified index
+     * @param opcode : the opcode from which the register's code will be extracted
      * @param startBit : the index where the 3 bits long code starts
-     * @return the reg's code
+     * @return the register's code
      */
     private Reg extractReg(Opcode opcode, int startBit) {
         int registerCode = Bits.extract(opcode.encoding, startBit, 3);
@@ -253,9 +253,9 @@ public final class Cpu implements Component, Clocked {
     }
     
     /**
-     * Extracts the 16-bit reg's code from an opcode
-     * @param opcode : the opcode from which the reg's code will be extracted
-     * @return the reg's code
+     * Extracts the 16-bit register's code from an opcode
+     * @param opcode : the opcode from which the register's code will be extracted
+     * @return the register's code
      */
     private Reg16 extractReg16(Opcode opcode) {
         int registerCode = Bits.extract(opcode.encoding, 4, 2);
