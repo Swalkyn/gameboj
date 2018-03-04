@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import ch.epfl.gameboj.bits.Bit;
-import ch.epfl.gameboj.bits.Bits;
 
 public class RegisterFileTest {
     

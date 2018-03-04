@@ -243,7 +243,7 @@ public final class Cpu implements Component, Clocked {
     private void setReg16(Reg16 r, int newV) {
         Preconditions.checkBits16(newV);
         
-        int lsb = Bits.clip(newV, 8);
+        int lsb = Bits.clip(8, newV);
         int msb = Bits.extract(newV, 8, 8);
         
         if (r == Reg16.AF) {
@@ -353,14 +353,14 @@ public final class Cpu implements Component, Clocked {
             }
         }
         
-        throw new IllegalArgumentException("Opcode encoding does not exist");
+        throw new NullPointerException("Opcode encoding does not exist");
     }
     
     /**
      * Executes a task corresponding to an opcode, and increments the program counter and the next non-idle cycle
      * @param opcodeEncoding : the opcode encoding
      */
-    public void dispatch(int opcodeEncoding) {
+    private void dispatch(int opcodeEncoding) {
         Preconditions.checkBits8(opcodeEncoding);
         
         Opcode opcode = searchOpcodeTable(opcodeEncoding); 
