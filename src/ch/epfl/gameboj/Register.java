@@ -1,7 +1,7 @@
 package ch.epfl.gameboj;
 
 /**
- * Inteface implemented by enum representing registers of the same register file
+ * Interface implemented by enum representing registers of the same register file
  * @author luca
  *
  */
