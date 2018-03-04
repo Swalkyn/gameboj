@@ -93,6 +93,27 @@ public final class Cpu implements Component, Clocked {
     }
     
     
+    /* Test helper */
+    
+    /**
+     * @return an array of all the values stored in the cpu registers
+     */
+    public int[] _testGetPcSpAFBCDEHL() {
+        int[] registersValues = new int[10];
+        
+        registersValues[0] = PC;
+        registersValues[1] = SP;
+        
+        int index = 2;
+        for (Reg reg : Reg.values()) {
+            registersValues[index] = rf.get(reg);
+            index++;
+        }
+        
+        return registersValues;
+    }
+    
+    
     /* Read and write */
     
     /**
