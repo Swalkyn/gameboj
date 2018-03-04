@@ -379,10 +379,10 @@ public final class Cpu implements Component, Clocked {
                 setReg16(Reg16.HL, reg16(Reg16.HL) + extractHlIncrement(opcode));
             } break;
             case LD_A_N8R: {
-                rf.set(Reg.A, 0xFF00 + read8AfterOpcode());
+                rf.set(Reg.A, read8(0xFF00 + read8AfterOpcode()));
             } break;
             case LD_A_CR: {
-                rf.set(Reg.A, 0xFF00 + rf.get(Reg.C));
+                rf.set(Reg.A, read8(0xFF00 + rf.get(Reg.C)));
             } break;
             case LD_A_N16R: {
                 rf.set(Reg.A, read16AfterOpcode());

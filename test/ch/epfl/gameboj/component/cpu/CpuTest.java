@@ -127,6 +127,20 @@ class CpuTest {
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
         assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[8]);
     }
+    
+    @Test
+    void testLD_A_N8R() {
+    	int[] program = new int[0xFFFF];
+    	
+    	program[0] = Opcode.LD_A_N8R.encoding;
+    	program[1] = 0x04;
+    	program[0xFF00 + 0x04] = 0x13;
+    	
+    	 Cpu cpu = newCpu(program);
+         runCpu(cpu, program.length);
+         
+         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
 
 }
 
