@@ -376,7 +376,7 @@ public final class Cpu implements Component, Clocked {
             } break;
             case LD_A_HLRU: {
                 rf.set(Reg.A, read8AtHl());
-                setReg16(Reg16.HL, read8AtHl() + extractHlIncrement(opcode));
+                setReg16(Reg16.HL, reg16(Reg16.HL) + extractHlIncrement(opcode));
             } break;
             case LD_A_N8R: {
                 rf.set(Reg.A, 0xFF00 + read8AfterOpcode());
