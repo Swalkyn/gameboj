@@ -43,31 +43,50 @@ public final class Cpu implements Component, Clocked {
     private RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
     
     
- /* Methods for Component interface */
+    /* Methods for Component interface */
     
+    /**
+     * Stores bus as attribute then attaches Cpu to bus 
+     * @param bus
+     */
     @Override
     public void attachTo(Bus bus) {
         this.bus = bus;
         Component.super.attachTo(bus);
     }
     
+    /**
+     * Implemented for component interface, returns NO_DATA
+     * @param address
+     * @return NO_DATA
+     */
     @Override
     public int read(int address) {
         return Component.NO_DATA;
     }
 
+    /**
+     * Implemented for Component interface, does nothing
+     * @param address
+     * @param data
+     */
     @Override
     public void write(int address, int data) {
         // Does nothing
     }
     
+    /**
+     * Executes next instruction based on program counter
+     * @param cycle : number of elapsed cycles since start
+     */
     @Override
     public void cycle(long cycle) {
         
         // If processor has something to do
         if (cycle == nextNonIdleCycle) {
             dispatch(read8(PC));
-        } 
+        }
+        // TODO Help
         /*else {
             dispatch(Opcode.NOP.encoding);
         }*/
@@ -78,7 +97,7 @@ public final class Cpu implements Component, Clocked {
     
     /**
      * Reads an 8-bit value on the bus at specified address
-     * @param address : the address to be read
+     * @param address : the address to be read, 16 bits
      * @return the read value
      */
     private int read8(int address) {
@@ -105,7 +124,7 @@ public final class Cpu implements Component, Clocked {
     
     /**
      * Reads a 16-bit value on the bus at specified address
-     * @param address : the address to be read
+     * @param address : the address to be read, 16 bits
      * @return the read value
      */
     private int read16(int address) {
@@ -126,7 +145,7 @@ public final class Cpu implements Component, Clocked {
     }
     
     /**
-     * Writes the given 8-bit value on the bus at the specified address
+     * Writes the given 8-bit value to the bus at the specified address
      * @param address : the address were the value will be written
      * @param v : the value to be written
      */
@@ -171,8 +190,8 @@ public final class Cpu implements Component, Clocked {
     }
     
     /**
-     * Reads the value at the address stored in the SP register, and decrements the address by 2
-     * @return
+     * Reads the value at the address stored in the SP register, and increments the address by 2
+     * @return the read value
      */
     private int pop16() {
         int value = read16(SP);
@@ -233,7 +252,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Extracts the 8-bit register's code from an opcode at a specified index
      * @param opcode : the opcode from which the register's code will be extracted
-     * @param startBit : the index where the 3 bits long code starts
+     * @param startBit : the index where the 3 bit long code starts
      * @return the register's code
      */
     private Reg extractReg(Opcode opcode, int startBit) {
@@ -271,9 +290,9 @@ public final class Cpu implements Component, Clocked {
     }
     
     /**
-     * Extract whether the value in HL should be incremented or decremented from an opcode
+     * Determines whether the value in HL should be incremented or decremented from opcode
      * @param opcode : the opcode from which the increment will be extracted
-     * @return the increments (1 or -1)
+     * @return the increment (1 or -1)
      */
     private int extractHlIncrement(Opcode opcode) {
         return Bits.test(opcode.encoding, 4) ? -1 : 1;
@@ -283,7 +302,7 @@ public final class Cpu implements Component, Clocked {
     /* Opcode table methods */
     
     /**
-     * Creates a table of opcodes, selected by their kind
+     * Creates a table of opcodes, filtering out non-direct ones
      * @param kind : the kind of opcodes the table will contain
      * @return the table of opcodes
      */
