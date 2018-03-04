@@ -110,6 +110,23 @@ class CpuTest {
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
         assertEquals(0x05, cpu._testGetPcSpAFBCDEHL()[8]);
     }
+    
+    @Test
+    void testLD_A_HLRU_Decrement() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,      // 0: LD HL nn
+                0x04,                           // 1:
+                0x00,                           // 2: address 0x0004
+                Opcode.LD_A_HLRD.encoding,      // 3: LD A [HL+] HL = 0x0005
+                0x13                            // 4: HL = 0x0005
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[8]);
+    }
 
 }
 
