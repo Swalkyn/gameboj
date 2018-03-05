@@ -256,6 +256,18 @@ class CpuTest {
         program[3] = Opcode.POP_BC.encoding;
         program[0x0405] = 0x14;
         program[0x0406] = 0x13;
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[4]);
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0x0504 - 2, cpu._testGetPcSpAFBCDEHL()[0]);
+    }
+    
+    @Test
+    void testLD_HLR_R8() {
+        
     }
 }
 
