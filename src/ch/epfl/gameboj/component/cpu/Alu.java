@@ -227,7 +227,7 @@ public final class Alu {
             va = v + fix;
         }
         
-        return packValueZNHC(va, va == 0, n, false, fixH == 1);
+        return packValueZNHC(Bits.clip(8, va), va == 0, n, false, fixH == 1);
     }
     
     /**

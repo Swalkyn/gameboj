@@ -25,7 +25,7 @@ public final class Cpu implements Component, Clocked {
     private enum Reg16 {
         AF(Reg.A, Reg.F), 
         BC(Reg.B, Reg.C), 
-        DE(Reg.D, Reg.F), 
+        DE(Reg.D, Reg.E), 
         HL(Reg.H, Reg.L);
         
         public final Reg r1;
@@ -389,7 +389,7 @@ public final class Cpu implements Component, Clocked {
                 rf.set(Reg.A, read8(0xFF00 + rf.get(Reg.C)));
             } break;
             case LD_A_N16R: {
-                rf.set(Reg.A, read16AfterOpcode());
+                rf.set(Reg.A, read8(read16AfterOpcode()));
             } break;
             case LD_A_BCR: {
                 rf.set(Reg.A, read8(reg16(Reg16.BC)));
