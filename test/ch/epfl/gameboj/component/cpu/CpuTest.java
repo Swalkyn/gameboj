@@ -137,7 +137,7 @@ class CpuTest {
     	    program[0xFF00 + 0x04] = 0x13;
     	
     	    Cpu cpu = newCpu(program);
-        runCpu(cpu, program.length);
+        runCpu(cpu, 5);
          
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
     }
@@ -152,7 +152,7 @@ class CpuTest {
         program[0xFF00 + 0x04] = 0x13;
         
         Cpu cpu = newCpu(program);
-        runCpu(cpu, program.length);
+        runCpu(cpu, 5);
         
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
     }
@@ -254,20 +254,230 @@ class CpuTest {
         program[1] = 0x04;
         program[2] = 0x05;
         program[3] = Opcode.POP_BC.encoding;
-        program[0x0405] = 0x14;
-        program[0x0406] = 0x13;
+        program[0x0504] = 0x14;
+        program[0x0505] = 0x13;
         
         Cpu cpu = newCpu(program);
-        runCpu(cpu, program.length);
+        runCpu(cpu, 5);
         
         assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[4]);
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[5]);
-        assertEquals(0x0504 - 2, cpu._testGetPcSpAFBCDEHL()[0]);
+        assertEquals(0x0504 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
     }
     
     @Test
     void testLD_HLR_R8() {
+        int[] program = {
+        		Opcode.LD_C_N8.encoding,		// 0
+        		0x13,							// 1
+        		Opcode.LD_HL_N16.encoding,		
+        		0x09,
+        		0x00,
+        		Opcode.LD_HLR_C.encoding,		// BUS[HL] = C
+        		Opcode.LD_A_N16R.encoding,		// A = BUS[0x0009]
+        		0x09,
+        		0x00,
+        		0x00							// Target
+        };
         
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testHLRU_ADecrement() {
+    	int[] program = {
+    			Opcode.LD_A_N8.encoding,	// A = 0x13
+    			0x13,
+    			Opcode.LD_HL_N16.encoding,	// HL = 0x0009
+    			0x09,
+    			0x00,
+    			Opcode.LD_HLRD_A.encoding,	// BUS[HL] = A ; HL -= 1;
+    			Opcode.LD_A_N16R.encoding,	// A = BUS[0x0009]
+    			0x09,
+    			0x00,
+    			0x00						// Target
+    	};
+    	
+    	Cpu cpu = newCpu(program);
+    	runCpu(cpu, program.length);
+    	
+    	assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    	assertEquals(0x08, cpu._testGetPcSpAFBCDEHL()[8]);
+    	assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[9]);
+    }
+    
+    @Test
+    void testHLRU_AIncrement() {
+    	int[] program = {
+    			Opcode.LD_A_N8.encoding,	// A = 0x13
+    			0x13,
+    			Opcode.LD_HL_N16.encoding,	// HL = 0x0009
+    			0x09,
+    			0x00,
+    			Opcode.LD_HLRI_A.encoding,	// BUS[HL] = A ; HL += 1;
+    			Opcode.LD_A_N16R.encoding,	// A = BUS[0x0009]
+    			0x09,
+    			0x00,
+    			0x00						// Target
+    	};
+    	
+    	Cpu cpu = newCpu(program);
+    	runCpu(cpu, program.length);
+    	
+    	assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    	assertEquals(0x0A, cpu._testGetPcSpAFBCDEHL()[8]);
+    	assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[9]);
+    }
+    
+    @Test
+    void testLD_N8R_A() {
+    	int[] program = new int[0xFFFF];
+    	program[0] = Opcode.LD_A_N8.encoding;
+    	program[1] = 0x13;
+    	program[2] = Opcode.LD_N8R_A.encoding;
+    	program[3] = 0x04;
+    	program[4] = Opcode.LD_A_N8.encoding;
+    	program[5] = 0x01;
+    	program[6] = Opcode.LD_A_N16R.encoding;
+    	program[7] = 0x04; 
+    	program[8] = 0xFF;
+    	
+    	Cpu cpu = newCpu(program);
+    	runCpu(cpu, 10);
+    	
+    	assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+	}
+    
+    @Test
+    void testLD_CR_A() {
+        int[] program = new int[0xFFFF];
+        program[0] = Opcode.LD_A_N8.encoding;
+        program[1] = 0x13;
+        program[2] = Opcode.LD_C_N8.encoding;
+        program[3] = 0x04;
+        program[4] = Opcode.LD_CR_A.encoding;
+        program[5] = Opcode.LD_A_N8.encoding;
+        program[6] = 0x01;
+        program[7] = Opcode.LD_A_N16R.encoding;
+        program[8] = 0x04; 
+        program[9] = 0xFF;
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, 10);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testLD_N16R_A() {
+        int[] program = new int[0xFFFF];
+        program[0] = Opcode.LD_A_N8.encoding;
+        program[1] = 0x13;
+        program[2] = Opcode.LD_N16R_A.encoding;
+        program[3] = 0x04;
+        program[4] = 0xFF;
+        program[5] = Opcode.LD_A_N8.encoding;
+        program[6] = 0x01;
+        program[7] = Opcode.LD_A_N16R.encoding;
+        program[8] = 0x04; 
+        program[9] = 0xFF;
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, 10);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testLD_BCR_A() {
+        int[] program = new int[0xFFFF];
+        program[0] = Opcode.LD_A_N8.encoding;
+        program[1] = 0x13;
+        program[2] = Opcode.LD_BC_N16.encoding;
+        program[3] = 0x04;
+        program[4] = 0xFF;
+        program[5] = Opcode.LD_BCR_A.encoding;
+        program[6] = Opcode.LD_A_N8.encoding;
+        program[7] = 0x01;
+        program[8] = Opcode.LD_A_N16R.encoding;
+        program[9] = 0x04; 
+        program[10] = 0xFF;
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, 11);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testLD_DER_A() {
+        int[] program = new int[0xFFFF];
+        program[0] = Opcode.LD_A_N8.encoding;
+        program[1] = 0x13;
+        program[2] = Opcode.LD_DE_N16.encoding;
+        program[3] = 0x04;
+        program[4] = 0xFF;
+        program[5] = Opcode.LD_DER_A.encoding;
+        program[6] = Opcode.LD_A_N8.encoding;
+        program[7] = 0x01;
+        program[8] = Opcode.LD_A_N16R.encoding;
+        program[9] = 0x04; 
+        program[10] = 0xFF;
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, 11);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testLD_HLR_N8() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,  // HL = 0x0005
+                0x08,
+                0x00,
+                Opcode.LD_HLR_N8.encoding,  // BUS[HL] = 0x13
+                0x13,                       
+                Opcode.LD_A_N16R.encoding,  // A = BUS[0x0005]
+                0x08,
+                0x00,
+                0x01                        // Target
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testLD_N16R_SP() {
+        int[] program = {
+                Opcode.LD_SP_N16.encoding,  // SP = 0x1413
+                0x13,
+                0x14,
+                Opcode.LD_N16R_SP.encoding, // BUS[0x000D] = SP
+                0x0D,
+                0x00,
+                Opcode.LD_A_N16R.encoding,  // A = BUS[0x000D]
+                0x0D,
+                0x00,
+                Opcode.LD_B_A.encoding,     // B = A
+                Opcode.LD_A_N16R.encoding,  // A = BUS[0x000E]
+                0x0E,
+                0x00,
+                0x01,                       // Target 1
+                0x02                        // Target 2
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[4]);
     }
 }
 
