@@ -86,10 +86,6 @@ public final class Cpu implements Component, Clocked {
         if (cycle == nextNonIdleCycle) {
             dispatch(read8(PC));
         }
-        // TODO Help
-        /*else {
-            dispatch(Opcode.NOP.encoding);
-        }*/
     }
     
     
@@ -119,6 +115,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Reads an 8-bit value on the bus at specified address
      * @param address : the address to be read, 16 bits
+     * @throws IllegalArgumentException if the address is not a 16-bit integer
      * @return the read value
      */
     private int read8(int address) {
@@ -146,6 +143,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Reads a 16-bit value on the bus at specified address
      * @param address : the address to be read, 16 bits
+     * @throws IllegalArgumentException if the address is not a 16-bit integer
      * @return the read value
      */
     private int read16(int address) {
@@ -168,6 +166,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Writes the given 8-bit value to the bus at the specified address
      * @param address : the address were the value will be written
+     * @throws IllegalArgumentException if the address is not a 16-bit integer or the value is not a 8-bit integer
      * @param v : the value to be written
      */
     private void write8(int address, int v) {
@@ -180,6 +179,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Writes the given 16-bit value on the bus at the specified address
      * @param address : the address were the value will be written
+     * @throws IllegalArgumentException if the address is not a 16-bit integer or the value is not a 8-bit integer
      * @param v : the value to be written
      */
     private void write16(int address, int v) {
@@ -239,6 +239,7 @@ public final class Cpu implements Component, Clocked {
      * Stores a given 16-bit value in the specified 16-bit register
      * @param r : the register where the value will be stored
      * @param newV : the value to store
+     * @throws IllegalArgumentException if the value is not a 16-bit integer
      */
     private void setReg16(Reg16 r, int newV) {
         Preconditions.checkBits16(newV);
@@ -274,6 +275,7 @@ public final class Cpu implements Component, Clocked {
      * Extracts the 8-bit register's code from an opcode at a specified index
      * @param opcode : the opcode from which the register's code will be extracted
      * @param startBit : the index where the 3 bit long code starts
+     * @throws IllegalArgumentException if the register code is not valid
      * @return the register's code
      */
     private Reg extractReg(Opcode opcode, int startBit) {
@@ -295,6 +297,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Extracts the 16-bit register's code from an opcode
      * @param opcode : the opcode from which the register's code will be extracted
+     * @throws IllegalArgumentException if the register code is not valid
      * @return the register's code
      */
     private Reg16 extractReg16(Opcode opcode) {
@@ -342,6 +345,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * Searches an opcode by its encoding in an opcode table
      * @param opcodeEncoding : the encoding of the opcode
+     * @throws NullPointerException if the register encoding is not 8 bits long
      * @return the opcode
      */
     private Opcode searchOpcodeTable(int opcodeEncoding) {

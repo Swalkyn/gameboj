@@ -35,6 +35,7 @@ public final class RegisterFile<E extends Register> {
      * Stores a given value into the specified register
      * @param reg : the register where the value will be stored
      * @param newValue : the value that will be stored
+     * @throws IllegalArgumentException if the new value is not 8 bits long
      */
     public void set(E reg, int newValue) {        
         Preconditions.checkBits8(newValue);
