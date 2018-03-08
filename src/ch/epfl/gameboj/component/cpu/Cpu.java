@@ -10,11 +10,15 @@ import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
+import ch.epfl.gameboj.component.cpu.Alu.Flag;
+import ch.epfl.gameboj.component.cpu.Alu.RotDir;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 
 public final class Cpu implements Component, Clocked {
     
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.DIRECT); 
+    private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.PREFIXED);
+    private static final int OPCODE_PREFIX = 0xCB;
     private long nextNonIdleCycle = 0;
     private Bus bus;
     
@@ -35,6 +39,10 @@ public final class Cpu implements Component, Clocked {
             this.r1 = r1;
             this.r2 = r2;
         }
+    }
+    
+    private enum FlagSrc {
+        V0, V1, ALU, CPU
     }
     
     private int PC = 0;
@@ -322,6 +330,21 @@ public final class Cpu implements Component, Clocked {
         return Bits.test(opcode.encoding, 4) ? -1 : 1;
     }
     
+    private RotDir extractRotDir(Opcode opcode) {
+        return Bits.test(opcode.encoding, 3) ? RotDir.RIGHT : RotDir.LEFT;
+    }
+    
+    private int extractBitIndex(Opcode opcode) {
+        return Bits.extract(opcode.encoding, 3, 3);
+    }
+    
+    private boolean extractNewBitValue(Opcode opcode) {
+        return Bits.test(opcode.encoding, 6);
+    }
+    
+    private boolean extractInitalCarry(Opcode opcode) {
+        return Bits.test(opcode.encoding, 3) && rf.testBit(Reg.F, Flag.C);
+    }
    
     /* Opcode table methods */
     
@@ -348,10 +371,10 @@ public final class Cpu implements Component, Clocked {
      * @throws NullPointerException if the register encoding is not 8 bits long
      * @return the opcode
      */
-    private Opcode searchOpcodeTable(int opcodeEncoding) {
+    private Opcode searchOpcodeTable(int opcodeEncoding, Opcode[] opcodeTable) {
         Preconditions.checkBits8(opcodeEncoding);
         
-        for (Opcode o : DIRECT_OPCODE_TABLE) {
+        for (Opcode o : opcodeTable) {
             if (o.encoding == opcodeEncoding) {
                 return o;
             }
@@ -360,6 +383,42 @@ public final class Cpu implements Component, Clocked {
         throw new NullPointerException("Opcode encoding does not exist");
     }
     
+    /* Flag Manipulation */
+    
+    private void setRegFromAlu(Reg r, int vf) {
+        rf.set(r, Alu.unpackValue(vf));
+    }
+    
+    private void setFlags(int valueFlags) {
+        rf.set(Reg.F, Alu.unpackFlags(valueFlags));
+    }
+    
+    private void setRegFlags(Reg r, int vf) {
+        setRegFromAlu(r, vf);
+        setFlags(vf);
+    }
+    
+    private void write8AtHlAndSetFlags(int vf) {
+        write8AtHl(Alu.unpackValue(vf));
+        setFlags(vf);
+    }
+    
+    private void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h, FlagSrc c) {         
+         int mask = Alu.maskZNHC(getFlagValue(vf, Flag.Z, z), getFlagValue(vf, Flag.N, n), 
+                 getFlagValue(vf, Flag.H, h), getFlagValue(vf, Flag.C, c));
+         
+         setFlags(mask);
+    }
+    
+    private boolean getFlagValue(int vf, Flag f, FlagSrc s) {
+        if (s == FlagSrc.V0) return false;
+        else if (s == FlagSrc.V1) return true;
+        else if (s == FlagSrc.ALU) return Bits.test(vf, f);
+        else return rf.testBit(Reg.F, f);
+    }
+    
+    /* Dispatch method */
+    
     /**
      * Executes a task corresponding to an opcode, and increments the program counter and the next non-idle cycle
      * @param opcodeEncoding : the opcode encoding
@@ -367,13 +426,20 @@ public final class Cpu implements Component, Clocked {
     private void dispatch(int opcodeEncoding) {
         Preconditions.checkBits8(opcodeEncoding);
         
-        Opcode opcode = searchOpcodeTable(opcodeEncoding); 
-        // TODO INCR PC
+        Opcode opcode = null;
+        if (opcodeEncoding == OPCODE_PREFIX) {
+            opcode = searchOpcodeTable(read8AfterOpcode(), PREFIXED_OPCODE_TABLE);
+        } else {
+            opcode = searchOpcodeTable(opcodeEncoding, DIRECT_OPCODE_TABLE); 
+        }
         
         switch (opcode.family) {
             case NOP: {
                 // Does nothing
             } break;
+            
+            // Load instructions
+            
             case LD_R8_HLR: {
                 Reg reg = extractReg(opcode, 3);
                 rf.set(reg, read8AtHl());
@@ -409,6 +475,9 @@ public final class Cpu implements Component, Clocked {
                 Reg16 reg16 = extractReg16(opcode);
                 setReg16(reg16, pop16());
             } break;
+            
+            // Write instructions
+            
             case LD_HLR_R8: {
                 Reg reg = extractReg(opcode, 0);
                 write8AtHl(rf.get(reg));
@@ -450,6 +519,51 @@ public final class Cpu implements Component, Clocked {
             } break;
             case LD_SP_HL: {
                 SP = reg16(Reg16.HL);
+            } break;
+            
+            // Add instructions
+            
+            case ADD_A_R8: {
+                int vf = Alu.add(rf.get(Reg.A), rf.get(extractReg(opcode, 0)), extractInitalCarry(opcode));
+                rf.set(Reg.A, Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+            } break;
+            case ADD_A_N8: {
+                int vf = Alu.add(rf.get(Reg.A), read8AfterOpcode(), extractInitalCarry(opcode));
+                rf.set(Reg.A, Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+            } break;
+            case ADD_A_HLR: {
+                int vf = Alu.add(rf.get(Reg.A), read8AtHl(), extractInitalCarry(opcode));
+                rf.set(Reg.A, Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+            } break;
+            case INC_R8: {
+                Reg r = extractReg(opcode, 3);
+                int vf = Alu.add(rf.get(r), 1);
+                rf.set(r, Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.CPU);
+            } break;
+            case INC_HLR: {
+                int vf = Alu.add(read8AtHl(), 1);
+                write8(reg16(Reg16.HL), Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.CPU);
+            } break;
+            case INC_R16SP: {
+                Reg16 r = extractReg16(opcode);
+                int vf = Alu.add16H(reg16(r), 1);
+                setReg16SP(r, Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.CPU, FlagSrc.CPU, FlagSrc.CPU, FlagSrc.CPU);
+            } break;
+            case ADD_HL_R16SP: {
+                Reg16 r = extractReg16(opcode);
+                int vf = Alu.add16H(reg16(Reg16.HL), reg16(r));
+                setReg16(Reg16.HL, Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+            } break;
+            case LD_HLSP_S8: {
+                // TODO Complement a deux
+                
             } break;
     
             default:
