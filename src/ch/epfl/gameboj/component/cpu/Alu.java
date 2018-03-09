@@ -200,9 +200,7 @@ public final class Alu {
     public static int sub(int l, int r) {
         return sub(l, r, false);
     }
-    
-    // TODO : add param flag descriptions
-    
+        
     /**
      * Adjusts an 8 bit value into binary coded decimal
      * Flag Pattern : ZN0C

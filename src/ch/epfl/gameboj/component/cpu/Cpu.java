@@ -343,7 +343,7 @@ public final class Cpu implements Component, Clocked {
     }
     
     private boolean extractInitalCarry(Opcode opcode) {
-        return Bits.test(opcode.encoding, 3) && rf.testBit(Reg.F, Flag.C);
+        return Bits.test(opcode.encoding, 3) && getFlagFromF(Flag.C);
     }
    
     /* Opcode table methods */
@@ -414,7 +414,11 @@ public final class Cpu implements Component, Clocked {
         if (s == FlagSrc.V0) return false;
         else if (s == FlagSrc.V1) return true;
         else if (s == FlagSrc.ALU) return Bits.test(vf, f);
-        else return rf.testBit(Reg.F, f);
+        else return getFlagFromF(f);
+    }
+    
+    private boolean getFlagFromF(Flag f) {
+        return rf.testBit(Reg.F, f);
     }
     
     /* Dispatch method */
@@ -559,7 +563,13 @@ public final class Cpu implements Component, Clocked {
                 combineAluFlags(vf, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
             } break;
             case LD_HLSP_S8: {
-                // TODO Complement a deux
+                int vf = Alu.add(SP, Bits.clip(8, Bits.signExtend8(read8AfterOpcode())));
+                if (Bits.test(opcode.encoding, 4)) {
+                    setReg16(Reg16.HL, Alu.unpackValue(vf));
+                } else {
+                    SP = Alu.unpackValue(vf);
+                }
+                combineAluFlags(vf, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
             } break;
             
          // Subtract
@@ -599,8 +609,12 @@ public final class Cpu implements Component, Clocked {
                 setFlags(vf);
             } break;
             case DEC_R16SP: {
-                
-                // TODO sub 16 bits ????
+                Reg16 r = extractReg16(opcode);
+                if (r == Reg16.AF) {
+                    SP = Bits.clip(16, SP - 1);
+                } else {
+                    setReg16SP(r, Bits.clip(16, reg16(r) - 1));                    
+                }
             } break;
             
          // And, or, xor, complement
@@ -658,7 +672,7 @@ public final class Cpu implements Component, Clocked {
             } break;
             case ROTA: {
                 RotDir rd = extractRotDir(opcode);
-                int vf = Alu.rotate(rd, rf.get(Reg.A), rf.testBit(Reg.F, Flag.C));
+                int vf = Alu.rotate(rd, rf.get(Reg.A), getFlagFromF(Flag.C));
                 setRegFromAlu(Reg.A, vf);
                 combineAluFlags(vf, FlagSrc.V0, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU);
             } break;
@@ -671,7 +685,7 @@ public final class Cpu implements Component, Clocked {
             case ROT_R8: {
                 RotDir rd = extractRotDir(opcode);
                 Reg r = extractReg(opcode, 0);
-                int vf = Alu.rotate(rd, rf.get(r), rf.testBit(Reg.F, Flag.C));
+                int vf = Alu.rotate(rd, rf.get(r), getFlagFromF(Flag.C));
                 setRegFlags(r, vf);
             } break;
             case ROTC_HLR: {
@@ -681,7 +695,7 @@ public final class Cpu implements Component, Clocked {
             } break;
             case ROT_HLR: {
                 RotDir rd = extractRotDir(opcode);
-                int vf = Alu.rotate(rd, read8AtHl(), rf.testBit(Reg.F, Flag.C));
+                int vf = Alu.rotate(rd, read8AtHl(), getFlagFromF(Flag.C));
                 write8AtHlAndSetFlags(vf);
             } break;
             case SWAP_R8: {
@@ -723,21 +737,32 @@ public final class Cpu implements Component, Clocked {
             
          // Bit test and set
             case BIT_U3_R8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.testBit(rf.get(r), extractBitIndex(opcode));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.V1, FlagSrc.CPU);
             } break;
             case BIT_U3_HLR: {
+                int vf = Alu.testBit(read8AtHl(), extractBitIndex(opcode));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.V1, FlagSrc.CPU);
             } break;
             case CHG_U3_R8: {
+                Reg r = extractReg(opcode, 0);
+                rf.set(r, Bits.set(rf.get(r), extractBitIndex(opcode), extractNewBitValue(opcode)));
             } break;
             case CHG_U3_HLR: {
+                write8AtHl(Bits.set(read8AtHl(), extractBitIndex(opcode), extractNewBitValue(opcode)));
             } break;
 
             // Misc. ALU
             case DAA: {
+                int vf = Alu.bcdAdjust(rf.get(Reg.A), getFlagFromF(Flag.N), getFlagFromF(Flag.H), getFlagFromF(Flag.C));
+                setRegFromAlu(Reg.A, vf);
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU);
             } break;
             case SCCF: {
+                rf.setBit(Reg.F, Flag.C, !extractInitalCarry(opcode));
             } break;
 
-    
             default:
                 break;
         }
