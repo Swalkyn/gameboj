@@ -525,28 +525,25 @@ public final class Cpu implements Component, Clocked {
             
             case ADD_A_R8: {
                 int vf = Alu.add(rf.get(Reg.A), rf.get(extractReg(opcode, 0)), extractInitalCarry(opcode));
-                rf.set(Reg.A, Alu.unpackValue(vf));
-                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+                setRegFlags(Reg.A, vf);
             } break;
             case ADD_A_N8: {
                 int vf = Alu.add(rf.get(Reg.A), read8AfterOpcode(), extractInitalCarry(opcode));
-                rf.set(Reg.A, Alu.unpackValue(vf));
-                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+                setRegFlags(Reg.A, vf);
             } break;
             case ADD_A_HLR: {
                 int vf = Alu.add(rf.get(Reg.A), read8AtHl(), extractInitalCarry(opcode));
-                rf.set(Reg.A, Alu.unpackValue(vf));
-                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+                setRegFlags(Reg.A, vf);
             } break;
             case INC_R8: {
                 Reg r = extractReg(opcode, 3);
                 int vf = Alu.add(rf.get(r), 1);
-                rf.set(r, Alu.unpackValue(vf));
+                setRegFromAlu(r, vf);
                 combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.CPU);
             } break;
             case INC_HLR: {
                 int vf = Alu.add(read8AtHl(), 1);
-                write8(reg16(Reg16.HL), Alu.unpackValue(vf));
+                write8AtHl(Alu.unpackValue(vf));
                 combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.CPU);
             } break;
             case INC_R16SP: {
@@ -563,8 +560,183 @@ public final class Cpu implements Component, Clocked {
             } break;
             case LD_HLSP_S8: {
                 // TODO Complement a deux
-                
             } break;
+            
+         // Subtract
+            case SUB_A_R8: {
+                int vf = Alu.sub(rf.get(Reg.A), rf.get(extractReg(opcode, 0)), extractInitalCarry(opcode));
+                setRegFlags(Reg.A, vf);
+            } break;
+            case SUB_A_N8: {
+                int vf = Alu.sub(rf.get(Reg.A), read8AfterOpcode(), extractInitalCarry(opcode));
+                setRegFlags(Reg.A, vf);
+            } break;
+            case SUB_A_HLR: {
+                int vf = Alu.sub(rf.get(Reg.A), read8AtHl(), extractInitalCarry(opcode));
+                write8AtHlAndSetFlags(vf);
+            } break;
+            case DEC_R8: {
+                Reg r = extractReg(opcode, 3);
+                int vf = Alu.sub(rf.get(r), 1);
+                setRegFromAlu(r, vf);
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V1, FlagSrc.ALU, FlagSrc.CPU);
+            } break;
+            case DEC_HLR: {
+                int vf = Alu.sub(read8AtHl(), 1);
+                write8AtHl(Alu.unpackValue(vf));
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.CPU);
+            } break;
+            case CP_A_R8: {
+                int vf = Alu.sub(rf.get(Reg.A), rf.get(extractReg(opcode, 0)), extractInitalCarry(opcode));
+                setFlags(vf);
+            } break;
+            case CP_A_N8: {
+                int vf = Alu.sub(rf.get(Reg.A), read8AfterOpcode(), extractInitalCarry(opcode));
+                setFlags(vf);
+            } break;
+            case CP_A_HLR: {
+                int vf = Alu.sub(rf.get(Reg.A), read8AtHl(), extractInitalCarry(opcode));
+                setFlags(vf);
+            } break;
+            case DEC_R16SP: {
+                
+                // TODO sub 16 bits ????
+            } break;
+            
+         // And, or, xor, complement
+            case AND_A_N8: {
+                int vf = Alu.and(rf.get(Reg.A), read8AfterOpcode());
+                setRegFlags(Reg.A, vf);
+            } break;
+            case AND_A_R8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.and(rf.get(Reg.A), rf.get(r));
+                setRegFlags(Reg.A, vf);
+            } break;
+            case AND_A_HLR: {
+                int vf = Alu.and(rf.get(Reg.A), read8AtHl());
+                setRegFlags(Reg.A, vf);
+            } break;
+            case OR_A_R8: {
+                int vf = Alu.or(rf.get(Reg.A), read8AfterOpcode());
+                setRegFlags(Reg.A, vf);
+            } break;
+            case OR_A_N8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.or(rf.get(Reg.A), rf.get(r));
+                setRegFlags(Reg.A, vf);
+            } break;
+            case OR_A_HLR: {
+                int vf = Alu.or(rf.get(Reg.A), read8AtHl());
+                setRegFlags(Reg.A, vf);
+            } break;
+            case XOR_A_R8: {
+                int vf = Alu.xor(rf.get(Reg.A), read8AfterOpcode());
+                setRegFlags(Reg.A, vf);
+            } break;
+            case XOR_A_N8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.xor(rf.get(Reg.A), rf.get(r));
+                setRegFlags(Reg.A, vf);
+            } break;
+            case XOR_A_HLR: {
+                int vf = Alu.xor(rf.get(Reg.A), read8AtHl());
+                setRegFlags(Reg.A, vf);
+            } break;
+            case CPL: {
+                int v = Bits.complement8(rf.get(Reg.A));
+                setRegFromAlu(Reg.A, v);
+                combineAluFlags(0, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1, FlagSrc.CPU);
+            } break;
+            
+         // Rotate, shift
+            case ROTCA: {
+                RotDir rd = extractRotDir(opcode);
+                int vf = Alu.rotate(rd, rf.get(Reg.A));
+                setRegFromAlu(Reg.A, vf);
+                combineAluFlags(vf, FlagSrc.V0, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU);
+            } break;
+            case ROTA: {
+                RotDir rd = extractRotDir(opcode);
+                int vf = Alu.rotate(rd, rf.get(Reg.A), rf.testBit(Reg.F, Flag.C));
+                setRegFromAlu(Reg.A, vf);
+                combineAluFlags(vf, FlagSrc.V0, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU);
+            } break;
+            case ROTC_R8: {
+                RotDir rd = extractRotDir(opcode);
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.rotate(rd, rf.get(r));
+                setRegFlags(r, vf);
+            } break;
+            case ROT_R8: {
+                RotDir rd = extractRotDir(opcode);
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.rotate(rd, rf.get(r), rf.testBit(Reg.F, Flag.C));
+                setRegFlags(r, vf);
+            } break;
+            case ROTC_HLR: {
+                RotDir rd = extractRotDir(opcode);
+                int vf = Alu.rotate(rd, read8AtHl());
+                write8AtHlAndSetFlags(vf);
+            } break;
+            case ROT_HLR: {
+                RotDir rd = extractRotDir(opcode);
+                int vf = Alu.rotate(rd, read8AtHl(), rf.testBit(Reg.F, Flag.C));
+                write8AtHlAndSetFlags(vf);
+            } break;
+            case SWAP_R8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.swap(rf.get(r));
+                setRegFlags(r, vf);
+            } break;
+            case SWAP_HLR: {
+                int vf = Alu.swap(read8AtHl());
+                write8AtHlAndSetFlags(vf);
+            } break;
+            case SLA_R8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.shiftLeft(rf.get(r));
+                setRegFlags(r, vf);
+            } break;
+            case SRA_R8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.shiftRightA(rf.get(r));
+                setRegFlags(r, vf);
+            } break;
+            case SRL_R8: {
+                Reg r = extractReg(opcode, 0);
+                int vf = Alu.shiftRightL(rf.get(r));
+                setRegFlags(r, vf);
+            } break;
+            case SLA_HLR: {
+                int vf = Alu.shiftLeft(read8AtHl());
+                write8AtHlAndSetFlags(vf);
+            } break;
+            case SRA_HLR: {
+                int vf = Alu.shiftRightA(read8AtHl());
+                write8AtHlAndSetFlags(vf);
+            } break;
+            case SRL_HLR: {
+                int vf = Alu.shiftRightL(read8AtHl());
+                write8AtHlAndSetFlags(vf);
+            } break;
+            
+         // Bit test and set
+            case BIT_U3_R8: {
+            } break;
+            case BIT_U3_HLR: {
+            } break;
+            case CHG_U3_R8: {
+            } break;
+            case CHG_U3_HLR: {
+            } break;
+
+            // Misc. ALU
+            case DAA: {
+            } break;
+            case SCCF: {
+            } break;
+
     
             default:
                 break;
