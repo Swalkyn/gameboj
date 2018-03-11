@@ -532,21 +532,508 @@ class CpuTest {
         
         assertEquals(0x1413, cpu._testGetPcSpAFBCDEHL()[1]);
     }
+    
+/* ADD/INC 8-bits  tests */
+    
+    @Test
+    void testADD_A_R8WithSimpleValue() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.LD_B_N8.encoding,
+                0x14,
+                Opcode.ADD_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x27, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADD_A_R8WithOverflowAndZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.LD_B_N8.encoding,
+                0x01,
+                Opcode.ADD_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b1011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADD_A_R8WithOverflow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.LD_B_N8.encoding,
+                0x02,
+                Opcode.ADD_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x01, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADD_A_N8WithSimpleValue() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.ADD_A_N8.encoding,
+                0x14
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x27, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADD_A_N8WithOverflow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.ADD_A_N8.encoding,
+                0x01
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b1011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADD_A_HLRWithSimpleValue() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.ADD_A_HLR.encoding,
+                0x14
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x27, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADD_A_HLRWithOverflow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.ADD_A_HLR.encoding,
+                0x01
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b1011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_R8WithSimpleValue() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.LD_B_N8.encoding,
+                0x14,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_R8WithOverflowAndZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.LD_B_N8.encoding,
+                0x00,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b1011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_R8WithOverflow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.LD_B_N8.encoding,
+                0x01,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x01, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_N8WithSimpleValue() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_N8.encoding,
+                0x14
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_N8WithOverflow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_N8.encoding,
+                0x01
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x01, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_HLRWithSimpleValue() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.LD_HL_N16.encoding,
+                0x07,
+                0x00,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_HLR.encoding,
+                0x14
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testADC_A_HLRWithOverflow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0xFF,
+                Opcode.LD_HL_N16.encoding,
+                0x07,
+                0x00,
+                Opcode.SCF.encoding,
+                Opcode.ADC_A_HLR.encoding,
+                0x01
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x01, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testINC_R8WithSimpleValue() {
+        int[] program = {
+                Opcode.LD_B_N8.encoding,
+                0x13,
+                Opcode.SCF.encoding,
+                Opcode.INC_B.encoding,
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[4]);
+        assertEquals(0b0001_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testINC_R8WithOverflow() {
+        int[] program = {
+                Opcode.LD_C_N8.encoding,
+                0xFF,
+                Opcode.SCF.encoding,
+                Opcode.INC_C.encoding,
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0b1011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testINC_HLRWithSimpleValue() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x08,
+                0x00,
+                Opcode.SCF.encoding,
+                Opcode.INC_HLR.encoding,
+                Opcode.LD_A_N16R.encoding,
+                0x08,
+                0x00,
+                0x13
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b0001_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testINC_HLRWithOverflow() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x08,
+                0x00,
+                Opcode.SCF.encoding,
+                Opcode.INC_HLR.encoding,
+                Opcode.LD_A_N16R.encoding,
+                0x08,
+                0x00,
+                0xFF
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b1011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    /* Substraction tests */
+    
+    @Test
+    void testSUB_A_R8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.LD_B_N8.encoding,
+                0x05,
+                Opcode.SUB_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0F, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b01100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testUnderflowOnSUB_A_R8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x02,
+                Opcode.LD_B_N8.encoding,
+                0x04,
+                Opcode.SUB_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0xFE, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b01110000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testSUB_A_R8WithCarry() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.LD_B_N8.encoding,
+                0x05,
+                Opcode.SCF.encoding,
+                Opcode.SBC_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0E, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testSUB_A_N8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.SUB_A_N8.encoding,
+                0x05
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0F, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testSUB_A_N8WithCarry() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.SCF.encoding,
+                Opcode.SBC_A_N8.encoding,
+                0x05
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0E, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testSUB_A_HLR() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.SUB_A_HLR.encoding,
+                0x05
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0F, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testSUB_A_HLRWithCarry() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x07,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.SCF.encoding,
+                Opcode.SBC_A_HLR.encoding,
+                0x05
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0E, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+    
+    @Test
+    void testDEC() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x14,
+                Opcode.SUB_A_HLR.encoding,
+                0x05
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x0F, cpu._testGetPcSpAFBCDEHL()[2]);
+    }
+     
+    /* Test for carry flag methods */
+    
+    @Test
+    void testSCF() {
+        int[] program = {
+                Opcode.SCF.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b0001_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCCFZeroToOne() {
+        int[] program = {
+                Opcode.CCF.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b0001_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCCFOneToZero() {
+        int[] program = {
+                Opcode.SCF.encoding,
+                Opcode.CCF.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -583,7 +583,7 @@ public final class Cpu implements Component, Clocked {
             } break;
             case SUB_A_HLR: {
                 int vf = Alu.sub(rf.get(Reg.A), read8AtHl(), extractInitalCarry(opcode));
-                write8AtHlAndSetFlags(vf);
+                setRegFlags(Reg.A, vf);;
             } break;
             case DEC_R8: {
                 Reg r = extractReg(opcode, 3);
