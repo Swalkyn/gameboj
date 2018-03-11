@@ -552,18 +552,28 @@ public final class Cpu implements Component, Clocked {
             } break;
             case INC_R16SP: {
                 Reg16 r = extractReg16(opcode);
-                int vf = Alu.add16H(reg16(r), 1);
+                int vf;
+                if (r == Reg16.AF) {
+                    vf = Alu.add16H(SP, 1);
+                } else {
+                    vf = Alu.add16H(reg16(r), 1);
+                }
                 setReg16SP(r, Alu.unpackValue(vf));
                 combineAluFlags(vf, FlagSrc.CPU, FlagSrc.CPU, FlagSrc.CPU, FlagSrc.CPU);
             } break;
             case ADD_HL_R16SP: {
                 Reg16 r = extractReg16(opcode);
-                int vf = Alu.add16H(reg16(Reg16.HL), reg16(r));
+                int vf;
+                if (r == Reg16.AF) {
+                    vf = Alu.add16H(reg16(Reg16.HL), SP);
+                } else {
+                    vf = Alu.add16H(reg16(Reg16.HL), reg16(r));
+                }
                 setReg16(Reg16.HL, Alu.unpackValue(vf));
                 combineAluFlags(vf, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
             } break;
             case LD_HLSP_S8: {
-                int vf = Alu.add(SP, Bits.clip(8, Bits.signExtend8(read8AfterOpcode())));
+                int vf = Alu.add16L(SP, Bits.clip(16, Bits.signExtend8(read8AfterOpcode())));
                 if (Bits.test(opcode.encoding, 4)) {
                     setReg16(Reg16.HL, Alu.unpackValue(vf));
                 } else {
