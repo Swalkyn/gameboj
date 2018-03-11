@@ -1229,35 +1229,270 @@ class CpuTest {
     
     @Test
     void testCP_A_R8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x08,
+                Opcode.LD_B_N8.encoding,
+                0x06,
+                Opcode.CP_A_B.encoding,
+        };
         
-    }
-    
-    @Test
-    void testCP_A_R8WithCarry() {
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
         
+        assertEquals(0b01000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
     @Test
     void testCP_A_R8WithUnderFlow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x06,
+                Opcode.LD_B_N8.encoding,
+                0x08,
+                Opcode.CP_A_B.encoding,
+        };
         
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01110000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
     @Test
     void testCP_A_R8WhenZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x08,
+                Opcode.LD_B_N8.encoding,
+                0x08,
+                Opcode.CP_A_B.encoding,
+        };
         
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
     @Test
-    void testCP_A_N() {
+    void testCP_A_R8WithCarryInLSB() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x12,
+                Opcode.LD_B_N8.encoding,
+                0x06,
+                Opcode.CP_A_B.encoding,
+        };
         
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCP_A_N8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x08,
+                Opcode.CP_A_N8.encoding,
+                0x06
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCP_A_N8WithUnderFlow() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x06,
+                Opcode.CP_A_N8.encoding,
+                0x08
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01110000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCP_A_N8WhenZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x08,
+                Opcode.CP_A_N8.encoding,
+                0x08
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCP_A_N8WithCarryInLSB() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0x12,
+                Opcode.CP_A_N8.encoding,
+                0x06
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01100000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
     @Test
     void testCP_A_HLR() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x09,
+                Opcode.CP_A_HLR.encoding,
+                0x07
+        };
         
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
-
+    @Test
+    void testCP_A_HLRWithUnderFlow() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x07,
+                Opcode.CP_A_HLR.encoding,
+                0x09
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01110000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCP_A_HLRWhenZero() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x09,
+                Opcode.CP_A_HLR.encoding,
+                0x09
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCP_A_HLRWithCarryInLSB() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0x12,
+                Opcode.CP_A_HLR.encoding,
+                0x07
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testDEC_R16SP() {
+        int[] program = {
+                Opcode.LD_BC_N16.encoding,
+                0x04,
+                0xEE,
+                Opcode.DEC_BC.encoding,
+                
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[4]);
+        assertEquals(0xEE, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testDEC_R16SPWithUnderFlow() {
+        int[] program = {
+                Opcode.LD_BC_N16.encoding,
+                0x00,
+                0x00,
+                Opcode.DEC_BC.encoding,
+                
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0xFF, cpu._testGetPcSpAFBCDEHL()[4]);
+        assertEquals(0xFF, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testDEC_16SPWithCarryInLSB() {
+        int[] program = {
+                Opcode.LD_BC_N16.encoding,
+                0x00,
+                0x01,
+                Opcode.DEC_BC.encoding,
+                
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0xFF, cpu._testGetPcSpAFBCDEHL()[4]);
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testDEC_16SPWithAF() {
+        int[] program = {
+                Opcode.LD_SP_N16.encoding,
+                0x14,
+                0x00,
+                Opcode.DEC_SP.encoding,
+                
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[1]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
      
     /* Test for carry flag methods */
     
