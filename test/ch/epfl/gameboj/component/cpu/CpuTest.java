@@ -9,6 +9,7 @@ import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
+import ch.epfl.test.ProgramBuilder;
 
 class CpuTest {
     
@@ -1855,7 +1856,151 @@ class CpuTest {
         assertEquals(0b00010000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
+    @Test
+    void testRLC_HLR() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.RLC_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0b10110011);
+        pb.run();
+        
+        assertEquals(0b01100111, pb.getResult()[2]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
     
+    @Test
+    void testRRC_HLR() {      
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.RRC_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0b10110011);
+        pb.run();
+        
+        assertEquals(0b11011001, pb.getResult()[2]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testRL_R8() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_H_N8, 0b10110010);
+        pb.execOp(Opcode.RL_H);
+        pb.run();
+        
+        assertEquals(0b01100100, pb.getResult()[8]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testRR_R8WithCFAtZero() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_H_N8, 0b10110010);
+        pb.execOp(Opcode.RR_H);
+        pb.run();
+        
+        assertEquals(0b01011001, pb.getResult()[8]);
+        assertEquals(0b00000000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testRR_R8WithCFAtOne() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_H_N8, 0b10110011);
+        pb.execOp(Opcode.RR_H);
+        pb.run();
+        
+        assertEquals(0b01011001, pb.getResult()[8]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testRL_HLR() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.RL_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0b10110011);
+        pb.run();
+        
+        assertEquals(0b01100110, pb.getResult()[2]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testRR_HLRWithCFAtZero() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.RR_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0b10110010);
+        pb.run();
+        
+        assertEquals(0b01011001, pb.getResult()[2]);
+        assertEquals(0b00000000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testRR_HLRWithCFAtOne() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.RR_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0b10110011);
+        pb.run();
+        
+        assertEquals(0b01011001, pb.getResult()[2]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSWAP_R8() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_L_N8, 0xD4);
+        pb.execOp(Opcode.SWAP_L);
+        pb.run();
+        
+        assertEquals(0x4D, pb.getResult()[9]);
+        assertEquals(0, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSWAP_R8Flags() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_L_N8, 0x00);
+        pb.execOp(Opcode.SWAP_L);
+        pb.run();
+        
+        assertEquals(0x00, pb.getResult()[9]);
+        assertEquals(0b1000_0000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSWAP_HLR() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.SWAP_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0xE7);
+        pb.run();
+        
+        assertEquals(0x7E, pb.getResult()[2]);
+        assertEquals(0, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSWAP_HLRFlags() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+        pb.execOp(Opcode.SWAP_HLR);
+        pb.execOpAnd16(Opcode.LD_A_HLR, 0x08);
+        pb.addInt(0);
+        pb.run();
+        
+        assertEquals(0, pb.getResult()[2]);
+        assertEquals(0b1000_0000, pb.getResult()[3]);
+    }
      
     /* Test for carry flag methods */
     
