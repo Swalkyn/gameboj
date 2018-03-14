@@ -237,8 +237,8 @@ public final class Cpu implements Component, Clocked {
      * @return the value
      */
     private int reg16(Reg16 r) {
-        int lsb = rf.get(r.r1);
-        int msb = rf.get(r.r2);
+        int msb = rf.get(r.r1);
+        int lsb = rf.get(r.r2);
         
         return Bits.make16(msb, lsb);
     }
@@ -250,17 +250,16 @@ public final class Cpu implements Component, Clocked {
      * @throws IllegalArgumentException if the value is not a 16-bit integer
      */
     private void setReg16(Reg16 r, int newV) {
-        Preconditions.checkBits16(newV);
         
         int lsb = Bits.clip(8, newV);
         int msb = Bits.extract(newV, 8, 8);
         
         if (r == Reg16.AF) {
-            lsb = 0;
+            lsb = Bits.extract(lsb, 4, 4) << 4;
         }
         
-        rf.set(r.r1, lsb);
-        rf.set(r.r2, msb);
+        rf.set(r.r1, msb);
+        rf.set(r.r2, lsb);
     }
     
     /**
@@ -641,11 +640,11 @@ public final class Cpu implements Component, Clocked {
                 int vf = Alu.and(rf.get(Reg.A), read8AtHl());
                 setRegFlags(Reg.A, vf);
             } break;
-            case OR_A_R8: {
+            case OR_A_N8: {
                 int vf = Alu.or(rf.get(Reg.A), read8AfterOpcode());
                 setRegFlags(Reg.A, vf);
             } break;
-            case OR_A_N8: {
+            case OR_A_R8: {
                 Reg r = extractReg(opcode, 0);
                 int vf = Alu.or(rf.get(Reg.A), rf.get(r));
                 setRegFlags(Reg.A, vf);
@@ -654,11 +653,11 @@ public final class Cpu implements Component, Clocked {
                 int vf = Alu.or(rf.get(Reg.A), read8AtHl());
                 setRegFlags(Reg.A, vf);
             } break;
-            case XOR_A_R8: {
+            case XOR_A_N8: {
                 int vf = Alu.xor(rf.get(Reg.A), read8AfterOpcode());
                 setRegFlags(Reg.A, vf);
             } break;
-            case XOR_A_N8: {
+            case XOR_A_R8: {
                 Reg r = extractReg(opcode, 0);
                 int vf = Alu.xor(rf.get(Reg.A), rf.get(r));
                 setRegFlags(Reg.A, vf);
@@ -669,7 +668,7 @@ public final class Cpu implements Component, Clocked {
             } break;
             case CPL: {
                 int v = Bits.complement8(rf.get(Reg.A));
-                setRegFromAlu(Reg.A, v);
+                rf.set(Reg.A, v);
                 combineAluFlags(0, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1, FlagSrc.CPU);
             } break;
             

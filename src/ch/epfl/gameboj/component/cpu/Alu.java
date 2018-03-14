@@ -216,7 +216,7 @@ public final class Alu {
         
         int fixL = (h || (!n && Bits.clip(4, v) > 9)) ? 1 : 0;
         int fixH = (c || (!n && v > 0x99)) ? 1 : 0;
-        int fix = 0x60 * fixH + 0x06 * fixL;
+        int fix = Bits.clip(8, 0x60 * fixH + 0x06 * fixL);
         
         int va;
         if (n) {
@@ -225,7 +225,7 @@ public final class Alu {
             va = v + fix;
         }
         
-        return packValueZNHC(Bits.clip(8, va), va == 0, n, false, fixH == 1);
+        return packValueZNHC(Bits.clip(8, va), Bits.clip(8, va) == 0, n, false, fixH == 1);
     }
     
     /**
@@ -262,7 +262,7 @@ public final class Alu {
     
     /**
      * Bitwise xor on two 8 bit ints
-     * Flag pattern : Z010
+     * Flag pattern : Z000
      * @param l : 8 bits
      * @param r : 8 bits
      * @throws IllegalArgumentException if not 8 bits

@@ -108,7 +108,7 @@ class CpuTest {
         runCpu(cpu, program.length);
         
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
-        assertEquals(0x05, cpu._testGetPcSpAFBCDEHL()[8]);
+        assertEquals(0x05, cpu._testGetPcSpAFBCDEHL()[9]);
     }
     
     @Test
@@ -125,7 +125,7 @@ class CpuTest {
         runCpu(cpu, program.length);
         
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
-        assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[8]);
+        assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[9]);
     }
     
     @Test
@@ -229,8 +229,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[6]);
-        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[7]);
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[7]);
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[6]);
     }
 
     @Test
@@ -260,8 +260,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, 5);
         
-        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[4]);
-        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[4]);
         assertEquals(0x0504 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
     }
     
@@ -305,8 +305,8 @@ class CpuTest {
     	runCpu(cpu, program.length);
     	
     	assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
-    	assertEquals(0x08, cpu._testGetPcSpAFBCDEHL()[8]);
-    	assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[9]);
+    	assertEquals(0x08, cpu._testGetPcSpAFBCDEHL()[9]);
+    	assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[8]);
     }
     
     @Test
@@ -328,8 +328,8 @@ class CpuTest {
     	runCpu(cpu, program.length);
     	
     	assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[2]);
-    	assertEquals(0x0A, cpu._testGetPcSpAFBCDEHL()[8]);
-    	assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[9]);
+    	assertEquals(0x0A, cpu._testGetPcSpAFBCDEHL()[9]);
+    	assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[8]);
     }
     
     @Test
@@ -873,8 +873,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[8]);
-        assertEquals(0x2A, cpu._testGetPcSpAFBCDEHL()[9]);
+        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[9]);
+        assertEquals(0x2A, cpu._testGetPcSpAFBCDEHL()[8]);
         assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
@@ -893,8 +893,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[8]);
-        assertEquals(0x2A, cpu._testGetPcSpAFBCDEHL()[9]);
+        assertEquals(0x28, cpu._testGetPcSpAFBCDEHL()[9]);
+        assertEquals(0x2A, cpu._testGetPcSpAFBCDEHL()[8]);
         assertEquals(0b0000_0000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
@@ -913,8 +913,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x35, cpu._testGetPcSpAFBCDEHL()[9]);
-        assertEquals(0x2C, cpu._testGetPcSpAFBCDEHL()[8]);
+        assertEquals(0x35, cpu._testGetPcSpAFBCDEHL()[8]);
+        assertEquals(0x2C, cpu._testGetPcSpAFBCDEHL()[9]);
         assertEquals(0b0010_0000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
@@ -931,8 +931,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[6]);
-        assertEquals(0x01, cpu._testGetPcSpAFBCDEHL()[7]);
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[7]);
+        assertEquals(0x01, cpu._testGetPcSpAFBCDEHL()[6]);
         assertEquals(0b0001_0000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
@@ -983,8 +983,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[8]);
-        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[9]);
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[9]);
+        assertEquals(0x14, cpu._testGetPcSpAFBCDEHL()[8]);
         assertEquals(0b0011_0000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
 
@@ -1436,8 +1436,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[4]);
-        assertEquals(0xEE, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0x03, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0xEE, cpu._testGetPcSpAFBCDEHL()[4]);
         assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
@@ -1472,8 +1472,8 @@ class CpuTest {
         Cpu cpu = newCpu(program);
         runCpu(cpu, program.length);
         
-        assertEquals(0xFF, cpu._testGetPcSpAFBCDEHL()[4]);
-        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0xFF, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0x00, cpu._testGetPcSpAFBCDEHL()[4]);
         assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
@@ -1491,6 +1491,320 @@ class CpuTest {
         runCpu(cpu, program.length);
         
         assertEquals(0x13, cpu._testGetPcSpAFBCDEHL()[1]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    /* AND, OR, XOR tests */
+    
+    @Test
+    void testAND_A_N8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.AND_A_N8.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00110000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testAND_A_N8WhenResultIsZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00000011,
+                Opcode.AND_A_N8.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b10100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testAND_A_R8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.LD_B_N8.encoding,
+                0b11110000,
+                Opcode.AND_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00110000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testAND_A_HLR() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.AND_A_HLR.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00110000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testOR_A_N8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.OR_A_N8.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11110011, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testOR_A_N8WhenResultIsZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00000000,
+                Opcode.OR_A_N8.encoding,
+                0b00000000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b10000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testOR_A_R8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.LD_B_N8.encoding,
+                0b11110000,
+                Opcode.OR_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11110011, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testOR_A_HLR() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.OR_A_HLR.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11110011, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testXOR_A_N8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.XOR_A_N8.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11000011, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testXOR_A_N8WhenResultIsZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b11110000,
+                Opcode.XOR_A_N8.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b10000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testXOR_A_R8() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.LD_B_N8.encoding,
+                0b11110000,
+                Opcode.XOR_A_B.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11000011, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testXOR_A_HLR() {
+        int[] program = {
+                Opcode.LD_HL_N16.encoding,
+                0x06,
+                0x00,
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.XOR_A_HLR.encoding,
+                0b11110000
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11000011, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testCPL() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b00110011,
+                Opcode.CPL.encoding,
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11001100, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b01100000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    /* Rotations tests */
+    
+    @Test
+    void testRLC_A() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b10110011,
+                Opcode.RLC_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01100111, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00010000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testRRC_A() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b10110011,
+                Opcode.RRC_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11011001, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00010000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testRRC_AZeroShiftedOut() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b10110010,
+                Opcode.RRC_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01011001, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testRL_A() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b10110011,
+                Opcode.RL_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01100110, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00010000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testRR_AWithCFZero() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b10110010,
+                Opcode.RR_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01011001, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testRR_AWithCFOne() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b10110010,
+                Opcode.SCF.encoding,
+                Opcode.RR_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11011001, cpu._testGetPcSpAFBCDEHL()[2]);
         assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
      
