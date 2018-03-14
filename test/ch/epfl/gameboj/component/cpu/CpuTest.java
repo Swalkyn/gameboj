@@ -9,6 +9,7 @@ import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
+import ch.epfl.test.ProgramBuilder;
 
 class CpuTest {
     
@@ -1715,6 +1716,80 @@ class CpuTest {
         assertEquals(0b01100000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
     
+    /* Bit shifts tests */
+    
+    @Test
+    void testSLA_R8() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_B_N8, 0b11001100);
+        pb.execOp(Opcode.SLA_B);
+        pb.run();
+        
+        assertEquals(0b10011000, pb.getResult()[4]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSRA_R8() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_B_N8, 0b11001100);
+        pb.execOp(Opcode.SRA_B);
+        pb.run();
+        
+        assertEquals(0b11100110, pb.getResult()[4]);
+        assertEquals(0b00000000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSRL_R8() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_B_N8, 0b11001100);
+        pb.execOp(Opcode.SRL_B);
+        pb.run();
+        
+        assertEquals(0b01100110, pb.getResult()[4]);
+        assertEquals(0b00000000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSLA_HLR() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, pb.getMemoryAddress(0));
+        pb.execOp(Opcode.SLA_HLR);
+        pb.execOp(Opcode.LD_B_HLR);
+        pb.storeInt(0b00110011);
+        pb.run();
+        
+        assertEquals(0b01100110, pb.getResult()[4]);
+        assertEquals(0b00000000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSRA_HLR() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, pb.getMemoryAddress(0));
+        pb.execOp(Opcode.SRA_HLR);
+        pb.execOp(Opcode.LD_A_HLR);
+        pb.storeInt(0b00110011);
+        pb.run();
+        
+        assertEquals(0b00011001, pb.getResult()[2]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testSRL_HLR() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_HL_N16, pb.getMemoryAddress(0));
+        pb.execOp(Opcode.SRL_HLR);
+        pb.execOp(Opcode.LD_B_HLR);
+        pb.storeInt(0b00110011);
+        pb.run();
+        
+        assertEquals(0b00011001, pb.getResult()[4]);
+        assertEquals(0b00010000, pb.getResult()[3]);
+    }
+    
     /* Rotations tests */
     
     @Test
@@ -1763,7 +1838,7 @@ class CpuTest {
     }
     
     @Test
-    void testRRC_R8ZFlagAndCFlag() {
+    void testRRC_AZFlagAndCFlag() {
         int[] program = {
                 Opcode.LD_A_N8.encoding,
                 0b01010000,

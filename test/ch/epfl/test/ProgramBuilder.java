@@ -13,11 +13,15 @@ import ch.epfl.gameboj.component.memory.RamController;
 public class ProgramBuilder {
     
     private ArrayList<Integer> program;
+    private ArrayList<Integer> memory;
     private Cpu cpu;
     public static final int PREFIX = 0xCB;
+    private static final int MEMORY_INDEX = 0x20;
+    private int totalCycles = 0;
     
     public ProgramBuilder() {
         program = new ArrayList<>();
+        memory = new ArrayList<>();
     }
     
     private boolean isPrefixed(Opcode op) {
@@ -30,6 +34,7 @@ public class ProgramBuilder {
         }
         
         program.add(op.encoding);
+        totalCycles += op.cycles;
     }
     
     public void execOpAnd8(Opcode op, int value) {
@@ -51,13 +56,26 @@ public class ProgramBuilder {
     }
     
     private int[] build() {
-        int[] prog = new int[program.size()];
+        int initialSize = program.size();
+        for (int i = 0; i < MEMORY_INDEX - initialSize; i++) {
+            program.add(0);
+        }
+        program.addAll(memory);
         
+        int[] data = new int[program.size()];
         for (int i = 0; i < program.size(); i++) {
-            prog[i] = program.get(i);
+            data[i] = program.get(i);
         }
         
-        return prog;
+        return data;
+    }
+    
+    public void storeInt(int value) {
+        memory.add(value);
+    }
+    
+    public int getMemoryAddress(int address) {
+        return MEMORY_INDEX + address;
     }
     
     private Cpu newCpu(int[] program) {
@@ -84,13 +102,13 @@ public class ProgramBuilder {
     }
     
     public void run(int cycle) {
-        int[] prog = build();
-        cpu = newCpu(prog);
+        int[] data = build();
+        cpu = newCpu(data);
         runCpu(cpu, cycle);
     }
     
     public void run() {
-        run(program.size());
+        run(totalCycles);
     }
     
     public int[] getResult() {
