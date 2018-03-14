@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import ch.epfl.gameboj.Bus;
+import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
@@ -2000,6 +2001,152 @@ class CpuTest {
         
         assertEquals(0, pb.getResult()[2]);
         assertEquals(0b1000_0000, pb.getResult()[3]);
+    }
+    
+    /* Tests for bit operations */
+    
+    /**
+     * Builds a opcode of a bit operation
+     * @param start: int, specifies type of bit operation : 01->BIT, 11->SET, 10->RES
+     * @param bit: int, 3 bits indicating the index of byte to manipulate
+     * @param register, 3 bit register code
+     * @return the opcode encoding
+     */
+    private int buildBitOpcode(int start, int bit, int register) {
+        return  (start << 6) | (bit << 3) | register;
+    }
+    
+    @Test
+    void testBIT_U3_R8() {
+        final int registerE = 0b011;
+        
+        for (int i = 0; i < 8; i++) {
+            int value = 1 << i;
+            
+            for (int j = 0; j < 8; j++) {
+                ProgramBuilder pb = new ProgramBuilder();
+                pb.execOpAnd8(Opcode.LD_A_N8, 0x99);
+                pb.execOpAnd8(Opcode.LD_E_N8, value);
+                pb.addInt(0xCB);
+                pb.addInt(buildBitOpcode(0b01, j, registerE));
+                pb.run();
+                
+                int target = (i==j) ? 0b0010_0000 : 0b1010_0000;
+                
+                assertEquals(0x99, pb.getResult()[2]);
+                assertEquals(target, pb.getResult()[3]);
+            }
+        }
+    }
+   
+    @Test
+    void testBIT_U3_R8DoesNotAlterCFlag() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x99);
+        pb.execOpAnd8(Opcode.LD_E_N8, 0b0000_1000);
+        pb.execOp(Opcode.SCF);
+        pb.execOp(Opcode.BIT_3_E);
+        pb.run();
+               
+        assertEquals(0x99, pb.getResult()[2]);
+        assertEquals(0b0000_1000, pb.getResult()[7]);
+        assertEquals(0b00110000, pb.getResult()[3]);
+    }
+    
+    @Test
+    void testBIT_U3_HLR() {
+        final int hlr = 0b110;
+        
+        for (int i = 0; i < 8; i++) {
+            int value = 1 << i;
+            
+            for (int j = 0; j < 8; j++) {
+                ProgramBuilder pb = new ProgramBuilder();
+                pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
+                pb.addInt(0xCB);
+                pb.addInt(buildBitOpcode(0b01, j, hlr));
+                pb.execOpAnd16(Opcode.LD_A_N16R, 0x08);
+                pb.addInt(value);
+                pb.run();
+                
+                int target = (i==j) ? 0b0010_0000 : 0b1010_0000;
+                
+                assertEquals(value, pb.getResult()[2]);
+                assertEquals(target, pb.getResult()[3]);
+            }
+        }
+    }
+    
+    @Test
+    void testSET_U3_R8() {
+        final int registerE = 0b011;
+        
+        for (int i = 0; i < 8; i++) {
+            ProgramBuilder pb = new ProgramBuilder();
+            pb.execOpAnd8(Opcode.LD_E_N8, 0);
+            pb.execOp(Opcode.SCF);
+            pb.addInt(0xCB);
+            pb.addInt(buildBitOpcode(0b11, i, registerE));
+            pb.run();
+            
+            assertEquals(1 << i, pb.getResult()[7]);
+            assertEquals(0b0001_0000, pb.getResult()[3]);
+        }
+    }
+    
+    @Test
+    void testSET_U3_HLR() {
+        final int hlr = 0b110;
+        
+        for (int i = 0; i < 8; i++) {
+            ProgramBuilder pb = new ProgramBuilder();
+            pb.execOpAnd16(Opcode.LD_HL_N16, 0x09);
+            pb.execOp(Opcode.SCF);
+            pb.addInt(0xCB);
+            pb.addInt(buildBitOpcode(0b11, i, hlr));
+            pb.execOpAnd16(Opcode.LD_A_N16R, 0x09);
+            pb.addInt(0);
+            pb.run();
+            
+            assertEquals(1 << i, pb.getResult()[2]);
+            assertEquals(0b0001_0000, pb.getResult()[3]);
+        }
+    }
+    
+    @Test
+    void testRES_U3_R8() {
+        final int registerE = 0b011;
+        
+        for (int i = 0; i < 8; i++) {
+            ProgramBuilder pb = new ProgramBuilder();
+            pb.execOpAnd8(Opcode.LD_E_N8, 0b1111_1111);
+            pb.execOp(Opcode.SCF);
+            pb.addInt(0xCB);
+            pb.addInt(buildBitOpcode(0b10, i, registerE));
+            pb.run();
+            
+            assertEquals(Bits.set(0b1111_1111, i, false), pb.getResult()[7]);
+            assertEquals(0b0001_0000, pb.getResult()[3]);
+        }
+    }
+    
+    @Test
+    void testRES_U3_HLR() {
+        final int hlr = 0b110;
+        
+        for (int i = 0; i < 8; i++) {            
+            ProgramBuilder pb = new ProgramBuilder();
+            pb.execOpAnd16(Opcode.LD_HL_N16, 0x09);
+            pb.execOp(Opcode.SCF);
+            pb.addInt(0xCB);
+            pb.addInt(buildBitOpcode(0b10, i, hlr));
+            pb.execOpAnd16(Opcode.LD_A_N16R, 0x09);
+            pb.addInt(0b1111_1111);
+            pb.run();
+            
+            assertEquals(Bits.set(0b1111_1111, i, false), pb.getResult()[2]);
+            assertEquals(0b0001_0000, pb.getResult()[3]);
+        }
     }
      
     /* Test for carry flag methods */
