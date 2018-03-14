@@ -390,7 +390,7 @@ public final class Alu {
     }
     
     /**
-     * Returns value 0 and flag z where z is true iff the value's bit at given index is 1
+     * Returns value 0 and flag z where z is true iff the value's bit at given index is 0
      * Flag pattern : Z010
      * @param v : 8 bits
      * @param bitIndex : the index of the bit to be tested
