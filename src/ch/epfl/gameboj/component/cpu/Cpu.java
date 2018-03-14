@@ -356,7 +356,7 @@ public final class Cpu implements Component, Clocked {
         ArrayList<Opcode> table = new ArrayList<>();
         
         for (Opcode o : Opcode.values()) {
-            if (o.kind == Kind.DIRECT) {
+            if (o.kind == kind) {
                 table.add(o);
             }
         }

@@ -1763,6 +1763,21 @@ class CpuTest {
     }
     
     @Test
+    void testRRC_R8ZFlagAndCFlag() {
+        int[] program = {
+                Opcode.LD_A_N8.encoding,
+                0b01010000,
+                Opcode.RRC_A.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b00101000, cpu._testGetPcSpAFBCDEHL()[2]);
+        assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
     void testRL_A() {
         int[] program = {
                 Opcode.LD_A_N8.encoding,
@@ -1807,6 +1822,40 @@ class CpuTest {
         assertEquals(0b11011001, cpu._testGetPcSpAFBCDEHL()[2]);
         assertEquals(0b00000000, cpu._testGetPcSpAFBCDEHL()[3]);
     }
+    
+    @Test
+    void testRLC_R8() {
+        int[] program = {
+                Opcode.LD_C_N8.encoding,
+                0b10110011,
+                0xCB,
+                Opcode.RLC_C.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b01100111, cpu._testGetPcSpAFBCDEHL()[5]);
+        assertEquals(0b00010000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    @Test
+    void testRRC_R8() {
+        int[] program = {
+                Opcode.LD_D_N8.encoding,
+                0b10110011,
+                0xCB,
+                Opcode.RRC_D.encoding
+        };
+        
+        Cpu cpu = newCpu(program);
+        runCpu(cpu, program.length);
+        
+        assertEquals(0b11011001, cpu._testGetPcSpAFBCDEHL()[6]);
+        assertEquals(0b00010000, cpu._testGetPcSpAFBCDEHL()[3]);
+    }
+    
+    
      
     /* Test for carry flag methods */
     
