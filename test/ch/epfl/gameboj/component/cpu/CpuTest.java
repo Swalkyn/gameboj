@@ -2148,7 +2148,20 @@ class CpuTest {
             assertEquals(0b0001_0000, pb.getResult()[3]);
         }
     }
-     
+    
+    /* Tests for BCD adjust */
+    
+    @Test
+    void testDAA() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x6D);
+        pb.execOp(Opcode.DAA);
+        pb.run();
+        
+        assertEquals(0x73, pb.getResult()[2]);
+        assertEquals(0x0, pb.getResult()[3]);
+    }
+    
     /* Test for carry flag methods */
     
     @Test
