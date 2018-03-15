@@ -2101,8 +2101,7 @@ class CpuTest {
                 ProgramBuilder pb = new ProgramBuilder();
                 pb.execOpAnd8(Opcode.LD_A_N8, 0x99);
                 pb.execOpAnd8(Opcode.LD_E_N8, value);
-                pb.addInt(0xCB);
-                pb.addInt(buildBitOpcode(0b01, j, registerE));
+                pb.execManualOpcode(buildBitOpcode(0b01, j, registerE), 2, Opcode.Kind.PREFIXED);
                 pb.run();
                 
                 int target = (i==j) ? 0b0010_0000 : 0b1010_0000;
@@ -2137,8 +2136,7 @@ class CpuTest {
             for (int j = 0; j < 8; j++) {
                 ProgramBuilder pb = new ProgramBuilder();
                 pb.execOpAnd16(Opcode.LD_HL_N16, 0x08);
-                pb.addInt(0xCB);
-                pb.addInt(buildBitOpcode(0b01, j, hlr));
+                pb.execManualOpcode(buildBitOpcode(0b01, j, hlr), 2, Opcode.Kind.PREFIXED);
                 pb.execOpAnd16(Opcode.LD_A_N16R, 0x08);
                 pb.addInt(value);
                 pb.run();
@@ -2159,8 +2157,7 @@ class CpuTest {
             ProgramBuilder pb = new ProgramBuilder();
             pb.execOpAnd8(Opcode.LD_E_N8, 0);
             pb.execOp(Opcode.SCF);
-            pb.addInt(0xCB);
-            pb.addInt(buildBitOpcode(0b11, i, registerE));
+            pb.execManualOpcode(buildBitOpcode(0b11, i, registerE), 2, Opcode.Kind.PREFIXED);
             pb.run();
             
             assertEquals(1 << i, pb.getResult()[7]);
@@ -2176,8 +2173,7 @@ class CpuTest {
             ProgramBuilder pb = new ProgramBuilder();
             pb.execOpAnd16(Opcode.LD_HL_N16, 0x09);
             pb.execOp(Opcode.SCF);
-            pb.addInt(0xCB);
-            pb.addInt(buildBitOpcode(0b11, i, hlr));
+            pb.execManualOpcode(buildBitOpcode(0b11, i, hlr), 2, Opcode.Kind.PREFIXED);
             pb.execOpAnd16(Opcode.LD_A_N16R, 0x09);
             pb.addInt(0);
             pb.run();
@@ -2195,8 +2191,7 @@ class CpuTest {
             ProgramBuilder pb = new ProgramBuilder();
             pb.execOpAnd8(Opcode.LD_E_N8, 0b1111_1111);
             pb.execOp(Opcode.SCF);
-            pb.addInt(0xCB);
-            pb.addInt(buildBitOpcode(0b10, i, registerE));
+            pb.execManualOpcode(buildBitOpcode(0b10, i, registerE), 2, Opcode.Kind.PREFIXED);
             pb.run();
             
             assertEquals(Bits.set(0b1111_1111, i, false), pb.getResult()[7]);
@@ -2212,8 +2207,7 @@ class CpuTest {
             ProgramBuilder pb = new ProgramBuilder();
             pb.execOpAnd16(Opcode.LD_HL_N16, 0x09);
             pb.execOp(Opcode.SCF);
-            pb.addInt(0xCB);
-            pb.addInt(buildBitOpcode(0b10, i, hlr));
+            pb.execManualOpcode(buildBitOpcode(0b10, i, hlr), 2, Opcode.Kind.PREFIXED);
             pb.execOpAnd16(Opcode.LD_A_N16R, 0x09);
             pb.addInt(0b1111_1111);
             pb.run();

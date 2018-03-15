@@ -7,6 +7,7 @@ import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Opcode;
+import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
 
@@ -78,6 +79,21 @@ public class ProgramBuilder {
         return MEMORY_INDEX + address;
     }
     
+    public void execManualOpcode(int encoding, int cycles, Kind kind) {
+        Preconditions.checkBits8(encoding);
+        
+        if (kind == Opcode.Kind.PREFIXED) {
+            addInt(PREFIX);
+        }
+        
+        program.add(encoding);
+        totalCycles += cycles;
+    }
+    
+    public void execManualOpcode(int encoding, int cycles) {
+        execManualOpcode(encoding, cycles, Opcode.Kind.DIRECT);
+    }
+    
     private Cpu newCpu(int[] program) {
         Ram ram = new Ram(program.length);
         RamController rc = new RamController(ram, 0);
@@ -108,6 +124,7 @@ public class ProgramBuilder {
     }
     
     public void run() {
+        // run(program.size());
         run(totalCycles);
     }
     
