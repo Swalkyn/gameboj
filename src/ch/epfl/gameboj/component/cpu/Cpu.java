@@ -3,16 +3,19 @@ package ch.epfl.gameboj.component.cpu;
 
 import java.util.ArrayList;
 
+import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
+import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Alu.Flag;
 import ch.epfl.gameboj.component.cpu.Alu.RotDir;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
+import ch.epfl.gameboj.component.memory.Ram;
 
 public final class Cpu implements Component, Clocked {
     
@@ -21,6 +24,9 @@ public final class Cpu implements Component, Clocked {
     private static final int OPCODE_PREFIX = 0xCB;
     private long nextNonIdleCycle = 0;
     private Bus bus;
+    private Ram highRam = new Ram(AddressMap.HIGH_RAM_SIZE);
+    
+    private boolean regIME = false;
     
     private enum Reg implements Register {
         A, F, B, C, D, E, H, L
@@ -41,8 +47,24 @@ public final class Cpu implements Component, Clocked {
         }
     }
     
+    public enum Interrupt implements Bit {
+        VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
+    }
+    
     private enum FlagSrc {
         V0, V1, ALU, CPU
+    }
+    
+    private enum Condition {
+        NZ(Alu.Flag.Z, true), Z(Alu.Flag.Z, false), NC(Alu.Flag.C, true), C(Alu.Flag.C, false);
+        
+        public Flag flag;
+        public boolean negative;
+        
+        Condition(Flag flag, boolean negative) {
+            this.flag = flag;
+            this.negative = negative;
+        }
     }
     
     private int PC = 0;
@@ -64,23 +86,35 @@ public final class Cpu implements Component, Clocked {
     }
     
     /**
-     * Implemented for component interface, returns NO_DATA
-     * @param address
-     * @return NO_DATA
+     * Reads at specified address in high ram, returns NO_DATA if address not in range
+     * @param address : 16 bits, between HIGH_RAM_START (incl.) and HIGH_RAM_END (excl.)
+     * @throws IllegalArgumentException if the address is invalid
+     * @return read value or NO_DATA
      */
     @Override
     public int read(int address) {
+        Preconditions.checkBits16(address);
+        
+        if (AddressMap.HIGH_RAM_START >= address && address < AddressMap.HIGH_RAM_END) {
+            return highRam.read(address);
+        }
         return Component.NO_DATA;
     }
 
     /**
-     * Implemented for Component interface, does nothing
-     * @param address
-     * @param data
+     * Writes a given value to an address in high ram, does nothing if the address is not in range
+     * @param address : 16 bits, between HIGH_RAM_START (incl.) and HIGH_RAM_END (excl.)
+     * @param data : the data to be written
+     * @throws IllegalArgumentException if the address or data is invalid
      */
     @Override
     public void write(int address, int data) {
-        // Does nothing
+        Preconditions.checkBits16(address);
+        Preconditions.checkBits8(data);
+        
+        if (AddressMap.HIGH_RAM_START >= address && address < AddressMap.HIGH_RAM_END) {
+            highRam.write(address - AddressMap.HIGH_RAM_START, data);
+        }
     }
     
     /**
@@ -92,10 +126,74 @@ public final class Cpu implements Component, Clocked {
         
         // If processor has something to do
         if (cycle == nextNonIdleCycle) {
+            reallyCycle();
+        }
+        
+        if (nextNonIdleCycle == Long.MAX_VALUE && atLeastOneInterrupt()) {
+            nextNonIdleCycle = cycle;
+            reallyCycle();
+        }
+    }
+    
+    private void reallyCycle() {
+        if (regIME && atLeastOneInterrupt()) {
+            regIME = false;
+            
+            int interruptIndex = getInterruptIndex();
+            int interruptAddress = AddressMap.INTERRUPTS[interruptIndex];
+            
+            removeInterruptFlag(interruptIndex);
+            push16(PC);
+            PC = interruptAddress;
+            nextNonIdleCycle += 5;
+        } else {
             dispatch(read8(PC));
         }
     }
     
+    /* Interrupt methods */
+    
+    /**
+     * Raises an interrupt by setting the corresponding bit in IF to 1
+     * @param i : the interrupt to be raised
+     */
+    public void requestInterrupt(Interrupt i) {
+        write8(AddressMap.REG_IF, Bits.set(read8(AddressMap.REG_IF), i.index(), true));
+    }
+    
+    private int readIE() {
+        return read8(AddressMap.REG_IE);
+    }
+    
+    private int readIF() {
+        return read8(AddressMap.REG_IF);
+    }
+    
+    private void writeIE(int value) {
+        Preconditions.checkBits8(value);
+        
+        write8(AddressMap.REG_IE, value);
+    }
+    
+    private void writeIF(int value) {
+        Preconditions.checkBits8(value);
+        
+        write8(AddressMap.REG_IF, value);
+    }
+    
+    private boolean atLeastOneInterrupt() {
+        return Integer.lowestOneBit(readIE()) != 0 
+                && Integer.lowestOneBit(readIF()) != 0 
+                && (readIE() & readIF()) != 0;  // True if one or more interrupt is found in both IE and IF
+    }
+    
+    private int getInterruptIndex() {
+        return Integer.numberOfTrailingZeros(readIE() & readIF());
+    }
+    
+    private void removeInterruptFlag(int index) {
+        writeIF(Bits.set(readIF(), index, false));
+    }
     
     /* Test helper */
     
@@ -344,6 +442,10 @@ public final class Cpu implements Component, Clocked {
     private boolean extractInitalCarry(Opcode opcode) {
         return Bits.test(opcode.encoding, 3) && getFlagFromF(Flag.C);
     }
+    
+    private boolean extractIMEState(Opcode opcode) {
+        return Bits.test(opcode.encoding, 3);
+    }
    
     /* Opcode table methods */
     
@@ -420,6 +522,34 @@ public final class Cpu implements Component, Clocked {
         return rf.testBit(Reg.F, f);
     }
     
+    private boolean testCondition(Opcode opcode) {
+        Condition c = extractCondition(opcode);
+        boolean result = Bits.test(rf.get(Reg.F), c.flag);
+        
+        if (c.negative) {
+            return !result;
+        }
+        return result;
+    }
+    
+    private Condition extractCondition(Opcode opcode) {
+        int code = Bits.extract(opcode.encoding, 3, 2);
+        
+        switch (code) {
+        case 0b00:
+            return Condition.NZ;
+        case 0b01:
+            return Condition.Z;
+        case 0b10:
+            return Condition.NC;
+        case 0b11:
+            return Condition.C;
+            
+        default:
+            throw new IllegalArgumentException();
+        }
+    }
+    
     /* Dispatch method */
     
     /**
@@ -429,12 +559,16 @@ public final class Cpu implements Component, Clocked {
     private void dispatch(int opcodeEncoding) {
         Preconditions.checkBits8(opcodeEncoding);
         
+        
         Opcode opcode = null;
         if (opcodeEncoding == OPCODE_PREFIX) {
             opcode = searchOpcodeTable(read8AfterOpcode(), PREFIXED_OPCODE_TABLE);
         } else {
             opcode = searchOpcodeTable(opcodeEncoding, DIRECT_OPCODE_TABLE); 
         }
+        
+        int additionalCycles = 0;
+        int nextPC = PC + opcode.totalBytes;
         
         switch (opcode.family) {
             case NOP: {
@@ -771,12 +905,79 @@ public final class Cpu implements Component, Clocked {
             case SCCF: {
                 rf.setBit(Reg.F, Flag.C, !extractInitalCarry(opcode));
             } break;
+            
+            // Jumps
+            case JP_HL: {
+                nextPC = reg16(Reg16.HL);
+            } break;
+            case JP_N16: {
+                nextPC = read16AfterOpcode();
+            } break;
+            case JP_CC_N16: {
+                if (testCondition(opcode)) {
+                    nextPC = read16AfterOpcode();
+                    additionalCycles = opcode.additionalCycles;
+                }
+            } break;
+            case JR_E8: {
+                nextPC = Bits.clip(16, PC + Bits.signExtend8(read8AfterOpcode()));
+            } break;
+            case JR_CC_E8: {
+                if (testCondition(opcode)) {
+                    nextPC = Bits.clip(16, PC + Bits.signExtend8(read8AfterOpcode()));
+                    additionalCycles = opcode.additionalCycles;
+                }
+            } break;
+
+            // Calls and returns
+            case CALL_N16: {
+                push16(PC);
+                nextPC = read16AfterOpcode();
+            } break;
+            case CALL_CC_N16: {
+                if (testCondition(opcode)) {
+                    push16(PC);
+                    nextPC = read16AfterOpcode();
+                    additionalCycles = opcode.additionalCycles;
+                }
+            } break;
+            case RST_U3: {
+                push16(PC);
+                nextPC = AddressMap.RESETS[Bits.extract(opcode.encoding, 3, 3)];
+            } break;
+            case RET: {
+                nextPC = pop16();
+            } break;
+            case RET_CC: {
+                if (testCondition(opcode)) {
+                    nextPC = pop16();
+                    additionalCycles = opcode.additionalCycles;
+                }
+            } break;
+
+            // Interrupts
+            case EDI: {
+                regIME = extractIMEState(opcode);
+            } break;
+            case RETI: {
+                regIME = true;
+                nextPC = pop16();
+            } break;
+
+            // Misc control
+            case HALT: {
+               nextNonIdleCycle = Long.MAX_VALUE; 
+            } break;
+            case STOP:
+              throw new Error("STOP is not implemented");
 
             default:
                 break;
         }
         
-        PC += opcode.totalBytes;
+        PC = nextPC;
         nextNonIdleCycle += opcode.cycles;
+        nextNonIdleCycle += additionalCycles;
+        
     }
 }
