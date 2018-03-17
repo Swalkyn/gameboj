@@ -26,7 +26,14 @@ public final class Cpu implements Component, Clocked {
     private Bus bus;
     private Ram highRam = new Ram(AddressMap.HIGH_RAM_SIZE);
     
+    private int PC = 0;
+    private int SP = 0;
+
+    private RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
+
     private boolean regIME = false;
+    private int regIE = 0;
+    private int regIF = 0;
     
     private enum Reg implements Register {
         A, F, B, C, D, E, H, L
@@ -67,11 +74,6 @@ public final class Cpu implements Component, Clocked {
         }
     }
     
-    private int PC = 0;
-    private int SP;
-    
-    private RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
-    
     
     /* Methods for Component interface */
     
@@ -97,7 +99,12 @@ public final class Cpu implements Component, Clocked {
         
         if (AddressMap.HIGH_RAM_START >= address && address < AddressMap.HIGH_RAM_END) {
             return highRam.read(address);
+        } else if (address == AddressMap.REG_IE) {
+            return regIE;
+        } else if (address == AddressMap.REG_IF) {
+            return regIF;
         }
+        
         return Component.NO_DATA;
     }
 
@@ -114,6 +121,10 @@ public final class Cpu implements Component, Clocked {
         
         if (AddressMap.HIGH_RAM_START >= address && address < AddressMap.HIGH_RAM_END) {
             highRam.write(address - AddressMap.HIGH_RAM_START, data);
+        } else if (address == AddressMap.REG_IE) {
+            regIE = data;
+        } else if (address == AddressMap.REG_IF) {
+            regIF = data;
         }
     }
     
@@ -158,41 +169,21 @@ public final class Cpu implements Component, Clocked {
      * @param i : the interrupt to be raised
      */
     public void requestInterrupt(Interrupt i) {
-        write8(AddressMap.REG_IF, Bits.set(read8(AddressMap.REG_IF), i.index(), true));
-    }
-    
-    private int readIE() {
-        return read8(AddressMap.REG_IE);
-    }
-    
-    private int readIF() {
-        return read8(AddressMap.REG_IF);
-    }
-    
-    private void writeIE(int value) {
-        Preconditions.checkBits8(value);
-        
-        write8(AddressMap.REG_IE, value);
-    }
-    
-    private void writeIF(int value) {
-        Preconditions.checkBits8(value);
-        
-        write8(AddressMap.REG_IF, value);
+        regIF = Bits.set(regIF, i.index(), true);
     }
     
     private boolean atLeastOneInterrupt() {
-        return Integer.lowestOneBit(readIE()) != 0 
-                && Integer.lowestOneBit(readIF()) != 0 
-                && (readIE() & readIF()) != 0;  // True if one or more interrupt is found in both IE and IF
+        return Integer.lowestOneBit(regIE) != 0 
+                && Integer.lowestOneBit(regIF) != 0 
+                && (regIE & regIF) != 0;  // True if one or more interrupt is found in both IE and IF
     }
     
     private int getInterruptIndex() {
-        return Integer.numberOfTrailingZeros(readIE() & readIF());
+        return Integer.numberOfTrailingZeros(regIE & regIF);
     }
     
     private void removeInterruptFlag(int index) {
-        writeIF(Bits.set(readIF(), index, false));
+        regIF = Bits.set(regIF, index, false);
     }
     
     /* Test helper */
