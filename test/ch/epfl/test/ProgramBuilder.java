@@ -1,6 +1,7 @@
 package ch.epfl.test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
@@ -13,8 +14,8 @@ import ch.epfl.gameboj.component.memory.RamController;
 
 public class ProgramBuilder {
     
-    private ArrayList<Integer> program;
-    private ArrayList<Integer> memory;
+    private List<Integer> program;
+    private List<Integer> memory;
     private Cpu cpu;
     public static final int PREFIX = 0xCB;
     private static final int MEMORY_INDEX = 0x20;
@@ -23,6 +24,16 @@ public class ProgramBuilder {
     public ProgramBuilder() {
         program = new ArrayList<>();
         memory = new ArrayList<>();
+    }
+    
+    public ProgramBuilder(int[] program, int cycles) {
+        this();
+        
+        for (int i : program) {
+            addInt(i);
+        }
+        
+        totalCycles = cycles;
     }
     
     private boolean isPrefixed(Opcode op) {
