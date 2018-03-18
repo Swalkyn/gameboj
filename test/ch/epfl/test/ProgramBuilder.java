@@ -6,6 +6,7 @@ import java.util.List;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
+import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Opcode;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
@@ -16,6 +17,7 @@ public class ProgramBuilder {
     
     private List<Integer> program;
     private List<Integer> memory;
+    private List<Component> additionalComponents;
     private Cpu cpu;
     private Bus bus;
     public static final int PREFIX = 0xCB;
@@ -25,6 +27,7 @@ public class ProgramBuilder {
     public ProgramBuilder() {
         program = new ArrayList<>();
         memory = new ArrayList<>();
+        additionalComponents = new ArrayList<>();
     }
     
     public ProgramBuilder(int[] program, int cycles) {
@@ -83,6 +86,17 @@ public class ProgramBuilder {
         return data;
     }
     
+    public void addComponent(Component component) {
+        additionalComponents.add(component);
+    }
+    
+    public void ramAt(int startAddress, int[] contents) {
+        Ram r = new Ram(contents.length);
+        for (int i = 0; i < contents.length; ++i)
+            r.write(i, contents[i]);
+        addComponent(new RamController(r, startAddress));
+    }
+    
     public void storeInt(int value) {
         memory.add(value);
     }
@@ -115,6 +129,10 @@ public class ProgramBuilder {
         // Fill ram
         for (int i = 0; i < program.length; i++) {
             rc.write(i, program[i]);
+        }
+        
+        for (Component c : additionalComponents) {
+            c.attachTo(bus);
         }
         
         rc.attachTo(bus);
