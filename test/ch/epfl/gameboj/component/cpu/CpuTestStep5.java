@@ -1,10 +1,11 @@
 package ch.epfl.gameboj.component.cpu;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
 import ch.epfl.gameboj.AddressMap;
+import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 import ch.epfl.test.ProgramBuilder;
 
 class CpuTestStep5 {
@@ -24,8 +25,8 @@ class CpuTestStep5 {
         ProgramBuilder pb = new ProgramBuilder(program, 200000000);
         pb.run();
         
-        //assertEquals(8, pb.getResult()[0]);
-        assertEquals(89, pb.getResult()[5]);
+        assertEquals(9, pb.getResult()[0]);
+        assertEquals(89, pb.getResult()[2]);
     }
     
     @Test
@@ -273,24 +274,106 @@ class CpuTestStep5 {
     /* Interrupt Tests */
     
     @Test
-    void testEDIEnable() {        
+    void singleInterruptsAreCorrectlyHandled() {       
+        for (Interrupt interrupt : Cpu.Interrupt.values()) {
+            ProgramBuilder pb = new ProgramBuilder();
+            
+            pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+            pb.execOp(Opcode.EI);
+            pb.execOpAnd8(Opcode.LD_A_N8, interrupt.mask());
+            pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
+            pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
+            pb.execOpAnd8(Opcode.LD_C_N8, 0x21);
+            
+            int[] interruptHandler = {
+                    Opcode.LD_B_N8.encoding,
+                    0x13,
+                    Opcode.RET.encoding
+            };
+            
+            pb.ramAt(AddressMap.INTERRUPTS[interrupt.index()], interruptHandler);
+            pb.run(40);
+            
+            assertEquals(0x13, pb.getResult()[4]);
+            assertEquals(0x21, pb.getResult()[5]);
+        }
+    }
+    
+    @Test
+    void interruptsDoNotTriggerWithIMEOff() {       
+        for (Interrupt interrupt : Cpu.Interrupt.values()) {
+            ProgramBuilder pb = new ProgramBuilder();
+            
+            pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+            pb.execOp(Opcode.EI);
+            pb.execOpAnd8(Opcode.LD_A_N8, interrupt.mask());
+            pb.execOpAnd8(Opcode.LD_B_N8, 0x44);
+            pb.execOp(Opcode.DI);
+            pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
+            pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
+            pb.execOpAnd8(Opcode.LD_C_N8, 0x21);
+            
+            int[] interruptHandler = {
+                    Opcode.LD_B_N8.encoding,
+                    0x13,
+                    Opcode.RET.encoding
+            };
+            
+            pb.ramAt(AddressMap.INTERRUPTS[interrupt.index()], interruptHandler);
+            pb.run(40);
+            
+            assertEquals(0x44, pb.getResult()[4]);
+            assertEquals(0x21, pb.getResult()[5]);
+        }
+    }
+    
+    @Test
+    void multipleInterruptsAreCorrectlyHandled() {    
+        
+        int interruptMask = Cpu.Interrupt.SERIAL.mask() | Cpu.Interrupt.JOYPAD.mask() | Cpu.Interrupt.LCD_STAT.mask();
+        
         ProgramBuilder pb = new ProgramBuilder();
         
         pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
-        pb.execOp(Opcode.EI);                                       // At address of interrupt handler, write payload program
-        pb.execOpAnd8(Opcode.LD_A_N8, Cpu.Interrupt.VBLANK.mask());
+        pb.execOp(Opcode.EI);
+        pb.execOpAnd8(Opcode.LD_A_N8, interruptMask);
+        pb.execOpAnd8(Opcode.LD_B_N8, 0x44);
         pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
         pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
-        pb.execOp(Opcode.NOP);
+        pb.execOpAnd8(Opcode.LD_C_N8, 0x21);
         
-        int[] interruptHandler = {
+        int[] lcdStatInterruptHandler = {
                 Opcode.LD_B_N8.encoding,
-                0x13
+                0x13,
+                Opcode.LD_A_N8.encoding,
+                0x13,
+                Opcode.RETI.encoding
+        };
+
+        int[] serialInterruptHandler = {
+                Opcode.LD_B_N8.encoding,
+                0x21,
+                Opcode.ADD_A_B.encoding,
+                Opcode.RETI.encoding
         };
         
-        pb.ramAt(AddressMap.INTERRUPTS[0], interruptHandler);
-        pb.run(40);
+        int[] joypadInterruptHandler = {
+                Opcode.LD_B_N8.encoding,
+                0x44,
+                Opcode.ADD_A_B.encoding,
+                Opcode.RETI.encoding
+        };
         
-        assertEquals(0x13, pb.getResult()[4]);
+        pb.ramAt(AddressMap.INTERRUPTS[Cpu.Interrupt.LCD_STAT.index()], lcdStatInterruptHandler);
+        pb.ramAt(AddressMap.INTERRUPTS[Cpu.Interrupt.SERIAL.index()], serialInterruptHandler);
+        pb.ramAt(AddressMap.INTERRUPTS[Cpu.Interrupt.JOYPAD.index()], joypadInterruptHandler);
+        
+        pb.run(55);
+        
+        assertEquals(0x78, pb.getResult()[2]);
+        assertEquals(0x44, pb.getResult()[4]);
+        assertEquals(0x21, pb.getResult()[5]);
     }
+    
+    /* Halt tests */
 }
