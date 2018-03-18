@@ -167,7 +167,7 @@ class CpuTestStep5 {
         ProgramBuilder pb = new ProgramBuilder();        
         pb.execOpAnd8(Opcode.LD_A_N8, 0x0F);
         pb.execOpAnd8(Opcode.CP_A_N8, 0x0E);
-        pb.execOpAnd8(Opcode.JR_NZ_E8, 0x02);
+        pb.execOpAnd8(Opcode.JR_NC_E8, 0x02);
         pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
         pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
         pb.run();
@@ -181,7 +181,7 @@ class CpuTestStep5 {
         ProgramBuilder pb = new ProgramBuilder();        
         pb.execOpAnd8(Opcode.LD_A_N8, 0x0E);
         pb.execOpAnd8(Opcode.CP_A_N8, 0x0F);
-        pb.execOpAnd8(Opcode.JR_NZ_E8, 0x02);
+        pb.execOpAnd8(Opcode.JR_C_E8, 0x02);
         pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
         pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
         pb.run();
@@ -193,10 +193,11 @@ class CpuTestStep5 {
     @Test
     void testCALL_N16() {
         ProgramBuilder pb = new ProgramBuilder();
-        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFD);
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
         pb.execOpAnd16(Opcode.CALL_N16, 0x08);
         pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
         pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
+        pb.run();
         
         
         
@@ -224,4 +225,67 @@ class CpuTestStep5 {
         pb.run();
     }
     
+    @Test
+    void testCALL_NZ_N16() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x0F);
+        pb.execOpAnd8(Opcode.CP_A_N8, 0x0E);
+        pb.execOpAnd16(Opcode.CALL_NZ_N16, 0x0C);
+        pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
+        pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
+        pb.run();
+        
+        assertEquals(0x00, pb.getResult()[4]);
+        assertEquals(0xEE, pb.getResult()[5]);
+        assertEquals(0x0A, pb.get16BitsFromBus(0xFFFD));
+    }
+    
+    @Test
+    void testCALL_Z_N16() {
+        ProgramBuilder pb = new ProgramBuilder(); 
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x0F);
+        pb.execOpAnd8(Opcode.CP_A_N8, 0x0F);
+        pb.execOpAnd16(Opcode.CALL_Z_N16, 0x0C);
+        pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
+        pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
+        pb.run();
+        
+        assertEquals(0x00, pb.getResult()[4]);
+        assertEquals(0xEE, pb.getResult()[5]);
+        assertEquals(0x0A, pb.get16BitsFromBus(0xFFFD));
+    }
+    
+    @Test
+    void testCALL_NC_N16() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x0F);
+        pb.execOpAnd8(Opcode.CP_A_N8, 0x0E);
+        pb.execOpAnd16(Opcode.CALL_NC_N16, 0x0C);
+        pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
+        pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
+        pb.run();
+        
+        assertEquals(0x00, pb.getResult()[4]);
+        assertEquals(0xEE, pb.getResult()[5]);
+        assertEquals(0x0A, pb.get16BitsFromBus(0xFFFD));
+    }
+    
+    @Test
+    void testCALL_C_N16() {
+        ProgramBuilder pb = new ProgramBuilder(); 
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x0E);
+        pb.execOpAnd8(Opcode.CP_A_N8, 0x0F);
+        pb.execOpAnd16(Opcode.CALL_C_N16, 0x0C);
+        pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
+        pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
+        pb.run();
+        
+        assertEquals(0x00, pb.getResult()[4]);
+        assertEquals(0xEE, pb.getResult()[5]);
+        assertEquals(0x0A, pb.get16BitsFromBus(0xFFFD));
+    }
 }
