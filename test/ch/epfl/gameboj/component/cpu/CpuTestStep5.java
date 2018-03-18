@@ -1,6 +1,7 @@
 package ch.epfl.gameboj.component.cpu;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -476,4 +477,40 @@ class CpuTestStep5 {
     }
     
     /* Halt tests */
+    
+    @Test
+    void testHALTStopsExecution() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x13);
+        pb.execOp(Opcode.HALT);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x99);
+        
+        pb.run(35);
+        
+        assertEquals(0x13, pb.getResult()[2]);
+    }
+    
+    @Test
+    void testHALTRecoversWithInterrupt() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+        pb.execOpAnd8(Opcode.LD_A_N8, Cpu.Interrupt.SERIAL.mask());
+        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
+        pb.execOpAnd8(Opcode.LD_A_N8, Cpu.Interrupt.SERIAL.mask());
+        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
+        pb.execOp(Opcode.HALT);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x13);
+        
+        pb.run(35);
+        
+        assertEquals(0x13, pb.getResult()[2]);
+    }
+    
+    @Test
+    void testSTOP() {
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOp(Opcode.STOP);
+        assertThrows(Error.class, () -> pb.run(2));
+    }
+    
 }
