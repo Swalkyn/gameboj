@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import ch.epfl.gameboj.AddressMap;
 import ch.epfl.test.ProgramBuilder;
 
 class CpuTestStep5 {
@@ -197,8 +198,30 @@ class CpuTestStep5 {
         pb.execOpAnd8(Opcode.LD_B_N8, 0xDD);
         pb.execOpAnd8(Opcode.LD_C_N8, 0xEE);
         
+        
+        
         assertEquals(0x00, pb.getResult()[4]);
         assertEquals(0xEE, pb.getResult()[5]);
         assertEquals(0x06, pb.get16BitsFromBus(0xFFFD));
     }
+    
+    /* Interrupt Tests */
+    
+    @Test
+    void testEDIEnable() {
+        int interruptHandler = AddressMap.INTERRUPTS[0];
+        
+        ProgramBuilder pb = new ProgramBuilder();
+        pb.execOp(Opcode.EI);                                       // At address of interrupt handler, write payload program
+        pb.execOpAnd8(Opcode.LD_A_N8, Opcode.LD_B_N8.encoding);     //  INT_HANDL     : LD_B_N8
+        pb.execOpAnd16(Opcode.LD_N16R_A, interruptHandler);
+        pb.execOpAnd8(Opcode.LD_A_N8, 0x13);                        //  INT_HANDL + 1 : 0x13
+        pb.execOpAnd16(Opcode.LD_N16R_A, interruptHandler + 1);
+        pb.execOpAnd8(Opcode.LD_A_N8, Cpu.Interrupt.VBLANK.mask());
+        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
+        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
+        
+        pb.run();
+    }
+    
 }
