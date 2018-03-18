@@ -17,6 +17,7 @@ public class ProgramBuilder {
     private List<Integer> program;
     private List<Integer> memory;
     private Cpu cpu;
+    private Bus bus;
     public static final int PREFIX = 0xCB;
     private static final int MEMORY_INDEX = 0x20;
     private int totalCycles = 0;
@@ -105,11 +106,11 @@ public class ProgramBuilder {
         execManualOpcode(encoding, cycles, Opcode.Kind.DIRECT);
     }
     
-    private Cpu newCpu(int[] program) {
+    private void newSystem(int[] program) {
         Ram ram = new Ram(program.length);
         RamController rc = new RamController(ram, 0);
-        Bus bus = new Bus();        
-        Cpu cpu = new Cpu();
+        bus = new Bus();        
+        cpu = new Cpu();
         
         // Fill ram
         for (int i = 0; i < program.length; i++) {
@@ -118,8 +119,6 @@ public class ProgramBuilder {
         
         rc.attachTo(bus);
         cpu.attachTo(bus);
-        
-        return cpu;
     }
     
     private void runCpu(Cpu cpu, int numberOfCycles) {
@@ -130,7 +129,7 @@ public class ProgramBuilder {
     
     public void run(int cycle) {
         int[] data = build();
-        cpu = newCpu(data);
+        newSystem(data);
         runCpu(cpu, cycle);
     }
     
@@ -141,5 +140,20 @@ public class ProgramBuilder {
     
     public int[] getResult() {
         return cpu._testGetPcSpAFBCDEHL();
+    }
+    
+    public int get8BitsFromBus(int address) {
+        Preconditions.checkBits16(address);
+        
+        return bus.read(address);
+    }
+    
+    public int get16BitsFromBus(int address) {
+        Preconditions.checkBits16(address);
+        
+        int lsb = bus.read(address);
+        int msb = bus.read(address + 1);
+        
+        return Bits.make16(msb, lsb);
     }
 }

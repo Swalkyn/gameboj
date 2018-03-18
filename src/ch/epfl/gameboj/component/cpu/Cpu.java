@@ -97,8 +97,8 @@ public final class Cpu implements Component, Clocked {
     public int read(int address) {
         Preconditions.checkBits16(address);
         
-        if (AddressMap.HIGH_RAM_START >= address && address < AddressMap.HIGH_RAM_END) {
-            return highRam.read(address);
+        if (AddressMap.HIGH_RAM_START <= address && address < AddressMap.HIGH_RAM_END) {
+            return highRam.read(address - AddressMap.HIGH_RAM_START);
         } else if (address == AddressMap.REG_IE) {
             return regIE;
         } else if (address == AddressMap.REG_IF) {
@@ -119,7 +119,7 @@ public final class Cpu implements Component, Clocked {
         Preconditions.checkBits16(address);
         Preconditions.checkBits8(data);
         
-        if (AddressMap.HIGH_RAM_START >= address && address < AddressMap.HIGH_RAM_END) {
+        if (AddressMap.HIGH_RAM_START <= address && address < AddressMap.HIGH_RAM_END) {
             highRam.write(address - AddressMap.HIGH_RAM_START, data);
         } else if (address == AddressMap.REG_IE) {
             regIE = data;
@@ -911,23 +911,23 @@ public final class Cpu implements Component, Clocked {
                 }
             } break;
             case JR_E8: {
-                nextPC = Bits.clip(16, PC + Bits.signExtend8(read8AfterOpcode()));
+                nextPC = Bits.clip(16, PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode()));
             } break;
             case JR_CC_E8: {
                 if (testCondition(opcode)) {
-                    nextPC = Bits.clip(16, PC + Bits.signExtend8(read8AfterOpcode()));
+                    nextPC = Bits.clip(16, PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode()));
                     additionalCycles = opcode.additionalCycles;
                 }
             } break;
 
             // Calls and returns
             case CALL_N16: {
-                push16(PC);
+                push16(PC + opcode.totalBytes);
                 nextPC = read16AfterOpcode();
             } break;
             case CALL_CC_N16: {
                 if (testCondition(opcode)) {
-                    push16(PC);
+                    push16(PC + opcode.totalBytes);
                     nextPC = read16AfterOpcode();
                     additionalCycles = opcode.additionalCycles;
                 }

@@ -38,7 +38,7 @@ public final class Ram implements Component {
     @Override
     public int read(int index) {
         if (index < 0 || index >= size()) {
-            throw new IndexOutOfBoundsException();
+            throw new IndexOutOfBoundsException(index + " is out of bounds");
         }
         
         return Byte.toUnsignedInt(memory[index]);
@@ -54,7 +54,7 @@ public final class Ram implements Component {
     @Override
     public void write(int index, int value) {
         if (index < 0 || index >= size()) {
-            throw new IndexOutOfBoundsException();
+            throw new IndexOutOfBoundsException(index + " is out of bounds");
         }
         
         memory[index] = (byte) Preconditions.checkBits8(value);

@@ -104,7 +104,7 @@ public final class Alu {
         
         // Clip value
         result = Bits.clip(8, result);
-        boolean z = result == 0 ? true : false;
+        boolean z = result == 0;
         
         return packValueZNHC(result, z, n, h, c);
     }
@@ -184,7 +184,7 @@ public final class Alu {
         
         // Clip value
         result = Bits.clip(8, result);
-        boolean z = (result == 0) ? true : false;
+        boolean z = result == 0;
         
         return packValueZNHC(result, z, n, h, c);
     }
