@@ -206,25 +206,6 @@ class CpuTestStep5 {
         assertEquals(0x06, pb.get16BitsFromBus(0xFFFD));
     }
     
-    /* Interrupt Tests */
-    
-    @Test
-    void testEDIEnable() {
-        int interruptHandler = AddressMap.INTERRUPTS[0];
-        
-        ProgramBuilder pb = new ProgramBuilder();
-        pb.execOp(Opcode.EI);                                       // At address of interrupt handler, write payload program
-        pb.execOpAnd8(Opcode.LD_A_N8, Opcode.LD_B_N8.encoding);     //  INT_HANDL     : LD_B_N8
-        pb.execOpAnd16(Opcode.LD_N16R_A, interruptHandler);
-        pb.execOpAnd8(Opcode.LD_A_N8, 0x13);                        //  INT_HANDL + 1 : 0x13
-        pb.execOpAnd16(Opcode.LD_N16R_A, interruptHandler + 1);
-        pb.execOpAnd8(Opcode.LD_A_N8, Cpu.Interrupt.VBLANK.mask());
-        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
-        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
-        
-        pb.run();
-    }
-    
     @Test
     void testCALL_NZ_N16() {
         ProgramBuilder pb = new ProgramBuilder();
@@ -287,5 +268,29 @@ class CpuTestStep5 {
         assertEquals(0x00, pb.getResult()[4]);
         assertEquals(0xEE, pb.getResult()[5]);
         assertEquals(0x0A, pb.get16BitsFromBus(0xFFFD));
+    }
+    
+    /* Interrupt Tests */
+    
+    @Test
+    void testEDIEnable() {        
+        ProgramBuilder pb = new ProgramBuilder();
+        
+        pb.execOpAnd16(Opcode.LD_SP_N16, 0xFFFF);
+        pb.execOp(Opcode.EI);                                       // At address of interrupt handler, write payload program
+        pb.execOpAnd8(Opcode.LD_A_N8, Cpu.Interrupt.VBLANK.mask());
+        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IE);
+        pb.execOpAnd16(Opcode.LD_N16R_A, AddressMap.REG_IF);
+        pb.execOp(Opcode.NOP);
+        
+        int[] interruptHandler = {
+                Opcode.LD_B_N8.encoding,
+                0x13
+        };
+        
+        pb.ramAt(AddressMap.INTERRUPTS[0], interruptHandler);
+        pb.run(40);
+        
+        assertEquals(0x13, pb.getResult()[4]);
     }
 }
