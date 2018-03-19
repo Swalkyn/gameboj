@@ -14,7 +14,7 @@ public interface Preconditions {
      */
     static void checkArgument(boolean b) {
         if (!b) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Condtion failed");
         }
     }
     
@@ -26,7 +26,7 @@ public interface Preconditions {
      */
     static int checkBits8(int v) {
         if (v < 0 || v > 0xFF) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Value is not 8 bits : " + v);
         }
         
         return v;
@@ -40,7 +40,7 @@ public interface Preconditions {
      */
     static int checkBits16(int v) {
         if (v < 0 || v > 0xFFFF) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Value is not 16 bits : " + v);
         }
         
         return v;

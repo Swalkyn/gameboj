@@ -104,7 +104,7 @@ public final class Alu {
         
         // Clip value
         result = Bits.clip(8, result);
-        boolean z = result == 0 ? true : false;
+        boolean z = result == 0;
         
         return packValueZNHC(result, z, n, h, c);
     }
@@ -184,7 +184,7 @@ public final class Alu {
         
         // Clip value
         result = Bits.clip(8, result);
-        boolean z = (result == 0) ? true : false;
+        boolean z = result == 0;
         
         return packValueZNHC(result, z, n, h, c);
     }
@@ -200,9 +200,7 @@ public final class Alu {
     public static int sub(int l, int r) {
         return sub(l, r, false);
     }
-    
-    // TODO : add param flag descriptions
-    
+        
     /**
      * Adjusts an 8 bit value into binary coded decimal
      * Flag Pattern : ZN0C
@@ -218,7 +216,7 @@ public final class Alu {
         
         int fixL = (h || (!n && Bits.clip(4, v) > 9)) ? 1 : 0;
         int fixH = (c || (!n && v > 0x99)) ? 1 : 0;
-        int fix = 0x60 * fixH + 0x06 * fixL;
+        int fix = Bits.clip(8, 0x60 * fixH + 0x06 * fixL);
         
         int va;
         if (n) {
@@ -227,7 +225,7 @@ public final class Alu {
             va = v + fix;
         }
         
-        return packValueZNHC(va, va == 0, n, false, fixH == 1);
+        return packValueZNHC(Bits.clip(8, va), Bits.clip(8, va) == 0, n, false, fixH == 1);
     }
     
     /**
@@ -264,7 +262,7 @@ public final class Alu {
     
     /**
      * Bitwise xor on two 8 bit ints
-     * Flag pattern : Z010
+     * Flag pattern : Z000
      * @param l : 8 bits
      * @param r : 8 bits
      * @throws IllegalArgumentException if not 8 bits
@@ -392,7 +390,7 @@ public final class Alu {
     }
     
     /**
-     * Returns value 0 and flag z where z is true iff the value's bit at given index is 1
+     * Returns value 0 and flag z where z is true iff the value's bit at given index is 0
      * Flag pattern : Z010
      * @param v : 8 bits
      * @param bitIndex : the index of the bit to be tested
@@ -406,7 +404,7 @@ public final class Alu {
             throw new IndexOutOfBoundsException("Index must be between 0 and 7 (included)");
         }
         
-        return packValueZNHC(0, Bits.test(v, bitIndex), false, true, false);
+        return packValueZNHC(0, !Bits.test(v, bitIndex), false, true, false);
     }
 }
 
