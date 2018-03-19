@@ -728,7 +728,7 @@ public final class Cpu implements Component, Clocked {
             case DEC_HLR: {
                 int vf = Alu.sub(read8AtHl(), 1);
                 write8AtHl(Alu.unpackValue(vf));
-                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.CPU);
+                combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V1, FlagSrc.ALU, FlagSrc.CPU);
             } break;
             case CP_A_R8: {
                 int vf = Alu.sub(rf.get(Reg.A), rf.get(extractReg(opcode, 0)), extractInitalCarry(opcode));
@@ -894,7 +894,14 @@ public final class Cpu implements Component, Clocked {
                 combineAluFlags(vf, FlagSrc.ALU, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU);
             } break;
             case SCCF: {
-                rf.setBit(Reg.F, Flag.C, !extractInitalCarry(opcode));
+                if (!extractInitalCarry(opcode)) {
+                    rf.setBit(Reg.F, Flag.C, true);
+                } else {
+                    rf.setBit(Reg.F, Flag.C, !rf.testBit(Reg.F, Flag.C));
+                }
+                
+                rf.setBit(Reg.F, Flag.H, false);
+                rf.setBit(Reg.F, Flag.N, false);
             } break;
             
             // Jumps
