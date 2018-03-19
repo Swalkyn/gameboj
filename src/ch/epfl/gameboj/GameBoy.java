@@ -15,7 +15,7 @@ public class GameBoy {
     private RamController workRam;
     private RamController echoRam;
     private Cpu mCpu;
-    private long numberOfCycles;
+    private long numberOfCycles = 0;
     
     /**
      * Creates a new gameboy, with a cartrige inserted
@@ -49,8 +49,13 @@ public class GameBoy {
         return mBus;
     }
     
+    /**
+     * Runs the gameboy up to passed cycle
+     * @param cycle : cycle up to which the processor will run
+     * @throws IllegalArgumentException if the gameboy has already run up to given cycle
+     */
     public void runUntil(long cycle) {
-        if (cycle > cycles()) {
+        if (cycle < cycles()) {
             throw new IllegalArgumentException("Gameboy has already run up to this cycle");
         }
         
@@ -61,6 +66,9 @@ public class GameBoy {
         numberOfCycles = cycle;
     }
     
+    /**
+     * @return returns the number of cycles the cpu has run
+     */
     public long cycles() {
         return numberOfCycles;
     }

@@ -1,10 +1,9 @@
 package ch.epfl.gameboj;
 
-import ch.epfl.gameboj.GameBoy;
-
 import static ch.epfl.test.TestRandomizer.RANDOM_ITERATIONS;
 import static ch.epfl.test.TestRandomizer.newRandom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Random;
 
@@ -65,10 +64,16 @@ public final class GameBoyTest {
     }
     
     @Test
-    void RamReturnsNODATAonOutofRangeValues() {
+    void ramReturnsNODATAonOutofRangeValues() {
         GameBoy gb = new GameBoy(null);
         
         assertEquals(0xFF, gb.bus().read(AddressMap.WORK_RAM_START - 1));
         assertEquals(0xFF, gb.bus().read(AddressMap.ECHO_RAM_END));
+    }
+    
+    @Test
+    void runUntilFailsForInvalidValues() {
+        GameBoy gb = new GameBoy(null);
+        assertThrows(IllegalArgumentException.class, () -> gb.runUntil(-1));
     }
 }
