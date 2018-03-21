@@ -17,6 +17,12 @@ import ch.epfl.gameboj.component.cpu.Alu.RotDir;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 import ch.epfl.gameboj.component.memory.Ram;
 
+/**
+ * The CPU of the Gameboy
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
+ */
 public final class Cpu implements Component, Clocked {
     
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.DIRECT); 
