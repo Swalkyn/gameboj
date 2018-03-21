@@ -7,6 +7,12 @@ import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 
+/**
+ *  Boot Rom Controller 
+ * 
+ *  @author Sylvain Kuchen (282380)
+ *  @author Luca Bataillard (282152)
+ */
 public final class BootRomController implements Component {
     
     private Cartridge cartridge;
