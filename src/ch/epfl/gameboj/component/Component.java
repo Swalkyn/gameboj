@@ -4,7 +4,8 @@ import ch.epfl.gameboj.Bus;
 
 /**
  * Interface representing a component of the gameboy, connected to a bus
- * @author luca
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public interface Component {
     static final int NO_DATA = 0x100;
