@@ -5,9 +5,10 @@ import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 
 /**
- * Represents the ALU of the orginal gameboy
- * @author luca
- * @author sylvainkuchen
+ * Represents the ALU of the gameboy
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Alu {
     

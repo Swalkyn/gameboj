@@ -1,4 +1,4 @@
-package ch.epfl.gamboj.component.cartridge;
+package ch.epfl.gameboj.component.cartridge;
 
 import java.util.Objects;
 
@@ -8,8 +8,9 @@ import ch.epfl.gameboj.component.memory.Rom;
 
 /**
  * Represents a bank of memory
- * @author sylvainkuchen
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class MBC0 implements Component {
     public static final int ROM_SIZE = 32768;

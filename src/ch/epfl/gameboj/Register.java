@@ -2,8 +2,9 @@ package ch.epfl.gameboj;
 
 /**
  * Interface implemented by enum representing registers of the same register file
- * @author luca
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public interface Register {
     

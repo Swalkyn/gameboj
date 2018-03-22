@@ -5,7 +5,9 @@ import java.util.Objects;
 import ch.epfl.gameboj.Preconditions;
 /**
  * Utility class used to manipulate bits
- * @author sylvainkuchen
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Bits {
    

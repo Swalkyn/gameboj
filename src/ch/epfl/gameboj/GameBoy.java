@@ -2,7 +2,7 @@ package ch.epfl.gameboj;
 
 import java.util.Objects;
 
-import ch.epfl.gamboj.component.cartridge.Cartridge;
+import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.Timer;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.memory.BootRomController;

@@ -2,7 +2,7 @@ package ch.epfl.gameboj.component.memory;
 
 import java.util.Objects;
 
-import ch.epfl.gamboj.component.cartridge.Cartridge;
+import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;

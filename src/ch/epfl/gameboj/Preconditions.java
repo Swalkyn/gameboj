@@ -2,8 +2,9 @@ package ch.epfl.gameboj;
 
 /**
  * Collection of utility functions used to check common preconditions
- * @author sylvainkuchen
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public interface Preconditions {
     

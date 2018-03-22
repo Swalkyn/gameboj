@@ -6,7 +6,9 @@ import ch.epfl.gameboj.component.Component;
 
 /**
  * Read-only memory that stores a byte array
- * @author luca
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Rom implements Component {
     

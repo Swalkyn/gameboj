@@ -5,8 +5,9 @@ import ch.epfl.gameboj.component.Component;
 
 /**
  * Random access memory that stores a byte array
- * @author sylvainkuchen
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Ram implements Component {
     

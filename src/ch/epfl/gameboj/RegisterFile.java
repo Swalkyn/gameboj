@@ -5,7 +5,9 @@ import ch.epfl.gameboj.bits.Bits;
 
 /**
  * Represents a register file, where the value of the registers are stored in a byte array
- * @author sylvainkuchen
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  *
  * @param <E> : the type of the registers
  */

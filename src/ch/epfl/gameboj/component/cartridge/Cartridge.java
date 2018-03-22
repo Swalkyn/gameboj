@@ -1,4 +1,4 @@
-package ch.epfl.gamboj.component.cartridge;
+package ch.epfl.gameboj.component.cartridge;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -10,6 +10,12 @@ import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
+/**
+ * Represents a cartridge that can be inserted in the gameboy
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
+ */
 public final class Cartridge implements Component {
     
     private MBC0 memoryBank;

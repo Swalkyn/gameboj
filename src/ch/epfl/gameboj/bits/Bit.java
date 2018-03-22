@@ -2,8 +2,9 @@ package ch.epfl.gameboj.bits;
 
 /**
  * To be implemented by enums representing a set of bits
- * @author sylvainkuchen
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public interface Bit {
     /**

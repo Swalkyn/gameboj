@@ -3,6 +3,7 @@ package ch.epfl.gameboj.component;
 
 /**
  * Represents a component controlled by system clock
+ * 
  * @author Sylvain Kuchen (282380)
  * @author Luca Bataillard (282152)
  */

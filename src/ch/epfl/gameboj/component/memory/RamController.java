@@ -7,8 +7,9 @@ import ch.epfl.gameboj.component.Component;
 
 /**
  * Ram Controller, allows to assign an address space to given ram
- * @author luca
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class RamController implements Component {
 
