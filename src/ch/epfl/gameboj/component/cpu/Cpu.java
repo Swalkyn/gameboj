@@ -309,7 +309,7 @@ public final class Cpu implements Component, Clocked {
      * @param v : the value to be written
      */
     private void push16(int v) {
-        SP -= 2;
+        SP = Bits.clip(16, SP - 2);
         write16(SP, v);
     }
     
@@ -319,7 +319,7 @@ public final class Cpu implements Component, Clocked {
      */
     private int pop16() {
         int value = read16(SP);
-        SP += 2;
+        SP = Bits.clip(16, SP + 2);
         return value;
     }
     
@@ -924,11 +924,11 @@ public final class Cpu implements Component, Clocked {
                 }
             } break;
             case JR_E8: {
-                nextPC = Bits.clip(16, PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode()));
+                nextPC = Bits.clip(16, nextPC + Bits.signExtend8(read8AfterOpcode()));
             } break;
             case JR_CC_E8: {
                 if (testCondition(opcode)) {
-                    nextPC = Bits.clip(16, PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode()));
+                    nextPC = Bits.clip(16, nextPC + Bits.signExtend8(read8AfterOpcode()));
                     additionalCycles = opcode.additionalCycles;
                 }
             } break;

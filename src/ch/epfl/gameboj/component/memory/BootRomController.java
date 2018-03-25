@@ -23,7 +23,7 @@ public final class BootRomController implements Component {
         Objects.requireNonNull(cartridge);
         
         this.cartridge = cartridge;
-        bootRom = new Rom(new byte[0]); // TODO : boot program?
+        bootRom = new Rom(BootRom.DATA); // TODO : boot program?
         bootRomEnabled = true;
     }
     
@@ -31,13 +31,11 @@ public final class BootRomController implements Component {
     public int read(int address) {
         Preconditions.checkBits16(address);
         
-        if (AddressMap.BOOT_ROM_START > address && address >= AddressMap.BOOT_ROM_END) {
-            return Component.NO_DATA;
-        } else if (bootRomEnabled) {
+        if (bootRomEnabled && (address >= AddressMap.BOOT_ROM_START && address < AddressMap.BOOT_ROM_END)) {
             return bootRom.read(address - AddressMap.BOOT_ROM_START);
         }
         
-        return cartridge.read(address); // TODO : address to index conversion necessary?
+        return cartridge.read(address);
     }
 
     @Override

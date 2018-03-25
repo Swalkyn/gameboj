@@ -25,9 +25,15 @@ public final class MBC0 implements Component {
     
     
     @Override
-    public int read(int index) {
-        // TODO : implement method correctly
-        return rom.read(index);
+    public int read(int address) {
+        Preconditions.checkBits16(address);
+        
+        if (address < ROM_SIZE) {
+            return rom.read(address);
+        } else {
+            return Component.NO_DATA;
+        }
+        
     }
 
     @Override

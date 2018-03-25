@@ -78,7 +78,7 @@ public final class Timer implements Component, Clocked {
             case AddressMap.REG_DIV: {
                 // TODO : quel compteur ?
                 boolean s0 = state();
-                regDiv = Bits.make16(data, Bits.clip(8, regDiv));
+                regDiv = 0;
                 incIfChange(s0);
             } break;
             case AddressMap.REG_TIMA: {

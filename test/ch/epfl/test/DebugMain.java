@@ -18,9 +18,9 @@ public final class DebugMain {
         printer.attachTo(gb.bus());
         
         while (gb.cycles() < cycles) {
-          long nextCycles = Math.min(gb.cycles() + 17556, cycles);
-          gb.runUntil(nextCycles);
-          gb.cpu().requestInterrupt(Cpu.Interrupt.VBLANK);
+            long nextCycles = Math.min(gb.cycles() + 17556, cycles);
+            gb.runUntil(nextCycles);
+            gb.cpu().requestInterrupt(Cpu.Interrupt.VBLANK);
         }
     }
 }

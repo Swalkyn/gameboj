@@ -1,6 +1,5 @@
 package ch.epfl.gameboj.component.cartridge;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,15 +24,14 @@ public final class Cartridge implements Component {
     }
     
     public static Cartridge ofFile(File romFile) throws IOException {
-        try(InputStream file = new BufferedInputStream(new FileInputStream(romFile))) {
+        try(InputStream file = new FileInputStream(romFile)) {
             
-            byte[] data = new byte[MBC0.ROM_SIZE];
-            byte nextByte;
-            int index = 0;
+            byte[] data = new byte[(int) romFile.length()];
             
-            while ((nextByte = (byte) file.read()) != -1) {
-                data[index] = nextByte;
-                index++;
+            int streamSize = file.read(data);
+            
+            if (streamSize != data.length) {
+                throw new IOException();
             }
             
             if (data[0x147] != 0) {
@@ -42,14 +40,12 @@ public final class Cartridge implements Component {
             
             return new Cartridge(data);
         }
-        
-        
-    }
+    }        
 
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
-        // TODO : implement method correctly
+        
         return memoryBank.read(address); 
     }
 
