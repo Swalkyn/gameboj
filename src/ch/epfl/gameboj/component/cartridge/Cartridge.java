@@ -37,7 +37,7 @@ public final class Cartridge implements Component {
             if (data[0x147] != 0) {
                 throw new IllegalArgumentException();
             }
-            
+                        
             return new Cartridge(data);
         }
     }        
