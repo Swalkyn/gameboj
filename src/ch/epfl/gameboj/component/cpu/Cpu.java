@@ -946,7 +946,7 @@ public final class Cpu implements Component, Clocked {
                 }
             } break;
             case RST_U3: {
-                push16(PC);
+                push16(nextPC);
                 nextPC = AddressMap.RESETS[Bits.extract(opcode.encoding, 3, 3)];
             } break;
             case RET: {
