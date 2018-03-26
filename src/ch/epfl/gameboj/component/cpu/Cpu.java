@@ -162,7 +162,7 @@ public final class Cpu implements Component, Clocked {
             removeInterruptFlag(interruptIndex);
             push16(PC);
             PC = interruptAddress;
-            nextNonIdleCycle += 5;
+            nextNonIdleCycle += 5; //TODO : correct magic number
         } else {
             dispatch(read8(PC));
         }

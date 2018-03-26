@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Preconditions;
+import ch.epfl.gameboj.Register;
+import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.cpu.Cpu;
 
@@ -14,114 +16,106 @@ import ch.epfl.gameboj.component.cpu.Cpu;
 * @author Luca Bataillard (282152)
 */
 public final class Timer implements Component, Clocked {
-
+    
     private Cpu cpu;
-    private int regDiv;
-    private int regTima;
-    private int regTma;
-    private int regTac;
+    private RegisterFile<RegTimer> rf;
+    
+    private final int TIMA_MAX_VALUE = 0xFF;
+    
+    private enum RegTimer implements Register {
+        DIV_MSB, DIV_LSB, TIMA, TMA, TAC
+    }
     
     public Timer(Cpu cpu) {
-        cpu = Objects.requireNonNull(cpu);
-        regDiv = 0;
-        regTima = 0;
+        this.cpu = Objects.requireNonNull(cpu);
+        this.rf = new RegisterFile<>(RegTimer.values());
     }
     
-    /**
-     * Cycles the timer, incrementing DIV and TIMA timers
-     * @param cycle: the number of cycles since start of clock
-     */
     @Override
     public void cycle(long cycle) {
-        regDiv = Bits.clip(16, regDiv + 4);
-        incIfChange(state());
+        boolean s0 = state();
+        writeDiv(Bits.clip(16, readDiv() + 1));
+        incIfChange(s0);
     }
 
-    /**
-     * Reads values at specified address, returns NO_DATA if address not mapped
-     * @param address: 16-bits
-     * @throws IllegalArgumentException if address not 16 bits
-     * @return the data at address
-     */
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
         
         switch (address) {
-            case AddressMap.REG_DIV:
-                return Bits.extract(regDiv, 8, 8);
-            case AddressMap.REG_TIMA:
-                return regTima;
-            case AddressMap.REG_TMA:
-                return regTma;
-            case AddressMap.REG_TAC:
-                return regTac;
-                
-            default:
-                return Component.NO_DATA;
+            case AddressMap.REG_DIV:  return rf.get(RegTimer.DIV_MSB);
+            case AddressMap.REG_TIMA: return rf.get(RegTimer.TIMA);
+            case AddressMap.REG_TMA:  return rf.get(RegTimer.TMA);
+            case AddressMap.REG_TAC:  return rf.get(RegTimer.TAC);
+        
+            default: return Component.NO_DATA;
         }
     }
 
-    /**
-     * Stores given data at specified address, does nothing if address not mapped
-     * Also increments TIMA if DIV or TAC change
-     * @param address : 16-bit address
-     * @param data : 8-bit value to be stored
-     * @throws IllegalArgumentException if address is not 16 bits or data is not 8 bits
-     */
     @Override
     public void write(int address, int data) {
         Preconditions.checkBits16(address);
         Preconditions.checkBits8(data);
         
+        boolean s0 = state();
+        
         switch (address) {
-            case AddressMap.REG_DIV: {
-                // TODO : quel compteur ?
-                boolean s0 = state();
-                regDiv = 0;
+            case AddressMap.REG_DIV:
+                writeDiv(0);
                 incIfChange(s0);
-            } break;
-            case AddressMap.REG_TIMA: {
-                regTima = data;
-            } break; 
-            case AddressMap.REG_TMA: {
-                regTma = data;
-            } break;
-            case AddressMap.REG_TAC: {
-                boolean s0 = state();
-                regTac = data;
+                break;
+            case AddressMap.REG_TIMA: 
+                rf.set(RegTimer.TIMA, data);
+                break;
+            case AddressMap.REG_TMA:  
+                rf.set(RegTimer.TMA, data);                
+                break;                
+            case AddressMap.REG_TAC:
+                rf.set(RegTimer.TAC, data);
                 incIfChange(s0);
-            } break;
-        } 
-    }
-    
-    private boolean state() {
-        return Bits.test(regTac, 2) && Bits.test(regDiv, extractTimerIndex());
+                break;
+        }
     }
     
     private void incIfChange(boolean previousState) {
         if (previousState && !state()) {
-            
-            if (regTima == 0xFF) {
+            if (rf.get(RegTimer.TIMA) == TIMA_MAX_VALUE) {
                 cpu.requestInterrupt(Cpu.Interrupt.TIMER);
-                regTima = regTma;
+                rf.set(RegTimer.TIMA, rf.get(RegTimer.TMA));
             } else {
-                regTima++;
+                rf.set(RegTimer.TIMA, Bits.clip(8, rf.get(RegTimer.TIMA) + 1));
             }
         }
     }
-
+    
+    private boolean state() {
+        return Bits.test(rf.get(RegTimer.TAC), 2) && Bits.test(readDiv(), extractTimerIndex());
+    }
+    
     private int extractTimerIndex() {
-        int bit = Bits.clip(2, regTac);
+        int bit = Bits.clip(2, rf.get(RegTimer.TAC));
         
-        switch (bit) {
+        switch(bit) {
             case 0b00: return 9;
             case 0b01: return 3;
             case 0b10: return 5;
             case 0b11: return 7;
-                
+            
             default: throw new IllegalArgumentException();
         }
     }
+    
+    private void writeDiv(int data) {
+        Preconditions.checkBits16(data);
+        
+        rf.set(RegTimer.DIV_MSB, Bits.extract(data, 8, 8));
+        rf.set(RegTimer.DIV_LSB, Bits.clip(8, data));
+    }
+    
+    private int readDiv() {
+        return Bits.make16(rf.get(RegTimer.DIV_MSB), rf.get(RegTimer.DIV_LSB));
+    }
+
+    
     
 }
