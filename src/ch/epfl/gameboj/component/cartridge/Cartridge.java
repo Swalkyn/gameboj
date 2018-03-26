@@ -17,28 +17,31 @@ import ch.epfl.gameboj.component.memory.Rom;
  */
 public final class Cartridge implements Component {
     
-    private MBC0 memoryBank;
+    private Component memoryBank;
+    public static final int MB_TYPE_ADDRESS = 0x147;
+    public static final int MB_TYPE = 0;
     
-    private Cartridge(byte[] data) {
-        memoryBank = new MBC0(new Rom(data));
+    private Cartridge(Component memoryBank) {
+        this.memoryBank = memoryBank;
     }
     
     public static Cartridge ofFile(File romFile) throws IOException {
-        try(InputStream file = new FileInputStream(romFile)) {
+        try(InputStream stream = new FileInputStream(romFile)) {
             
             byte[] data = new byte[(int) romFile.length()];
             
-            int streamSize = file.read(data);
+            int streamSize = stream.read(data);
             
             if (streamSize != data.length) {
                 throw new IOException();
             }
             
-            if (data[0x147] != 0) {
+            if (data[MB_TYPE_ADDRESS] != MB_TYPE) {
                 throw new IllegalArgumentException();
             }
-                        
-            return new Cartridge(data);
+            
+            Rom rom = new Rom(data);
+            return new Cartridge(new MBC0(rom));
         }
     }        
 
@@ -56,5 +59,4 @@ public final class Cartridge implements Component {
         
         memoryBank.write(address, data);
     }
-
 }

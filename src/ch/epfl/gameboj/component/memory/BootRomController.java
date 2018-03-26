@@ -20,9 +20,7 @@ public final class BootRomController implements Component {
     private Rom bootRom;
     
     public BootRomController(Cartridge cartridge) {
-        Objects.requireNonNull(cartridge);
-        
-        this.cartridge = cartridge;
+        this.cartridge = Objects.requireNonNull(cartridge);;
         bootRom = new Rom(BootRom.DATA); // TODO : boot program?
         bootRomEnabled = true;
     }
@@ -46,6 +44,8 @@ public final class BootRomController implements Component {
         if (address == AddressMap.REG_BOOT_ROM_DISABLE) {
             bootRomEnabled = false;
         }
+        
+        cartridge.write(address, data);
     }
 
 }
