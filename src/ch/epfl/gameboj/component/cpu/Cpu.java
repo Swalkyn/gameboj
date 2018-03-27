@@ -566,7 +566,7 @@ public final class Cpu implements Component, Clocked {
         
         int additionalCycles = 0;
         int nextPC = PC + opcode.totalBytes;
-        
+                
         switch (opcode.family) {
             case NOP: {
                 // Does nothing
@@ -737,15 +737,15 @@ public final class Cpu implements Component, Clocked {
                 combineAluFlags(vf, FlagSrc.ALU, FlagSrc.V1, FlagSrc.ALU, FlagSrc.CPU);
             } break;
             case CP_A_R8: {
-                int vf = Alu.sub(rf.get(Reg.A), rf.get(extractReg(opcode, 0)), extractInitalCarry(opcode));
+                int vf = Alu.sub(rf.get(Reg.A), rf.get(extractReg(opcode, 0)));
                 setFlags(vf);
             } break;
             case CP_A_N8: {
-                int vf = Alu.sub(rf.get(Reg.A), read8AfterOpcode(), extractInitalCarry(opcode));
+                int vf = Alu.sub(rf.get(Reg.A), read8AfterOpcode());
                 setFlags(vf);
             } break;
             case CP_A_HLR: {
-                int vf = Alu.sub(rf.get(Reg.A), read8AtHl(), extractInitalCarry(opcode));
+                int vf = Alu.sub(rf.get(Reg.A), read8AtHl());
                 setFlags(vf);
             } break;
             case DEC_R16SP: {
@@ -935,12 +935,12 @@ public final class Cpu implements Component, Clocked {
 
             // Calls and returns
             case CALL_N16: {
-                push16(PC + opcode.totalBytes);
+                push16(nextPC);
                 nextPC = read16AfterOpcode();
             } break;
             case CALL_CC_N16: {
                 if (testCondition(opcode)) {
-                    push16(PC + opcode.totalBytes);
+                    push16(nextPC);
                     nextPC = read16AfterOpcode();
                     additionalCycles = opcode.additionalCycles;
                 }

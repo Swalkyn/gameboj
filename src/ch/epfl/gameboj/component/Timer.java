@@ -34,7 +34,7 @@ public final class Timer implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         boolean s0 = state();
-        writeDiv(Bits.clip(16, readDiv() + 1));
+        writeDiv(Bits.clip(16, readDiv() + 4));
         incIfChange(s0);
     }
 
