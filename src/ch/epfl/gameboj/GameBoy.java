@@ -77,9 +77,7 @@ public class GameBoy {
      * @throws IllegalArgumentException if the gameboy has already run up to given cycle
      */
     public void runUntil(long cycle) {
-        if (cycle < numberOfCycles) {
-            throw new IllegalArgumentException("Gameboy has already run up to this cycle");
-        }
+        Preconditions.checkArgument(cycle >= numberOfCycles);
         
         while(cycles() < cycle) {
             mTimer.cycle(numberOfCycles);

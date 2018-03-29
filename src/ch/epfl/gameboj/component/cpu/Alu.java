@@ -1,5 +1,7 @@
 package ch.epfl.gameboj.component.cpu;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
@@ -400,10 +402,7 @@ public final class Alu {
      */
     public static int testBit(int v, int bitIndex) {
         Preconditions.checkBits8(v);
-        
-        if (bitIndex < 0 || bitIndex > 7) {
-            throw new IndexOutOfBoundsException("Index must be between 0 and 7 (included)");
-        }
+        Objects.checkIndex(bitIndex, 8);
         
         return packValueZNHC(0, !Bits.test(v, bitIndex), false, true, false);
     }

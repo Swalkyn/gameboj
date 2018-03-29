@@ -1,6 +1,7 @@
 package ch.epfl.gameboj.component.memory;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import ch.epfl.gameboj.component.Component;
 
@@ -19,9 +20,7 @@ public final class Rom implements Component {
      * @param data : byte array to be copied into memory
      */
     public Rom(byte[] data) {
-        if (data == null) {
-            throw new NullPointerException("data cannot be null");
-        }
+        Objects.requireNonNull(data);
         
         memory = Arrays.copyOf(data, data.length);
     }
@@ -41,9 +40,7 @@ public final class Rom implements Component {
      */
     @Override
     public int read(int index) {
-        if (index < 0 || index >= size()) {
-            throw new IndexOutOfBoundsException();
-        }
+        Objects.checkIndex(index, size());
         
         return Byte.toUnsignedInt(memory[index]);
     }
