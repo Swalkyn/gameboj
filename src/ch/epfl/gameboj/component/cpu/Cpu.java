@@ -25,6 +25,8 @@ import ch.epfl.gameboj.component.memory.Ram;
  */
 public final class Cpu implements Component, Clocked {
     
+    private static final int RAM_HALFPOINT = 0xFF00;
+    private static final int INTERRUPT_CYCLE = 5;
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.DIRECT); 
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.PREFIXED);
     private static final int OPCODE_PREFIX = 0xCB;
@@ -138,6 +140,14 @@ public final class Cpu implements Component, Clocked {
     }
     
     /**
+     * Raises an interrupt by setting the corresponding bit in IF to 1
+     * @param i : the interrupt to be raised
+     */
+    public void requestInterrupt(Interrupt i) {
+        regIF = Bits.set(regIF, i.index(), true);
+    }
+    
+    /**
      * Executes next instruction based on program counter
      * @param cycle : number of elapsed cycles since start
      */
@@ -165,21 +175,13 @@ public final class Cpu implements Component, Clocked {
             removeInterruptFlag(interruptIndex);
             push16(PC);
             PC = interruptAddress;
-            nextNonIdleCycle += 5; //TODO : correct magic number
+            nextNonIdleCycle += INTERRUPT_CYCLE; 
         } else {
             dispatch(read8(PC));
         }
     }
     
     /* Interrupt methods */
-    
-    /**
-     * Raises an interrupt by setting the corresponding bit in IF to 1
-     * @param i : the interrupt to be raised
-     */
-    public void requestInterrupt(Interrupt i) {
-        regIF = Bits.set(regIF, i.index(), true);
-    }
     
     private boolean atLeastOneInterrupt() {
         return Integer.lowestOneBit(regIE) != 0 
@@ -376,13 +378,6 @@ public final class Cpu implements Component, Clocked {
 
     /* Bit extraction */
     
-    /**
-     * Extracts the 8-bit register's code from an opcode at a specified index
-     * @param opcode : the opcode from which the register's code will be extracted
-     * @param startBit : the index where the 3 bit long code starts
-     * @throws IllegalArgumentException if the register code is not valid
-     * @return the register's code
-     */
     private Reg extractReg(Opcode opcode, int startBit) {
         int registerCode = Bits.extract(opcode.encoding, startBit, 3);
         
@@ -399,12 +394,6 @@ public final class Cpu implements Component, Clocked {
         }
     }
     
-    /**
-     * Extracts the 16-bit register's code from an opcode
-     * @param opcode : the opcode from which the register's code will be extracted
-     * @throws IllegalArgumentException if the register code is not valid
-     * @return the register's code
-     */
     private Reg16 extractReg16(Opcode opcode) {
         int registerCode = Bits.extract(opcode.encoding, 4, 2);
         
@@ -418,11 +407,6 @@ public final class Cpu implements Component, Clocked {
         }
     }
     
-    /**
-     * Determines whether the value in HL should be incremented or decremented from opcode
-     * @param opcode : the opcode from which the increment will be extracted
-     * @return the increment (1 or -1)
-     */
     private int extractHlIncrement(Opcode opcode) {
         return Bits.test(opcode.encoding, 4) ? -1 : 1;
     }
@@ -552,13 +536,8 @@ public final class Cpu implements Component, Clocked {
     
     /* Dispatch method */
     
-    /**
-     * Executes a task corresponding to an opcode, and increments the program counter and the next non-idle cycle
-     * @param opcodeEncoding : the opcode encoding
-     */
     private void dispatch(int opcodeEncoding) {
         Preconditions.checkBits8(opcodeEncoding);
-        
         
         Opcode opcode = null;
         if (opcodeEncoding == OPCODE_PREFIX) {
@@ -586,10 +565,10 @@ public final class Cpu implements Component, Clocked {
                 setReg16(Reg16.HL, reg16(Reg16.HL) + extractHlIncrement(opcode));
             } break;
             case LD_A_N8R: {
-                rf.set(Reg.A, read8(0xFF00 + read8AfterOpcode()));
+                rf.set(Reg.A, read8(RAM_HALFPOINT + read8AfterOpcode()));
             } break;
             case LD_A_CR: {
-                rf.set(Reg.A, read8(0xFF00 + rf.get(Reg.C)));
+                rf.set(Reg.A, read8(RAM_HALFPOINT + rf.get(Reg.C)));
             } break;
             case LD_A_N16R: {
                 rf.set(Reg.A, read8(read16AfterOpcode()));
@@ -624,10 +603,10 @@ public final class Cpu implements Component, Clocked {
                 setReg16(Reg16.HL, reg16(Reg16.HL) + extractHlIncrement(opcode));
             } break;
             case LD_N8R_A: {
-                write8(0xFF00 + read8AfterOpcode(), rf.get(Reg.A));
+                write8(RAM_HALFPOINT + read8AfterOpcode(), rf.get(Reg.A));
             } break;
             case LD_CR_A: {
-                write8(0xFF00 + rf.get(Reg.C), rf.get(Reg.A));
+                write8(RAM_HALFPOINT + rf.get(Reg.C), rf.get(Reg.A));
             } break;
             case LD_N16R_A: {
                 write8(read16AfterOpcode(), rf.get(Reg.A));
