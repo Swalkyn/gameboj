@@ -60,6 +60,9 @@ public final class Cpu implements Component, Clocked {
         }
     }
     
+    /**
+     * Represents the 5 possible interrupts to the cpu
+     */
     public enum Interrupt implements Bit {
         VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
     }

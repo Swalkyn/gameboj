@@ -25,6 +25,14 @@ public final class Cartridge implements Component {
         this.memoryBank = memoryBank;
     }
     
+    /**
+     * Creates a new cartridge from a rom file
+     * @param romFile : the path to the file
+     * @throws IOException if size of read bytes is not the size of the bytes
+     * @throws IllegalArgumentException if MB_TYPE_ADDRESS is not 0 (not an MBC0 rom file)
+     * @throws IllegalArgumentException if the number of bytes is not MBC0.ROM_SIZE
+     * @return a cartridge with the data of the rom file
+     */
     public static Cartridge ofFile(File romFile) throws IOException {
         try(InputStream stream = new FileInputStream(romFile)) {
             
@@ -36,15 +44,19 @@ public final class Cartridge implements Component {
                 throw new IOException();
             }
             
-            if (data[MB_TYPE_ADDRESS] != MB_TYPE) {
-                throw new IllegalArgumentException();
-            }
+            Preconditions.checkArgument(data[MB_TYPE_ADDRESS] == MB_TYPE);
             
             Rom rom = new Rom(data);
             return new Cartridge(new MBC0(rom));
         }
     }        
 
+    /**
+     * Reads at given address
+     * @param address: 16 bits
+     * @throws IllegalArgumentException if address not 16 bits
+     * @return the read data
+     */
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
@@ -52,6 +64,12 @@ public final class Cartridge implements Component {
         return memoryBank.read(address); 
     }
 
+    /**
+     * Writes to memory bank
+     * @param address : 16 bits
+     * @param data : 8 bits
+     * @throws IllegalArgumentException if data not 8 bits or address not 16 bits
+     */
     @Override
     public void write(int address, int data) {
         Preconditions.checkBits16(address);

@@ -27,11 +27,20 @@ public final class Timer implements Component, Clocked {
         DIV_MSB, DIV_LSB, TIMA, TMA, TAC
     }
     
+    /**
+     * Creates a new Timer
+     * @param cpu : non null
+     * @throws NullPointerException if cpu null
+     */
     public Timer(Cpu cpu) {
         this.cpu = Objects.requireNonNull(cpu);
         this.rf = new RegisterFile<>(RegTimer.values());
     }
     
+    /**
+     * Evolves the timer
+     * @param cycle : number of elapsed cycles since start
+     */
     @Override
     public void cycle(long cycle) {
         boolean s0 = state();
@@ -39,6 +48,12 @@ public final class Timer implements Component, Clocked {
         incIfChange(s0);
     }
 
+    /**
+     * Reads the timer at specified address
+     * @param address : 16 bits
+     * @throws IllegalArgumentException if address not 16 bits
+     * @return the read data
+     */
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
@@ -53,6 +68,12 @@ public final class Timer implements Component, Clocked {
         }
     }
 
+    /**
+     * Writes to timer at address
+     * @param address : 16 bits
+     * @param data : 8 bits
+     * @throws IllegalArgumentException if address not 16 bits
+     */
     @Override
     public void write(int address, int data) {
         Preconditions.checkBits16(address);
