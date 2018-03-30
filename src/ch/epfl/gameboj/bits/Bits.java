@@ -109,7 +109,7 @@ public final class Bits {
         Preconditions.checkArgument(size >= 0 && size <= 32);           
         
         if (size == 32) {
-            return bits; // Because it works.
+            return bits; 
         }
         
         return ~(~0 << size) & bits;
@@ -127,7 +127,7 @@ public final class Bits {
         Objects.checkFromIndexSize(start, size, Integer.SIZE);
         
         if (size == 32) {
-            return bits; // Because it works.
+            return bits; 
         }
         return (~(~0 << size) << start & bits) >>> start;
     }
