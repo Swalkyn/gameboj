@@ -20,7 +20,8 @@ public final class Timer implements Component, Clocked {
     private Cpu cpu;
     private RegisterFile<RegTimer> rf;
     
-    private final int TIMA_MAX_VALUE = 0xFF;
+    private static final int TIMA_MAX_VALUE = 0xFF;
+    private static final int DIV_INC = 4;
     
     private enum RegTimer implements Register {
         DIV_MSB, DIV_LSB, TIMA, TMA, TAC
@@ -34,7 +35,7 @@ public final class Timer implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         boolean s0 = state();
-        writeDiv(Bits.clip(16, readDiv() + 4));
+        writeDiv(Bits.clip(16, readDiv() + DIV_INC));
         incIfChange(s0);
     }
 
