@@ -72,6 +72,13 @@ public class GameBoy {
     }
     
     /**
+     * @return returns the number of cycles the cpu has run
+     */
+    public long cycles() {
+        return numberOfCycles;
+    }
+    
+    /**
      * Runs the gameboy up to passed cycle
      * @param cycle : cycle up to which the processor will run
      * @throws IllegalArgumentException if the gameboy has already run up to given cycle
@@ -84,12 +91,5 @@ public class GameBoy {
             mCpu.cycle(numberOfCycles);
             numberOfCycles++;
         }
-    }
-    
-    /**
-     * @return returns the number of cycles the cpu has run
-     */
-    public long cycles() {
-        return numberOfCycles;
     }
 }
