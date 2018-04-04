@@ -1,12 +1,15 @@
 package ch.epfl.gameboj.component.memory;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 
 /**
  * Random access memory that stores a byte array
- * @author sylvainkuchen
- *
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Ram implements Component {
     
@@ -37,9 +40,7 @@ public final class Ram implements Component {
      */
     @Override
     public int read(int index) {
-        if (index < 0 || index >= size()) {
-            throw new IndexOutOfBoundsException(index + " is out of bounds");
-        }
+        Objects.checkIndex(index, size());
         
         return Byte.toUnsignedInt(memory[index]);
     }
@@ -53,9 +54,7 @@ public final class Ram implements Component {
      */
     @Override
     public void write(int index, int value) {
-        if (index < 0 || index >= size()) {
-            throw new IndexOutOfBoundsException(index + " is out of bounds");
-        }
+        Objects.checkIndex(index, size());
         
         memory[index] = (byte) Preconditions.checkBits8(value);
     }

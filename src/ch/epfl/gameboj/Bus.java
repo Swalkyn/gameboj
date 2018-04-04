@@ -6,9 +6,10 @@ import java.util.Objects;
 import ch.epfl.gameboj.component.Component;
 
 /**
- * Represents a bus object connecting components
- * @author sylvainkuchen
- *
+ * Represents a bus connecting components
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Bus {
     private ArrayList<Component> components = new ArrayList<>();

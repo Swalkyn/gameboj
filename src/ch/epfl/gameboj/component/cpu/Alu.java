@@ -1,13 +1,16 @@
 package ch.epfl.gameboj.component.cpu;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 
 /**
- * Represents the ALU of the orginal gameboy
- * @author luca
- * @author sylvainkuchen
+ * Represents the ALU of the gameboy
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
  */
 public final class Alu {
     
@@ -49,22 +52,6 @@ public final class Alu {
                | Bits.set(0, Flag.H.index(), h) | Bits.set(0, Flag.C.index(), c);
     }
     
-    /**
-     * Packs the value and flags into a single int, the 8 lsb is the flag section, the next 8 or 16 bits is the value
-     * Pattern VALUE | FLAG where FLAG = ZNHC0000
-     * @param value : 8 or 16 bits
-     * @param z
-     * @param n
-     * @param h
-     * @param c
-     * @throws IllegalArgumentException if value more than 16 bits
-     * @return the packed integer
-     */
-    private static int packValueZNHC(int value, boolean z, boolean n, boolean h, boolean c) {
-        Preconditions.checkBits16(value);
-        
-        return (value << 8) | maskZNHC(z, n, h, c);
-    }
     
     /**
      * Returns the value part from packed integer
@@ -399,12 +386,19 @@ public final class Alu {
      */
     public static int testBit(int v, int bitIndex) {
         Preconditions.checkBits8(v);
-        
-        if (bitIndex < 0 || bitIndex > 7) {
-            throw new IndexOutOfBoundsException("Index must be between 0 and 7 (included)");
-        }
+        Objects.checkIndex(bitIndex, 8);
         
         return packValueZNHC(0, !Bits.test(v, bitIndex), false, true, false);
+    }
+    
+    /**
+     * Packs the value and flags into a single int, the 8 lsb is the flag section, the next 8 or 16 bits is the value
+     * Pattern VALUE | FLAG where FLAG = ZNHC0000
+     */
+    private static int packValueZNHC(int value, boolean z, boolean n, boolean h, boolean c) {
+        Preconditions.checkBits16(value);
+        
+        return (value << 8) | maskZNHC(z, n, h, c);
     }
 }
 

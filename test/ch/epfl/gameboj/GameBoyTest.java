@@ -1,79 +1,45 @@
+// Gameboj stage 2
+
 package ch.epfl.gameboj;
 
-import static ch.epfl.test.TestRandomizer.RANDOM_ITERATIONS;
-import static ch.epfl.test.TestRandomizer.newRandom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Random;
-
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+class GameBoyTest {
+    @Disabled
+    @Test
+    void workRamIsProperlyMapped() {
+        Bus b = new GameBoy(null).bus();
+        for (int a = 0; a <= 0xFFFF; ++a) {
+            boolean inWorkRamOrEcho = (0xC000 <= a && a < 0xFE00);
+            assertEquals(inWorkRamOrEcho ? 0 : 0xFF, b.read(a), String.format("at address 0x%04x", a));
+        }
+    }
+    
+    @Disabled
+    @Test
+    void workRamCanBeReadAndWritten() {
+        Bus b = new GameBoy(null).bus();
+        for (int a = 0xC000; a < 0xE000; ++a)
+            b.write(a, (a ^ 0xA5) & 0xFF);
+        for (int a = 0xC000; a < 0xE000; ++a)
+            assertEquals((a ^ 0xA5) & 0xFF, b.read(a));
+    }
 
-public final class GameBoyTest {
+    @Disabled
     @Test
-    void workRamWorksForValuesInRange() {
-        GameBoy gb = new GameBoy(null);
-        
-        Random rng = newRandom();
-        for(int i = 0; i < RANDOM_ITERATIONS; i++) {
-            int address = AddressMap.WORK_RAM_START + rng.nextInt(AddressMap.WORK_RAM_SIZE);
-            
-            assertEquals(0, gb.bus().read(address));
-        }        
-    }
-    
-    @Test
-    void echoRamWorksForValuesInRange() {
-        GameBoy gb = new GameBoy(null);
-        
-        Random rng = newRandom();
-        for(int i = 0; i < RANDOM_ITERATIONS; i++) {
-            int address = AddressMap.ECHO_RAM_START + rng.nextInt(AddressMap.ECHO_RAM_SIZE);
-            
-            assertEquals(0, gb.bus().read(address));
-        }        
-    }
-    
-    @Test
-    void workRamWorksForStartAddress() {
-        GameBoy gb = new GameBoy(null);
-        
-        assertEquals(0, gb.bus().read(AddressMap.WORK_RAM_START));
-    }
-    
-    @Test
-    void echoRamWorksForStartAddress() {
-        GameBoy gb = new GameBoy(null);
-        
-        assertEquals(0, gb.bus().read(AddressMap.ECHO_RAM_START));
-    }
-    
-    @Test
-    void workRamWorksForEndAddress() {
-        GameBoy gb = new GameBoy(null);
-        
-        assertEquals(0, gb.bus().read(AddressMap.WORK_RAM_END - 1));
-    }
-    
-    @Test
-    void echoRamWorksForEndAddress() {
-        GameBoy gb = new GameBoy(null);
-        
-        assertEquals(0, gb.bus().read(AddressMap.ECHO_RAM_END - 1));
-    }
-    
-    @Test
-    void ramReturnsNODATAonOutofRangeValues() {
-        GameBoy gb = new GameBoy(null);
-        
-        assertEquals(0xFF, gb.bus().read(AddressMap.WORK_RAM_START - 1));
-        assertEquals(0xFF, gb.bus().read(AddressMap.ECHO_RAM_END));
-    }
-    
-    @Test
-    void runUntilFailsForInvalidValues() {
-        GameBoy gb = new GameBoy(null);
-        assertThrows(IllegalArgumentException.class, () -> gb.runUntil(-1));
+    void echoAreaReflectsWorkRam() {
+        Bus b = new GameBoy(null).bus();
+        for (int a = 0xC000; a < 0xE000; ++a)
+            b.write(a, (a ^ 0xA5) & 0xFF);
+        for (int a = 0xE000; a < 0xFE00; ++a)
+            assertEquals(((a - 0x2000) ^ 0xA5) & 0xFF, b.read(a));
+
+        for (int a = 0xE000; a < 0xFE00; ++a)
+            b.write(a, (a ^ 0xA5) & 0xFF);
+        for (int a = 0xC000; a < 0xDE00; ++a)
+            assertEquals(((a + 0x2000) ^ 0xA5) & 0xFF, b.read(a));
     }
 }

@@ -1,401 +1,451 @@
+// Gameboj stage 2
+
 package ch.epfl.gameboj.component.cpu;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static ch.epfl.test.TestRandomizer.RANDOM_ITERATIONS;
+import static ch.epfl.test.TestRandomizer.newRandom;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.util.Random;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
+import java.util.zip.GZIPInputStream;
 
 import org.junit.jupiter.api.Test;
 
-import ch.epfl.gameboj.component.cpu.Alu.RotDir;
-
 class AluTest {
+    private interface IntTernaryOperator {
+        int applyAsInt(int v1, int v2, int v3);
+    }
+    private interface IntQuaternaryOperator {
+        int applyAsInt(int v1, int v2, int v3, int v4);
+    }
 
-	/* maskZHCN tests */
-	
-	@Test
-	void maskZHCNWorksForAllFalse() {
-		assertEquals(0, Alu.maskZNHC(false, false, false, false));
-	}
+    private static final int[] INT_1 = allValues(1);
+    private static final int[] INT_3 = allValues(3);
+    private static final int[] INT_8 = allValues(8);
+    private static final int[] INT_16 = someValues(2018, 16, 300);
 
-	@Test
-	void maskZHCNWorksForAllTrue() {
-		assertEquals(0b11110000, Alu.maskZNHC(true, true, true, true));
-	}
-	
-	@Test
-	void maskZHCNWorksForKnownValue() {
-		assertEquals(0x70, Alu.maskZNHC(false, true, true, true));
-	}
-	
-	/* unpackValue tests */
-	
-	@Test
-	void unpackValueWorksForMaxValues() {
-		int[] values = {0x0000, 0x0007, 0x00FF, 0xFF00, 0xFF07, 0xFFFF};
-		int[] expected = {0, 0, 0, 0xFF, 0xFF, 0xFF};
-		
-		for (int i = 0; i < values.length; i++) {
-			assertEquals(expected[i], Alu.unpackValue(values[i]));
-		}
-	}
-	
-	@Test
-	void unpackValueWorksFor8BitValues() {
-		int[] values = {0x1200, 0x0707, 0x1111, 0xAC12};
-		int[] expected = {0x12, 0x07, 0x11, 0xAC};
-		
-		for (int i = 0; i < values.length; i++) {
-			assertEquals(expected[i], Alu.unpackValue(values[i]));
-		}
-	}
-	
-	@Test
-	void unpackValueWorksFor16BitValues() {
-		int[] values = {0xFFAA07, 0x321FF, 0x3F276, 0xFF1111};
-		int[] expected = {0xFFAA, 0x321, 0x3F2, 0xFF11};
-		
-		for (int i = 0; i < values.length; i++) {
-			assertEquals(expected[i], Alu.unpackValue(values[i]));
-		}
-	}
-	
-	/* unpackFlags tests */
-	
-	@Test
-	void unpackFlagsWorkdForMaxValues() {
-		int[] values = {0x0000, 0x0700, 0xFF00, 0x00FF, 0x07FF, 0xFFFF};
-		int[] expected = {0, 0, 0, 0xFF, 0xFF, 0xFF};
-		
-		for (int i = 0; i < values.length; i++) {
-			assertEquals(expected[i], Alu.unpackFlags(values[i]));
-		}
-	}
-	
-	@Test
-	void unpackFlagsWorkdForKnownValues() {
-		int[] values = {0x1270, 0x0707, 0x1111, 0xAC12, 0xFFAA07, 0x321FF, 0x3F276, 0xFF1111};
-		int[] expected = {0x70, 0x07, 0x11, 0x12, 0x07, 0xFF, 0x76, 0x11};
-		
-		for (int i = 0; i < values.length; i++) {
-			assertEquals(expected[i], Alu.unpackFlags(values[i]));
-		}
-	}
-	
-	/* add tests */
-	
-	@Test
-	void addFailsForInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.add(0x100, 0, false));
-        assertThrows(IllegalArgumentException.class, () -> Alu.add(0, 0x100, false));
-        assertThrows(IllegalArgumentException.class, () -> Alu.add(0, 0x100));
-        assertThrows(IllegalArgumentException.class, () -> Alu.add(0, 0x100));
-	}
-	
-	@Test
-    void addReturnsCorrectValuesForMaxValues() {
-        assertEquals(0x00, Alu.unpackValue(Alu.add(0, 0)));
-        assertEquals(0xFF, Alu.unpackValue(Alu.add(0xFF, 0)));
-        assertEquals(0xFE, Alu.unpackValue(Alu.add(0xFF, 0xFF)));
-        assertEquals(0x01, Alu.unpackValue(Alu.add(0, 0, true)));
-        assertEquals(0x00, Alu.unpackValue(Alu.add(0xFF, 0, true)));
-        assertEquals(0xFF, Alu.unpackValue(Alu.add(0xFF, 0xFF, true)));
+    private static int[] allValues(int bits) {
+        int[] vs = new int[1 << bits];
+        for (int i = 0; i < vs.length; ++i)
+            vs[i] = i;
+        return vs;
     }
-	
-	@Test
-    void addReturnsCorrectFlagsForMaxValues() {
-        assertEquals(0x80, Alu.unpackFlags(Alu.add(0, 0)));
-        assertEquals(0x00, Alu.unpackFlags(Alu.add(0xFF, 0)));
-        assertEquals(0x30, Alu.unpackFlags(Alu.add(0xFF, 0xFF)));
-        assertEquals(0x00, Alu.unpackFlags(Alu.add(0, 0, true)));
-        assertEquals(0xB0, Alu.unpackFlags(Alu.add(0xFF, 0, true)));
-        assertEquals(0x30, Alu.unpackFlags(Alu.add(0xFF, 0xFF, true)));
-    }
-	
-	@Test
-	void addReturnsCorrectValuesForKnownValues() {
-	    assertEquals(0x25, Alu.unpackValue(Alu.add(0x10, 0x15)));
-	    assertEquals(0x10, Alu.unpackValue(Alu.add(0x08, 0x08)));
-	    assertEquals(0x00, Alu.unpackValue(Alu.add(0x80, 0x7F, true)));
-	}
-	
-	@Test
-    void addReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0x00, Alu.unpackFlags(Alu.add(0x10, 0x15)));
-        assertEquals(0x20, Alu.unpackFlags(Alu.add(0x08, 0x08)));
-        assertEquals(0xB0, Alu.unpackFlags(Alu.add(0x80, 0x7F, true)));
-    }
-	
-	/* add16 tests */
 
-	@Test 
-	void add16FailsForInvalidValues() {
-	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0x10000, 0));
-	    assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0, 0x10000));
-        assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0x10000, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.add16L(0, 0x10000));
-	}
-	
-	@Test
-	void add16WorksForMaxValues() {
-	    assertEquals(0, Alu.unpackValue(Alu.add16L(0, 0)));
-	    assertEquals(0x01, Alu.unpackValue(Alu.add16L(0, 0x01)));
-	    assertEquals(0, Alu.unpackValue(Alu.add16H(0, 0)));
-        assertEquals(0x01, Alu.unpackValue(Alu.add16H(0, 0x01)));
-        assertEquals(0xFFFF, Alu.unpackValue(Alu.add16L(0xFFFF, 0)));
-        assertEquals(0, Alu.unpackValue(Alu.add16L(0xFFFF, 0x01)));
-	}
-	
-	@Test
-	void add16ReturnsCorrectValuesForKnownValues() {
-	    assertEquals(0x1200, Alu.unpackValue(Alu.add16L(0x11FF, 0x0001)));
-	    assertEquals(0x1200, Alu.unpackValue(Alu.add16H(0x11FF, 0x0001)));
-	}
-	
-	void add16ReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0x30, Alu.unpackFlags(Alu.add16L(0x11FF, 0x0001)));
-        assertEquals(0x00, Alu.unpackFlags(Alu.add16H(0x11FF, 0x0001)));
+    private static int[] someValues(int seed, int bits, int count) {
+        Random rng = new Random(seed);
+        int[] vs = new int[count];
+        for (int i = 0; i < vs.length; ++i)
+            vs[i] = rng.nextInt(1 << bits);
+        return vs;
     }
-	
-    /* sub tests */
-    
-	@Test
-	void subFailsForInvalidValues() {
-	    assertThrows(IllegalArgumentException.class, () -> Alu.and(0x100, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, 0x100));
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(-1, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, -1));
-	}
-	
-	@Test
-	void subWorksForMaxValues() {
-	    assertEquals(0,0);
-	}
-	
-    @Test
-    void subReturnsCorrectValuesForKnownValues() {
-        assertEquals(0x00, Alu.unpackValue(Alu.sub(0x10, 0x10)));
-        assertEquals(0x90, Alu.unpackValue(Alu.sub(0x10, 0x80)));
-        assertEquals(0xFF, Alu.unpackValue(Alu.sub(0x01, 0x01, true)));
-    }
-    
-    @Test
-    void subReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0xC0, Alu.unpackFlags(Alu.sub(0x10, 0x10)));
-        assertEquals(0x50, Alu.unpackFlags(Alu.sub(0x10, 0x80)));
-        assertEquals(0x70, Alu.unpackFlags(Alu.sub(0x01, 0x01, true)));
-    }
-    
-    /* bcdAdjust tests */
-    
-    @Test
-    void bcdAdjustFailsForInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.bcdAdjust(0x100, false, false, false));
-        assertThrows(IllegalArgumentException.class, () -> Alu.bcdAdjust(-1, false, false, false));
-    }
-    
-    @Test
-    void bcdAdjustReturnsCorrectValuesForKnownValues() {
-        assertEquals(0x73, Alu.unpackValue(Alu.bcdAdjust(0x6D, false, false, false)));
-        assertEquals(0x09, Alu.unpackValue(Alu.bcdAdjust(0x0F, true, true, false)));
-    }
-    
-    @Test
-    void bcdAdjustReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0x00, Alu.unpackFlags(Alu.bcdAdjust(0x6D, false, false, false)));
-        assertEquals(0x40, Alu.unpackFlags(Alu.bcdAdjust(0x0F, true, true, false)));
-    }
-    
-    /* and tests */
-    
-    @Test 
-    void andFailsForInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(0x100, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, 0x100));
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(-1, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.and(0, -1));
-    }
-    
-    @Test
-    void andReturnsCorrectValuesForKnownValues() {
-        assertEquals(0x03, Alu.unpackValue(Alu.and(0x53, 0xA7)));
-    }
-    
-    @Test
-    void andReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0x20, Alu.unpackFlags(Alu.and(0x53, 0xA7)));
-    }
-    
-    /* or tests */
-    
-    @Test 
-    void orFailsForInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.or(0x100, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.or(0, 0x100));
-        assertThrows(IllegalArgumentException.class, () -> Alu.or(-1, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.or(0, -1));
-    }
-    
-    @Test
-    void orReturnsCorrectValuesForKnownValues() {
-        assertEquals(0xF7, Alu.unpackValue(Alu.or(0x53, 0xA7)));
-    }
-    
-    @Test
-    void orReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0x00, Alu.unpackFlags(Alu.or(0x53, 0xA7)));
-    }
-    
-    /* xor tests */
-    
-    @Test 
-    void xorFailsForInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.xor(0x100, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.xor(0, 0x100));
-        assertThrows(IllegalArgumentException.class, () -> Alu.xor(-1, 0));
-        assertThrows(IllegalArgumentException.class, () -> Alu.xor(0, -1));
-    }
-    
-    @Test
-    void xorReturnsCorrectValuesForKnownValues() {
-        assertEquals(0xF4, Alu.unpackValue(Alu.xor(0x53, 0xA7)));
-    }
-    
-    @Test
-    void xorReturnsCorrectFlagsForKnownValues() {
-        assertEquals(0x00, Alu.unpackFlags(Alu.xor(0x53, 0xA7)));
-    }
-    
-    /* shiftLeft tests */
-    
-    @Test
-    void shiftLeftThrowsOnInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.shiftLeft(0xFF00));
-    }
-    
-    @Test
-    void shiftLeftWorksForKnownValues() {
-        assertEquals(0x00, Alu.unpackValue(Alu.shiftLeft(0x80)));
-    }
-    
-    @Test
-    void shiftLeftReturnsCorrectFlags() {
-        assertEquals(0x90, Alu.unpackFlags(Alu.shiftLeft(0x80)));        
-    }
-    
-    /* shiftRightA tests */
-    
-    @Test
-    void shiftRightAThrowsOnInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.shiftRightA(0xFF00));
-    }
-    
-    @Test
-    void shiftRightAWorksForKnownValues() {
-        assertEquals(0xC0, Alu.unpackValue(Alu.shiftRightA(0x80)));
-    }
-    
-    @Test
-    void shiftRightAReturnsCorrectFlags() {
-        assertEquals(0x00, Alu.unpackFlags(Alu.shiftRightA(0x80)));        
-    }
-    
-    /* shiftRightL tests */
-    
-    @Test
-    void shiftRightLThrowsOnInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.shiftRightL(0xFF00));
-    }
-    
-    @Test
-    void shiftRightLWorksForKnownValues() {
-        assertEquals(0x40, Alu.unpackValue(Alu.shiftRightL(0x80)));
-    }
-    
-    @Test
-    void shiftRightLReturnsCorrectFlags() {
-        assertEquals(0x00, Alu.unpackFlags(Alu.shiftRightL(0x80)));        
-    }
-    
-    /* rotate tests */
-    
-    @Test
-    void rotateThrowsOnInvalidValues() {
-        assertThrows(IllegalArgumentException.class, () -> Alu.rotate(RotDir.LEFT, 0xFF00));
-    }
-    
-    @Test
-    void rotateWorksForKnownValues() {
-        assertEquals(0x01, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80)));
-        assertEquals(0x00, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80, false)));
-        assertEquals(0x01, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x00, true)));
-        
-        assertEquals(0x40, Alu.unpackValue(Alu.rotate(RotDir.RIGHT, 0x80)));
-        assertEquals(0x40, Alu.unpackValue(Alu.rotate(RotDir.RIGHT, 0x80, false)));
-        assertEquals(0xC0, Alu.unpackValue(Alu.rotate(RotDir.RIGHT, 0x80, true)));
-    }
-    
-    @Test
-    void rotateReturnsCorrectFlags() {
-        assertEquals(0x10, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80)));
-        assertEquals(0x90, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80, false)));
-        assertEquals(0x00, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x00, true)));
-        
-        assertEquals(0x00, Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, 0x80)));
-        assertEquals(0x90, Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, 0x01, false)));
-        assertEquals(0x00, Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, 0x80, true)));
-    }
-    
-    /* swap tests */
-    
-	@Test
-	void swapThrowsOnInvalidValues() {
-	    assertThrows(IllegalArgumentException.class, () -> Alu.swap(0xFF00));
-	}
-	
-	@Test
-	void swapWorksForKnownValues() {
-	    assertEquals(0b11010001, Alu.unpackValue(Alu.swap(0b00011101)));
-	    assertEquals(0b01111110, Alu.unpackValue(Alu.swap(0b11100111)));
-	}
-	
-	@Test
-	void swapReturnsCorrectFlags() {
-	    assertEquals(Alu.maskZNHC(false, false, false, false), Alu.unpackFlags(Alu.swap(0b011011111)));
-	    assertEquals(Alu.maskZNHC(true, false, false, false), Alu.unpackFlags(Alu.swap(0)));
-	}
-	
-	/* testBit tests */
-	
-	@Test
-	void testBitThrowsOnInvalidValues() {
-	    assertThrows(IllegalArgumentException.class, () -> Alu.testBit(0b101011110011,  5));
-	}
 
-	@Test
-	void testBitWorksForKnownValues() {
-	    assertEquals(0b10100000, Alu.testBit(0b00011010, 6));
-	    assertEquals(0b00100000, Alu.testBit(0b00111001, 3));
-	}
-	
-	@Test
-	void testBitThrowsOnInvalidIndex() {
-	    assertThrows(IndexOutOfBoundsException.class, () -> Alu.testBit(0, 8));
-	}
+    private static DataInputStream openStream(String name) throws IOException {
+        String fullName = "/data/" + name + ".bin.gz";
+        return new DataInputStream(
+                new GZIPInputStream(
+                        AluTest.class.getResourceAsStream(fullName)));
+    }
+
+    private static void test(String methName, String fileName, int[] values1, IntUnaryOperator o) throws IOException {
+        try (DataInputStream in = openStream(fileName)) {
+            for (int v1: values1) {
+                int expected = in.readInt();
+                int actual = o.applyAsInt(v1);
+                assertEquals(expected, actual,
+                        String.format("Alu.%s(%d), expected 0x%X, actual 0x%X",
+                                methName, v1, expected, actual));
+            }
+        }
+    }
+
+    private static void test(String methName, String fileName, int[] values1, int[] values2, IntBinaryOperator o) throws IOException {
+        try (DataInputStream in = openStream(fileName)) {
+            for (int v1: values1) {
+                for (int v2: values2) {
+                    int expected = in.readInt();
+                    int actual = o.applyAsInt(v1, v2);
+                    assertEquals(expected, actual,
+                            String.format("Alu.%s(%d,%d), expected 0x%X, actual 0x%X",
+                                    methName, v1, v2, expected, actual));
+                }
+            }
+        }
+    }
+
+    private static void test(String methName, String fileName, int[] values1, int[] values2, int[] values3, IntTernaryOperator o) throws IOException {
+        try (DataInputStream in = openStream(fileName)) {
+            for (int v1: values1) {
+                for (int v2: values2) {
+                    for (int v3: values3) {
+                        int expected = in.readInt();
+                        int actual = o.applyAsInt(v1, v2, v3);
+                        assertEquals(expected, actual,
+                                String.format("Alu.%s(%d,%d,%d), expected 0x%X, actual 0x%X",
+                                        methName, v1, v2, v3, expected, actual));
+                    }
+                }
+            }
+        }
+    }
+
+    private static void test(String methName, String fileName, int[] values1, int[] values2, int[] values3, int[] values4, IntQuaternaryOperator o) throws IOException {
+        try (DataInputStream in = openStream(fileName)) {
+            for (int v1: values1) {
+                for (int v2: values2) {
+                    for (int v3: values3) {
+                        for (int v4: values4) {
+                            int expected = in.readInt();
+                            int actual = o.applyAsInt(v1, v2, v3, v4);
+                            assertEquals(expected, actual,
+                                    String.format("Alu.%s(%d,%d,%d,%d), expected 0x%X, actual 0x%X",
+                                            methName, v1, v2, v3, v4, expected, actual));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // mask/unpack
+    @Test
+    void maskZNHCProducesSameResultsAsReference() throws IOException {
+        test("maskZNHC", "MASKZNHC", INT_1, INT_1, INT_1, INT_1, (z, n, h, c) -> Alu.maskZNHC(z != 0, n != 0, h != 0, c != 0));
+    }
+
+    @Test
+    void unpackValueProducesSameResultsAsReference() throws IOException {
+        test("unpackValue", "UNPACKV", INT_16, v -> Alu.unpackValue(v << 4));
+    }
+
+    @Test
+    void unpackFlagsProducesSameResultsAsReference() throws IOException {
+        test("unpackFlags", "UNPACKF", INT_16, v -> Alu.unpackFlags(v << 4));
+    }
+
+    // 8-bit operations
+    @Test
+    void addProducesSameResultsAsReference() throws IOException {
+        test("add", "ADD", INT_8, INT_8, INT_1, (l, r, c) -> Alu.add(l, r, c != 0));
+    }
+
+    @Test
+    void addFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.add(v1, 0, false);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.add(0, v1, false);
+            });
+        }
+    }
+
+    @Test
+    void subProducesSameResultsAsReference() throws IOException {
+        test("sub", "SUB", INT_8, INT_8, INT_1, (l, r, c) -> Alu.sub(l, r, c != 0));
+    }
+
+    @Test
+    void subFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.sub(v1, 0, false);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.sub(0, v1, false);
+            });
+        }
+    }
+
+    @Test
+    void bcdAdjustProducesSameResultsAsReference() throws IOException {
+        test("bcdAdjust", "BCDA", INT_8, INT_1, INT_1, INT_1, (v, n, h, c) -> Alu.bcdAdjust(v, n != 0, h != 0, c != 0));
+    }
+
+    @Test
+    void bcdAdjustFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.bcdAdjust(v1, false, false, false);
+            });
+        }
+    }
+
+    @Test
+    void andProducesSameResultsAsReference() throws IOException {
+        test("and", "AND", INT_8, INT_8, Alu::and);
+    }
+
+    @Test
+    void andFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.and(v1, 0);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.and(0, v1);
+            });
+        }
+    }
+
+    @Test
+    void orProducesSameResultsAsReference() throws IOException {
+        test("or", "OR", INT_8, INT_8, Alu::or);
+    }
+
+    @Test
+    void orFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.or(v1, 0);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.or(0, v1);
+            });
+        }
+    }
+
+    @Test
+    void xorProducesSameResultsAsReference() throws IOException {
+        test("xor", "XOR", INT_8, INT_8, Alu::xor);
+    }
+
+    @Test
+    void xorFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.xor(v1, 0);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.xor(0, v1);
+            });
+        }
+    }
+
+    @Test
+    void shiftLeftProducesSameResultsAsReference() throws IOException {
+        test("shiftLeft", "SHL", INT_8, Alu::shiftLeft);
+    }
+
+    @Test
+    void shiftLeftFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.shiftLeft(v1);
+            });
+        }
+    }
+
+    @Test
+    void shiftRightAProducesSameResultsAsReference() throws IOException {
+        test("shiftRightA", "SHR_A", INT_8, Alu::shiftRightA);
+    }
+
+    @Test
+    void shiftRightAFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.shiftRightA(v1);
+            });
+        }
+    }
+
+    @Test
+    void shiftRightLProducesSameResultsAsReference() throws IOException {
+        test("shiftRightL", "SHR_L", INT_8, Alu::shiftRightL);
+    }
+
+    @Test
+    void shiftRightLFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.shiftRightL(v1);
+            });
+        }
+    }
+
+    @Test
+    void rotate2ProducesSameResultsAsReference() throws IOException {
+        test("rotate", "ROT2", INT_1, INT_8, (d, v) -> Alu.rotate(d == 0 ? Alu.RotDir.LEFT : Alu.RotDir.RIGHT, v));
+    }
+
+    @Test
+    void rotate2FailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.rotate(Alu.RotDir.LEFT, v1);
+            });
+        }
+    }
+
+    @Test
+    void rotate3ProducesSameResultsAsReference() throws IOException {
+        test("rotate", "ROT3", INT_1, INT_8, INT_1, (d, v, c) -> Alu.rotate(d == 0 ? Alu.RotDir.LEFT : Alu.RotDir.RIGHT, v, c != 0));
+    }
+
+    @Test
+    void rotate3FailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.rotate(Alu.RotDir.LEFT, v1, false);
+            });
+        }
+    }
+
+    @Test
+    void swapProducesSameResultsAsReference() throws IOException {
+        test("swap", "SWAP", INT_8, Alu::swap);
+    }
+
+    @Test
+    void swapFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.swap(v1);
+            });
+        }
+    }
+
+    @Test
+    void testBitProducesSameResultsAsReference() throws IOException {
+        test("testBit", "TST", INT_8, INT_3, Alu::testBit);
+    }
+
+    //    @Test
+    //    void testBitProducesSameResultsAsReferenceOrOpposite() throws IOException {
+    //        try (DataInputStream in = openStream("TST")) {
+    //            for (int v1: INT_8) {
+    //                for (int v2: INT_3) {
+    //                    int expected = in.readInt();
+    //                    int expectedWithZInverted = expected ^ 0b1000_0000;
+    //                    int actual = ((IntBinaryOperator) Alu::testBit).applyAsInt(v1, v2);
+    //                    assertTrue(actual == expected || actual == expectedWithZInverted,
+    //                            String.format("Alu.%s(%d,%d), expected 0x%X or 0x%X, actual 0x%X",
+    //                                    "testBit", v1, v2, expected, expectedWithZInverted, actual));
+    //                }
+    //            }
+    //        }
+    //    }
+
+    @Test
+    void testBitFailsOnNon8BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.testBit(v1, 0);
+            });
+        }
+    }
+
+    @Test
+    void testBitFailsOnNon3BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0b111);
+            int v1 = v;
+            assertThrows(IndexOutOfBoundsException.class, () -> {
+                Alu.testBit(0, v1);
+            });
+        }
+    }
+
+    // 16-bit operations
+    @Test
+    void add16LProducesSameResultsAsReference() throws IOException {
+        test("add16L", "ADD16L", INT_16, INT_16, Alu::add16L);
+    }
+
+    @Test
+    void add16LFailsOnNon16BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFFFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.add16L(v1, 0);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.add16L(0, v1);
+            });
+        }
+    }
+
+    @Test
+    void add16HProducesSameResultsAsReference() throws IOException {
+        test("add16H", "ADD16H", INT_16, INT_16, Alu::add16H);
+    }
+
+    @Test
+    void add16HFailsOnNon16BitsValues() {
+        Random rng = newRandom();
+        for (int i = 0; i < RANDOM_ITERATIONS; ++i) {
+            int v;
+            do { v = rng.nextInt(); } while (0 <= v && v <= 0xFFFF);
+            int v1 = v;
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.add16H(v1, 0);
+            });
+            assertThrows(IllegalArgumentException.class, () -> {
+                Alu.add16H(0, v1);
+            });
+        }
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
