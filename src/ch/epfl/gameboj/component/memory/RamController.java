@@ -77,5 +77,4 @@ public final class RamController implements Component {
             RAM.write(address - START_ADDRESS, data);
         }
     }
-    
 }

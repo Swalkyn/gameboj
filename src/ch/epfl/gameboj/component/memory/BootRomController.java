@@ -19,12 +19,20 @@ public final class BootRomController implements Component {
     private boolean bootRomEnabled;
     private Rom bootRom;
     
+    /**
+     * Creates a new boot rom controller with a cartridge attached to it
+     * @param cartridge : the cartridge to be attached
+     */
     public BootRomController(Cartridge cartridge) {
         this.cartridge = Objects.requireNonNull(cartridge);;
-        bootRom = new Rom(BootRom.DATA); // TODO : boot program?
+        bootRom = new Rom(BootRom.DATA);
         bootRomEnabled = true;
     }
     
+    
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
@@ -35,7 +43,10 @@ public final class BootRomController implements Component {
         
         return cartridge.read(address);
     }
-
+    
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
         Preconditions.checkBits16(address);
@@ -47,5 +58,4 @@ public final class BootRomController implements Component {
         
         cartridge.write(address, data);
     }
-
 }
