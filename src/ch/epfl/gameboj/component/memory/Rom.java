@@ -45,6 +45,9 @@ public final class Rom implements Component {
         return Byte.toUnsignedInt(memory[index]);
     }
 
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
         // Does nothing
