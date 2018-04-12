@@ -14,6 +14,7 @@ public final class BitVector {
     public static final class Builder {
         private final int[] bytes;
         private final int fullSize;
+        private boolean enabled = true;
         
         public Builder(int size) {
             Preconditions.checkArgument(size % BLOCK_SIZE == 0 && size >= 0);
@@ -23,6 +24,9 @@ public final class BitVector {
         }
         
         public Builder setByte(int index, byte b) {
+            if (!enabled) {
+                throw new IllegalStateException();
+            }
             Objects.checkIndex(index, fullSize);
             
             int byteIndex = index / Byte.SIZE;
@@ -31,12 +35,17 @@ public final class BitVector {
         }
         
         public BitVector build() {
+            if (!enabled) {
+                throw new IllegalStateException();
+            }
+            
             int[] vector = new int[fullSize / BLOCK_SIZE];
             
             for(int i = 0; i < vector.length; i++) {
                 vector[i] = combineFourBytes(4 * i);
             }
             
+            enabled = false;
             return new BitVector(vector);
         }
         
@@ -89,18 +98,37 @@ public final class BitVector {
     }
     
     public BitVector and(BitVector bv) {
-        return null;
+        Preconditions.checkArgument(size == bv.size());
+        
+        int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
+
+        for(int i = 0; i < blocksCopy.length; i++) {
+            blocksCopy[i] = blocksCopy[i] & bv.extractBlock(i);
+        }
+        
+        return new BitVector(blocksCopy);
     }
     
     public BitVector or(BitVector bv) {
+        Preconditions.checkArgument(size == bv.size());
+        
+        int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
+
+        for(int i = 0; i < blocksCopy.length; i++) {
+            blocksCopy[i] = blocksCopy[i] | bv.extractBlock(i);
+        }
+        
+        return new BitVector(blocksCopy);
+    }
+    
+    public BitVector extractZeroExtended(int start, int size) {
+        Builder builder = new Builder(size);
+        
+        
         return null;
     }
     
-    public BitVector extractZeroExtended() {
-        return null;
-    }
-    
-    public BitVector extractWrapped() {
+    public BitVector extractWrapped(int start, int size) {
         return null;
     }
     
