@@ -6,8 +6,8 @@ import java.util.Objects;
 import ch.epfl.gameboj.Preconditions;
 
 public final class BitVector {
-    
-    private static final int BLOCK_SIZE = 32;
+
+	private static final int BLOCK_SIZE = 32;
     private final int[] blocks;
     private final int size; 
 
@@ -60,6 +60,10 @@ public final class BitVector {
         }
     }
     
+    private static enum Extraction {
+    	ZERO, WRAP;
+    }
+    
     public BitVector(int size) {
         this(size, false);
     }
@@ -84,9 +88,9 @@ public final class BitVector {
     }
     
     public boolean testBit(int index) {
-        return Bits.test(extractBlock(index), extractSubIndex(index));
+        return Bits.test(blocks[index / BLOCK_SIZE], index % BLOCK_SIZE);
     }
-    
+
     public BitVector not() {
         int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
         
@@ -103,7 +107,7 @@ public final class BitVector {
         int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
 
         for(int i = 0; i < blocksCopy.length; i++) {
-            blocksCopy[i] = blocksCopy[i] & bv.extractBlock(i);
+            blocksCopy[i] = blocksCopy[i] & bv.blocks[i];
         }
         
         return new BitVector(blocksCopy);
@@ -115,21 +119,49 @@ public final class BitVector {
         int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
 
         for(int i = 0; i < blocksCopy.length; i++) {
-            blocksCopy[i] = blocksCopy[i] | bv.extractBlock(i);
+            blocksCopy[i] = blocksCopy[i] | bv.blocks[i];
         }
         
         return new BitVector(blocksCopy);
     }
     
     public BitVector extractZeroExtended(int start, int size) {
-        Builder builder = new Builder(size);
-        
-        
-        return null;
+        return new BitVector(extract(start, size, Extraction.ZERO));
     }
     
     public BitVector extractWrapped(int start, int size) {
-        return null;
+        return new BitVector(extract(start, size, Extraction.WRAP));
+    }
+    
+    private int[] extract(int start, int size, Extraction e) {
+    	Preconditions.checkArgument(size >= 0 && size % BLOCK_SIZE == 0);
+    	
+    	if (Math.floorMod(start, BLOCK_SIZE) == 0) {
+    		return extractFullBlocks(start, size, e);
+    	} else {
+    		return extractCombinedBlocks(start, size, e);    		
+    	}
+    }
+    
+    private int[] extractFullBlocks(int startIndex, int size, Extraction e) {
+    	int startBlock = Math.floorDiv(startIndex, BLOCK_SIZE);
+    	int[] blocks = new int[Math.floorDiv(size, BLOCK_SIZE)];
+    	
+    	for (int i = 0; i < blocks.length; i++) {
+    		blocks[i] = extractBlock(i - startBlock, e);
+    	}
+    	
+    	return blocks;
+    }
+    
+    private int[] extractCombinedBlocks(int startIndex, int size, Extraction e) {
+    	int[] blocks = new int[Math.floorDiv(size, BLOCK_SIZE)];
+    	
+    	for (int i = 0; i < blocks.length; i++) {
+    		blocks[i] = extractCombinedBlock(BLOCK_SIZE*i + startIndex, e);
+    	}
+    	
+    	return blocks;
     }
     
     public BitVector shift(int distance) {
@@ -151,13 +183,26 @@ public final class BitVector {
         return null;
     }
     
-    private int extractBlock(int index) {
-        Objects.checkIndex(index, size);
-        return blocks[Math.floorDiv(index, BLOCK_SIZE)];
+    private int extractBlock(int index, Extraction e) {
+    	if (0 <= index && index < blocks.length) {
+    		return blocks[index];
+    	} else if (e == Extraction.WRAP) {
+    		return blocks[Math.floorMod(index, blocks.length)];
+    	} else {
+    		return 0;
+    	}
     }
     
-    private int extractSubIndex(int index) {
-        Objects.checkIndex(index, size);
-        return Math.floorMod(index, BLOCK_SIZE);
+    private int extractCombinedBlock(int startIndex, Extraction e) {
+    	int blockIndex = Math.floorDiv(startIndex, BLOCK_SIZE);
+    	int lsbBlock = extractBlock(blockIndex, e);
+    	int msbBlock = extractBlock(blockIndex + 1, e);
+    	
+    	int subIndex = Math.floorMod(startIndex, BLOCK_SIZE);
+    	int lsb = Bits.extract(lsbBlock, subIndex, BLOCK_SIZE - subIndex);
+    	int msb = Bits.extract(msbBlock, 0, subIndex);
+    	
+    	return (msb << (BLOCK_SIZE - subIndex)) | lsb;
     }
+    
 }
