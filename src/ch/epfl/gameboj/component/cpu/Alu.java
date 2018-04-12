@@ -18,15 +18,15 @@ public final class Alu {
      * Represents the bits for the flags of the ALU
      * For example, flag C is at index 4 in a packed output int
      */
-    public enum Flag implements Bit {
-        UNUSED_0, UNUSED_1, UNESED_2, UNUSED_3, C, H, N, Z
+    public static enum Flag implements Bit {
+        UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, C, H, N, Z
     }
     
     /**
      * Represents the direction of rotation
      * dirCode gives access to integer value (1 or -1)
      */
-    public enum RotDir {
+    public static enum RotDir {
         LEFT(1), RIGHT(-1);
         
         public final int dirCode;
@@ -51,7 +51,6 @@ public final class Alu {
         return Bits.set(0, Flag.Z.index(), z) | Bits.set(0, Flag.N.index(), n)
                | Bits.set(0, Flag.H.index(), h) | Bits.set(0, Flag.C.index(), c);
     }
-    
     
     /**
      * Returns the value part from packed integer
@@ -89,7 +88,6 @@ public final class Alu {
         boolean h = Bits.clip(4, l) + Bits.clip(4, r) + (c0 ? 1 : 0) > 0xF;
         boolean c = result > 0xFF;
         
-        // Clip value
         result = Bits.clip(8, result);
         boolean z = result == 0;
         
@@ -149,7 +147,8 @@ public final class Alu {
         boolean h = Bits.test(resultMSB, Flag.H.index());
         boolean c = Bits.test(resultMSB, Flag.C.index());
         
-        return packValueZNHC(result, false, false, h, c);    }
+        return packValueZNHC(result, false, false, h, c);
+    }
     
     /**
      * Subtracts two 8-bit numbers, with initial borrow
@@ -169,7 +168,6 @@ public final class Alu {
         boolean n = true;
         boolean c = l < r + (b0 ? 1 : 0);
         
-        // Clip value
         result = Bits.clip(8, result);
         boolean z = result == 0;
         
@@ -401,28 +399,3 @@ public final class Alu {
         return (value << 8) | maskZNHC(z, n, h, c);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

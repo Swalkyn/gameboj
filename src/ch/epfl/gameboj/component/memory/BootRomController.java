@@ -15,9 +15,9 @@ import ch.epfl.gameboj.component.Component;
  */
 public final class BootRomController implements Component {
     
-    private Cartridge cartridge;
+    private final Cartridge cartridge;
+    private final Rom bootRom;
     private boolean bootRomEnabled;
-    private Rom bootRom;
     
     /**
      * Creates a new boot rom controller with a cartridge attached to it
@@ -28,7 +28,6 @@ public final class BootRomController implements Component {
         bootRom = new Rom(BootRom.DATA);
         bootRomEnabled = true;
     }
-    
     
     /* (non-Javadoc)
      * @see ch.epfl.gameboj.component.Component#read(int)

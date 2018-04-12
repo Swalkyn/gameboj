@@ -17,12 +17,12 @@ import ch.epfl.gameboj.component.memory.RamController;
  */
 public class GameBoy {
     
-    private Bus mBus;
-    private Cpu mCpu;
-    private Timer mTimer;
-    private RamController workRam;
-    private RamController echoRam;
-    private BootRomController bootRom;
+    private final Bus mBus;
+    private final Cpu mCpu;
+    private final Timer mTimer;
+    private final RamController workRam;
+    private final RamController echoRam;
+    private final BootRomController bootRom;
     
     private long numberOfCycles = 0;
     

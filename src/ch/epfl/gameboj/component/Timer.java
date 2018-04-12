@@ -17,13 +17,13 @@ import ch.epfl.gameboj.component.cpu.Cpu;
 */
 public final class Timer implements Component, Clocked {
     
-    private Cpu cpu;
-    private RegisterFile<RegTimer> rf;
+    private final Cpu cpu;
+    private final RegisterFile<RegTimer> rf;
     
     private static final int TIMA_MAX_VALUE = 0xFF;
     private static final int DIV_INC = 4;
     
-    private enum RegTimer implements Register {
+    private static enum RegTimer implements Register {
         DIV_MSB, DIV_LSB, TIMA, TMA, TAC
     }
     
@@ -73,6 +73,7 @@ public final class Timer implements Component, Clocked {
      * @param address : 16 bits
      * @param data : 8 bits
      * @throws IllegalArgumentException if address not 16 bits
+     * @throws IllegalArgumentException if data not 8 bits
      */
     @Override
     public void write(int address, int data) {
@@ -136,8 +137,5 @@ public final class Timer implements Component, Clocked {
     
     private int readDiv() {
         return Bits.make16(rf.get(RegTimer.DIV_MSB), rf.get(RegTimer.DIV_LSB));
-    }
-
-    
-    
+    }    
 }

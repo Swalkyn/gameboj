@@ -15,7 +15,7 @@ public interface Preconditions {
      */
     static void checkArgument(boolean b) {
         if (!b) {
-            throw new IllegalArgumentException("Condtion failed");
+            throw new IllegalArgumentException("Condition failed");
         }
     }
     

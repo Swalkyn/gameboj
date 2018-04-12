@@ -30,24 +30,26 @@ public final class Cpu implements Component, Clocked {
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.DIRECT); 
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.PREFIXED);
     private static final int OPCODE_PREFIX = 0xCB;
-    private long nextNonIdleCycle = 0;
+    
+    private final Ram highRam = new Ram(AddressMap.HIGH_RAM_SIZE);
     private Bus bus;
-    private Ram highRam = new Ram(AddressMap.HIGH_RAM_SIZE);
+    
+    private long nextNonIdleCycle = 0;
     
     private int PC = 0;
     private int SP = 0;
 
-    private RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
+    private final RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
 
     private boolean regIME = false;
     private int regIE = 0;
     private int regIF = 0;
     
-    private enum Reg implements Register {
+    private static enum Reg implements Register {
         A, F, B, C, D, E, H, L
     }
     
-    private enum Reg16 {
+    private static enum Reg16 {
         AF(Reg.A, Reg.F), 
         BC(Reg.B, Reg.C), 
         DE(Reg.D, Reg.E), 
@@ -65,15 +67,15 @@ public final class Cpu implements Component, Clocked {
     /**
      * Represents the 5 possible interrupts to the cpu
      */
-    public enum Interrupt implements Bit {
+    public static enum Interrupt implements Bit {
         VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
     }
     
-    private enum FlagSrc {
+    private static enum FlagSrc {
         V0, V1, ALU, CPU
     }
     
-    private enum Condition {
+    private static enum Condition {
         NZ(Alu.Flag.Z, true), Z(Alu.Flag.Z, false), NC(Alu.Flag.C, true), C(Alu.Flag.C, false);
         
         public Flag flag;
@@ -181,6 +183,7 @@ public final class Cpu implements Component, Clocked {
         }
     }
     
+    
     /* Interrupt methods */
     
     private boolean atLeastOneInterrupt() {
@@ -196,6 +199,7 @@ public final class Cpu implements Component, Clocked {
     private void removeInterruptFlag(int index) {
         regIF = Bits.set(regIF, index, false);
     }
+    
     
     /* Test helper */
     
@@ -430,6 +434,7 @@ public final class Cpu implements Component, Clocked {
     private boolean extractIMEState(Opcode opcode) {
         return Bits.test(opcode.encoding, 3);
     }
+    
    
     /* Opcode table methods */
     
@@ -467,6 +472,7 @@ public final class Cpu implements Component, Clocked {
         
         throw new NullPointerException("Opcode encoding does not exist");
     }
+    
     
     /* Flag Manipulation */
     
@@ -533,6 +539,7 @@ public final class Cpu implements Component, Clocked {
             throw new IllegalArgumentException();
         }
     }
+    
     
     /* Dispatch method */
     
@@ -785,7 +792,8 @@ public final class Cpu implements Component, Clocked {
                 combineAluFlags(0, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1, FlagSrc.CPU);
             } break;
             
-         // Rotate, shift
+            // Rotate, shift
+            
             case ROTCA: {
                 RotDir rd = extractRotDir(opcode);
                 int vf = Alu.rotate(rd, rf.get(Reg.A));
@@ -857,7 +865,8 @@ public final class Cpu implements Component, Clocked {
                 write8AtHlAndSetFlags(vf);
             } break;
             
-         // Bit test and set
+            // Bit test and set
+            
             case BIT_U3_R8: {
                 Reg r = extractReg(opcode, 0);
                 int vf = Alu.testBit(rf.get(r), extractBitIndex(opcode));
@@ -876,6 +885,7 @@ public final class Cpu implements Component, Clocked {
             } break;
 
             // Misc. ALU
+            
             case DAA: {
                 int vf = Alu.bcdAdjust(rf.get(Reg.A), getFlagFromF(Flag.N), getFlagFromF(Flag.H), getFlagFromF(Flag.C));
                 setRegFromAlu(Reg.A, vf);
@@ -893,6 +903,7 @@ public final class Cpu implements Component, Clocked {
             } break;
             
             // Jumps
+            
             case JP_HL: {
                 nextPC = reg16(Reg16.HL);
             } break;
@@ -916,6 +927,7 @@ public final class Cpu implements Component, Clocked {
             } break;
 
             // Calls and returns
+            
             case CALL_N16: {
                 push16(nextPC);
                 nextPC = read16AfterOpcode();
@@ -942,6 +954,7 @@ public final class Cpu implements Component, Clocked {
             } break;
 
             // Interrupts
+            
             case EDI: {
                 regIME = extractIMEState(opcode);
             } break;
@@ -951,6 +964,7 @@ public final class Cpu implements Component, Clocked {
             } break;
 
             // Misc control
+            
             case HALT: {
                nextNonIdleCycle = Long.MAX_VALUE; 
             } break;
@@ -963,7 +977,7 @@ public final class Cpu implements Component, Clocked {
         
         PC = nextPC;
         nextNonIdleCycle += opcode.cycles;
-        nextNonIdleCycle += additionalCycles;
-        
+        nextNonIdleCycle += additionalCycles;        
     }
+    
 }

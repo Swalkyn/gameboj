@@ -13,8 +13,8 @@ import ch.epfl.gameboj.bits.Bits;
  */
 public final class RegisterFile<E extends Register> {
 
-    private int size;
-    private byte[] registerFile;
+    private final int size;
+    private final byte[] registerFile;
     
     /**
      * Creates a new register file given a array of registers
