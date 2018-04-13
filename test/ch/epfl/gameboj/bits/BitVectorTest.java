@@ -78,11 +78,11 @@ public class BitVectorTest {
         assertThrows(IllegalArgumentException.class, () -> v1.or(v2));
     }
     
-    private String integerArrayToBinaryString(int[] ints) {
+    public static String integerArrayToBinaryString(int[] ints) {
         StringBuilder sb = new StringBuilder();
         
         for(int i : ints) {
-            sb.insert(0, String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
+            sb.append(String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
         }
         
         return sb.toString();

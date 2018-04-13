@@ -1,12 +1,13 @@
 package ch.epfl.gameboj.bits;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static ch.epfl.gameboj.bits.BitVectorTest.integerArrayToBinaryString;
 
 import org.junit.jupiter.api.Test;
 
 class BitVectorBuilderTest {
 
-	static final int DEFAULT_SIZE = 256;
+	static final int DEFAULT_SIZE = 128;
 	
 	@Test
 	void constructorFailsForInvalidSize() {
@@ -40,7 +41,7 @@ class BitVectorBuilderTest {
 	
 	@Test
 	void bitVectorAreCorrectSizes() {
-		int[] sizes = {0, 32, 64, 256, 1024}; 
+		int[] sizes = {32, 64, 256, 1024}; 
 		
 		for (int size: sizes) {
 			BitVector.Builder bvb = new BitVector.Builder(size);
@@ -62,17 +63,31 @@ class BitVectorBuilderTest {
 	
 	@Test
 	void bitVectorCreatesCorrectVectors() {
-		String zero8 = "00000000";
-		String[] vectors = {
-			zero8 + zero8 + zero8 + "11110000",
-			zero8 + "00000001" + zero8 + zero8,
+		int[][] vectors = {
+			{0, 0, 0, 0x0000_00FF},
+			{0, 0, 0, 0x0001_0000},
+			{0, 0xFF00_FFED, 0, 0},
+			{0, 0, 0x1010_1010, 0},
+			{0x12345678, 0, 0, 0}
 		};
 		
-		BitVector.Builder bvb1 = new BitVector.Builder(32);
-		assertEquals(vectors[0], bvb1.setByte(0, (byte)0xF0).build().toString());
+		BitVector.Builder bvb1 = new BitVector.Builder(DEFAULT_SIZE);
+		assertEquals(integerArrayToBinaryString(vectors[0]), bvb1.setByte(0, (byte)0xFF).build().toString());
 		
-		BitVector.Builder bvb2 = new BitVector.Builder(32);
-		assertEquals(vectors[1], bvb2.setByte(2, (byte)0x01).build().toString());
+		BitVector.Builder bvb2 = new BitVector.Builder(DEFAULT_SIZE);
+		assertEquals(integerArrayToBinaryString(vectors[1]), bvb2.setByte(2, (byte)0x01).build().toString());
+		
+		BitVector bv3 = new BitVector.Builder(DEFAULT_SIZE).setByte(8, (byte)0xED).setByte(9, (byte)0xFF)
+				.setByte(11, (byte)0xFF).build();
+		assertEquals(integerArrayToBinaryString(vectors[2]), bv3.toString());
+		
+		BitVector bv4 = new BitVector.Builder(DEFAULT_SIZE).setByte(4, (byte)0x10).setByte(5, (byte)0x10)
+				.setByte(6, (byte)0x10).setByte(7, (byte)0x10).build();
+		assertEquals(integerArrayToBinaryString(vectors[3]), bv4.toString());
+
+		BitVector bv5 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, (byte)0x78).setByte(13, (byte)0x56)
+				.setByte(14, (byte)0x34).setByte(15, (byte)0x12).build();
+		assertEquals(integerArrayToBinaryString(vectors[4]), bv5.toString());
 	}
 
 }
