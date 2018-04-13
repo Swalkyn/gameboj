@@ -49,7 +49,9 @@ public final class BitVector {
             if (!enabled) {
                 throw new IllegalStateException();
             }
-            Objects.checkIndex(byteIndex, fullSize / Byte.SIZE);
+            
+            Objects.checkIndex(byteIndex, fullSize);
+            
             bytes[byteIndex] = Byte.toUnsignedInt(b);
             return this;
         }
@@ -227,7 +229,7 @@ public final class BitVector {
         StringBuilder sb = new StringBuilder();
         
         for(int i : blocks) {
-            sb.append(Integer.toBinaryString(i));
+            sb.append(String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
         }
         
         return sb.toString();
