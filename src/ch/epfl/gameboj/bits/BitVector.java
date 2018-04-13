@@ -6,7 +6,7 @@ import java.util.Objects;
 import ch.epfl.gameboj.Preconditions;
 
 /**
- * Represents a vector of bits, grouped by 32
+ * Represents an immutable vector of bits, in groups of 32
  * 
  * @author Sylvain Kuchen (282380)
  * @author Luca Bataillard (282152)
@@ -15,7 +15,7 @@ public final class BitVector {
 
 	private static final int BLOCK_SIZE = 32;
     private final int[] blocks;
-    private final int size;
+    private final int numberOfBits;
     
     private static enum Extraction {
         ZERO, WRAP;
@@ -105,22 +105,22 @@ public final class BitVector {
     public BitVector(int size, boolean initialValue) {
         Preconditions.checkArgument(size % BLOCK_SIZE == 0 && size >= 0);
         
-        this.size = size;
+        this.numberOfBits = size;
         this.blocks = new int[size / BLOCK_SIZE];
         int v = initialValue ? ~0 : 0;
         Arrays.fill(blocks, v);     
     }
     
     private BitVector(int[] blocks) {
-        this.size = BLOCK_SIZE * blocks.length;
+        this.numberOfBits = BLOCK_SIZE * blocks.length;
         this.blocks = blocks;
     }
     
     /**
-     * @return the size of the vector
+     * @return the size of the vector in bits
      */
     public int size() {
-        return size;
+        return numberOfBits;
     }
     
     /**
@@ -133,7 +133,7 @@ public final class BitVector {
     }
     
     /**
-     * @return the complement of the vector of bits
+     * @return the complement of the vector
      */
     public BitVector not() {
         int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
@@ -146,13 +146,13 @@ public final class BitVector {
     }
     
     /**
-     * Applies "and" operation to the vector and a given one
+     * Bitwise AND between two vectors
      * @param bv : second vector
      * @throws IllegalArgumentException if vectors have a different size
      * @return a new BitVector, the result of the operation
      */
     public BitVector and(BitVector bv) {
-        Preconditions.checkArgument(size == bv.size());
+        Preconditions.checkArgument(numberOfBits == bv.size());
         
         int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
 
@@ -164,13 +164,13 @@ public final class BitVector {
     }
     
     /**
-     * Applies "or" operation to the vector and a given one
+     * Bitwise OR between two vectors
      * @param bv : second vector
      * @throws IllegalArgumentException if vectors have a different size
      * @return a new BitVector, the result of the operation
      */
     public BitVector or(BitVector bv) {
-        Preconditions.checkArgument(size == bv.size());
+        Preconditions.checkArgument(numberOfBits == bv.size());
         
         int[] blocksCopy = Arrays.copyOf(blocks, blocks.length);
 
@@ -184,43 +184,39 @@ public final class BitVector {
     /**
      * Extract a given number of bits at specified index, with a zero extension
      * @param start : start of the extraction
-     * @param size : number of bits to be extracted
+     * @param numberOfBits : number of bits to be extracted
      * @return a new BitVector of the extracted bits
      */
-    public BitVector extractZeroExtended(int start, int size) {
-        return new BitVector(extract(start, size, Extraction.ZERO));
+    public BitVector extractZeroExtended(int start, int numberOfBits) {
+        return new BitVector(extract(start, numberOfBits, Extraction.ZERO));
     }
     
     /**
      * Extract a given number of bits at specified index, with a wrapped extension
      * @param start : start of the extraction
-     * @param size : number of bits to be extracted
+     * @param numberOfBits : number of bits to be extracted
      * @return a new BitVector of the extracted bits
      */
-    public BitVector extractWrapped(int start, int size) {
-        return new BitVector(extract(start, size, Extraction.WRAP));
+    public BitVector extractWrapped(int start, int numberOfBits) {
+        return new BitVector(extract(start, numberOfBits, Extraction.WRAP));
     }
     
     /**
-     * Shifts the vector of a given distance
+     * Shifts the vector by a given distance
      * @param distance : distance of shift
      * @return a new BitVector of the shifted bits
      */
     public BitVector shift(int distance) {         
-        return extractZeroExtended(0 + distance, Math.floorDiv(size, BLOCK_SIZE));
+        return extractZeroExtended(distance, numberOfBits);
     }
     
     @Override
     public boolean equals(Object that) {
-        if (that instanceof BitVector && this.size == ((BitVector) that).size) {
-            for (int i = 0; i < Math.floorDiv(size, BLOCK_SIZE); i++) {
-                if (this.blocks[i] != ((BitVector) that).blocks[i]) {
-                    return false;
-                }
-            }
-            return true;
+        if (that instanceof BitVector && this.numberOfBits == ((BitVector) that).numberOfBits) {
+            return Arrays.equals(this.blocks, ((BitVector) that).blocks);
         }
-        return false;
+     
+        return false;     
     }
     
     @Override
@@ -239,19 +235,19 @@ public final class BitVector {
         return sb.toString();
     }
     
-    private int[] extract(int start, int size, Extraction e) {
-        Preconditions.checkArgument(size >= 0 && size % BLOCK_SIZE == 0);
+    private int[] extract(int start, int numberOfBits, Extraction e) {
+        Preconditions.checkArgument(numberOfBits >= 0 && numberOfBits % BLOCK_SIZE == 0);
         
         if (Math.floorMod(start, BLOCK_SIZE) == 0) {
-            return extractFullBlocks(start, size, e);
+            return extractFullBlocks(start, numberOfBits, e);
         } else {
-            return extractCombinedBlocks(start, size, e);    		
+            return extractCombinedBlocks(start, numberOfBits, e);    		
         }
     }
     
-    private int[] extractFullBlocks(int startIndex, int size, Extraction e) {
+    private int[] extractFullBlocks(int startIndex, int numberOfBits, Extraction e) {
         int startBlock = Math.floorDiv(startIndex, BLOCK_SIZE);
-        int[] blocks = new int[Math.floorDiv(size, BLOCK_SIZE)];
+        int[] blocks = new int[Math.floorDiv(numberOfBits, BLOCK_SIZE)];
         
         for (int i = 0; i < blocks.length; i++) {
             blocks[i] = extractBlock(i - startBlock, e);
@@ -260,8 +256,8 @@ public final class BitVector {
         return blocks;
     }
     
-    private int[] extractCombinedBlocks(int startIndex, int size, Extraction e) {
-        int[] blocks = new int[Math.floorDiv(size, BLOCK_SIZE)];
+    private int[] extractCombinedBlocks(int startIndex, int numberOfBits, Extraction e) {
+        int[] blocks = new int[Math.floorDiv(numberOfBits, BLOCK_SIZE)];
         
         for (int i = 0; i < blocks.length; i++) {
             blocks[i] = extractCombinedBlock(BLOCK_SIZE*i + startIndex, e);
@@ -270,11 +266,11 @@ public final class BitVector {
         return blocks;
     }
     
-    private int extractBlock(int index, Extraction e) {
-        	if (0 <= index && index < blocks.length) {
-        		return blocks[index];
+    private int extractBlock(int blockIndex, Extraction e) {
+        	if (0 <= blockIndex && blockIndex < blocks.length) {
+        		return blocks[blockIndex];
         	} else if (e == Extraction.WRAP) {
-        		return blocks[Math.floorMod(index, blocks.length)];
+        		return blocks[Math.floorMod(blockIndex, blocks.length)];
         	} else {
         		return 0;
         	}
