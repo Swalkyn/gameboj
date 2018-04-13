@@ -45,13 +45,12 @@ public final class BitVector {
          * @throws IllegalStateException if the builder has been disabled
          * @return this (to be able to chain build instructions)
          */
-        public Builder setByte(int index, byte b) {
+        public Builder setByte(int byteIndex, byte b) {
             if (!enabled) {
                 throw new IllegalStateException();
             }
-            Objects.checkIndex(index, fullSize);
+            Objects.checkIndex(byteIndex, fullSize);
             
-            int byteIndex = index / Byte.SIZE;
             bytes[byteIndex] = Byte.toUnsignedInt(b);
             return this;
         }
@@ -229,7 +228,7 @@ public final class BitVector {
         StringBuilder sb = new StringBuilder();
         
         for(int i : blocks) {
-            sb.append(Integer.toBinaryString(i));
+            sb.append(String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
         }
         
         return sb.toString();
