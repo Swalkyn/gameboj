@@ -228,7 +228,7 @@ public final class BitVector {
         StringBuilder sb = new StringBuilder();
         
         for(int i : blocks) {
-            sb.append(String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
+            sb.insert(0, String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
         }
         
         return sb.toString();

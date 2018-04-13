@@ -49,7 +49,7 @@ public class BitVectorTest {
         BitVector v1 = new BitVector(DEFAULT_SIZE, true);
         BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1, (byte) 0xFF).build();
         
-        int[] check = {0xFF00, 0, 0, 0};
+        int[] check = {0xFF00, 0, 0, 0, 0 ,0, 0, 0};
         assertEquals(integerArrayToBinaryString(check), v1.and(v2).toString());
     }
     
@@ -64,10 +64,10 @@ public class BitVectorTest {
     @Test
     void orWorksOnKnownValues() {
         BitVector v1 = new BitVector(DEFAULT_SIZE, false);
-        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1, (byte) 0xFF).build();
+        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1, (byte) 0xFF).setByte(3, (byte) 0xDD).build();
         
-        int[] check = {0xFF00, 0, 0, 0};
-        assertEquals(integerArrayToBinaryString(check), v1.and(v2).toString());
+        int[] check = {0xDD00FF00, 0, 0, 0, 0 ,0, 0, 0};
+        assertEquals(integerArrayToBinaryString(check), v1.or(v2).toString());
     }
     
     @Test
@@ -82,7 +82,7 @@ public class BitVectorTest {
         StringBuilder sb = new StringBuilder();
         
         for(int i : ints) {
-            sb.append(String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
+            sb.insert(0, String.format("%32s", Integer.toBinaryString(i)).replace(' ', '0'));
         }
         
         return sb.toString();
