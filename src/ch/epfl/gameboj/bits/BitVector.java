@@ -32,7 +32,7 @@ public final class BitVector {
          * @throws IllegalArgumentException if size is negative or not a multiple of 32
          */
         public Builder(int size) {
-            Preconditions.checkArgument(size % BLOCK_SIZE == 0 && size >= 0);
+            Preconditions.checkArgument(size % BLOCK_SIZE == 0 && size > 0);
             
             fullSize = size;
             bytes = new int[size / Byte.SIZE];
@@ -103,7 +103,7 @@ public final class BitVector {
      * @throws IllegalArgumentException if size is negative or not a multiple of 32
      */
     public BitVector(int size, boolean initialValue) {
-        Preconditions.checkArgument(size % BLOCK_SIZE == 0 && size >= 0);
+        Preconditions.checkArgument(size % BLOCK_SIZE == 0 && size > 0);
         
         this.numberOfBits = size;
         this.blocks = new int[size / BLOCK_SIZE];
@@ -186,6 +186,7 @@ public final class BitVector {
      * @param start : start of the extraction
      * @param numberOfBits : number of bits to be extracted
      * @return a new BitVector of the extracted bits
+     * @throws 
      */
     public BitVector extractZeroExtended(int start, int numberOfBits) {
         return new BitVector(extract(start, numberOfBits, Extraction.ZERO));
