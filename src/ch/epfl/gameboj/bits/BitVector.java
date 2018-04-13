@@ -40,18 +40,16 @@ public final class BitVector {
         
         /**
          * Changes a byte at specified index
-         * @param index : index of the byte to be modified
+         * @param byteIndex : index of the byte to be modified
          * @param b : byte to be set
          * @throws IllegalStateException if the builder has been disabled
          * @return this (to be able to chain build instructions)
          */
-        public Builder setByte(int index, byte b) {
+        public Builder setByte(int byteIndex, byte b) {
             if (!enabled) {
                 throw new IllegalStateException();
             }
-            Objects.checkIndex(index, fullSize);
-            
-            int byteIndex = index / Byte.SIZE;
+            Objects.checkIndex(byteIndex, fullSize / Byte.SIZE);
             bytes[byteIndex] = Byte.toUnsignedInt(b);
             return this;
         }
