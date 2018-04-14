@@ -251,7 +251,7 @@ public final class BitVector {
         int[] blocks = new int[Math.floorDiv(numberOfBits, BLOCK_SIZE)];
         
         for (int i = 0; i < blocks.length; i++) {
-            blocks[i] = extractBlock(i - startBlock, e);
+            blocks[i] = extractBlock(i + startBlock, e);
         }
         
         return blocks;

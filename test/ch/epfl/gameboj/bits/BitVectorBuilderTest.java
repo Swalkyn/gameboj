@@ -68,7 +68,8 @@ class BitVectorBuilderTest {
 			{0, 0, 0, 0x0001_0000},
 			{0, 0xFF00_FFED, 0, 0},
 			{0, 0, 0x1010_1010, 0},
-			{0x12345678, 0, 0, 0}
+			{0x12345678, 0, 0, 0},
+			{0x12345678, 0,0x1010_1010, 0}
 		};
 		
 		BitVector.Builder bvb1 = new BitVector.Builder(DEFAULT_SIZE);
@@ -88,6 +89,11 @@ class BitVectorBuilderTest {
 		BitVector bv5 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, (byte)0x78).setByte(13, (byte)0x56)
 				.setByte(14, (byte)0x34).setByte(15, (byte)0x12).build();
 		assertEquals(integerArrayToBinaryString(vectors[4]), bv5.toString());
+		
+		BitVector bv6 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, (byte)0x78).setByte(13, (byte)0x56)
+                .setByte(14, (byte)0x34).setByte(15, (byte)0x12).setByte(4, (byte)0x10).setByte(5, (byte)0x10)
+                .setByte(6, (byte)0x10).setByte(7, (byte)0x10).build();
+		assertEquals(integerArrayToBinaryString(vectors[5]), bv6.toString());
 	}
 
 }
