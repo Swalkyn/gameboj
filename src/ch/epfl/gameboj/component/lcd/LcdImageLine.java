@@ -1,0 +1,142 @@
+package ch.epfl.gameboj.component.lcd;
+
+import java.util.Objects;
+
+import ch.epfl.gameboj.Preconditions;
+import ch.epfl.gameboj.bits.BitVector;
+import ch.epfl.gameboj.bits.Bits;
+
+public final class LcdImageLine {
+    
+    private static final int NOP_PALETTE = 0b11100100; 
+    
+    private final BitVector msb;
+    private final BitVector lsb;
+    private final BitVector opacity;
+    
+    private final int size;
+    
+    public static final class Builder {}
+    
+    public LcdImageLine(BitVector msb, BitVector lsb, BitVector opacity) {
+        Preconditions.checkArgument(msb.size() == lsb.size() && msb.size() == opacity.size());
+
+        this.msb = msb;
+        this.lsb = lsb;
+        this.opacity = opacity;
+        
+        this.size = msb.size();
+    }
+    
+    public int size() {
+        return size;
+    }
+    
+    public BitVector msb() {
+        return msb;
+    }
+    
+    public BitVector lsb() {
+        return lsb;
+    }
+    
+    public BitVector opacity() {
+        return opacity;
+    }
+    
+    public LcdImageLine shift(int distance) {
+        return new LcdImageLine(msb.shift(distance), lsb.shift(distance), opacity.shift(distance));
+    }
+    
+    public LcdImageLine extractWrapped(int start, int size) {
+        return new LcdImageLine(msb.extractWrapped(start, size), lsb.extractWrapped(start, size), opacity.extractWrapped(start, size));
+    }
+    
+    public LcdImageLine mapColors(int palette) {
+        Preconditions.checkBits8(palette);
+        
+        if (palette == NOP_PALETTE) {
+            return this;
+        }
+        
+        BitVector newMsb = msb;
+        BitVector newLsb = lsb;
+        
+        for (int i = 3; i >= 0; i--) {
+            int color = extractColor(palette, i);
+            BitVector mask = generateMask(i);
+            newMsb = applyColorMap(extractReplacement(color, false), newMsb, mask);
+            newLsb = applyColorMap(extractReplacement(color, true), newLsb, mask);
+        }
+        
+        return new LcdImageLine(newMsb, newLsb, opacity);
+    }
+    
+    public LcdImageLine below(LcdImageLine above) {
+        return below(above, above.opacity);
+    }
+    
+    public LcdImageLine below(LcdImageLine above, BitVector opacity) {
+        Preconditions.checkArgument(this.size == above.size);
+        
+        BitVector newMsb = multiplexer(above.msb, this.msb, opacity);
+        BitVector newLsb = multiplexer(above.lsb, this.lsb, opacity);
+        
+        return new LcdImageLine(newMsb, newLsb, this.opacity);
+    }
+    
+    public LcdImageLine join(LcdImageLine second, int index) {
+        BitVector newMsb = this.msb.extractZeroExtended(0, index).or(second.msb.shift(index));
+        BitVector newLsb = this.lsb.extractZeroExtended(0, index).or(second.lsb.shift(index));
+        BitVector newOpacity = this.opacity.extractZeroExtended(0, index).or(second.opacity.shift(index));
+        
+        return new LcdImageLine(newMsb, newLsb, newOpacity);    
+    }
+    
+    @Override
+    public boolean equals(Object that) {
+        if (that instanceof LcdImageLine && ((LcdImageLine) that).size == size) {
+            LcdImageLine lcdImgLine= (LcdImageLine) that;
+            return this.msb.equals(lcdImgLine.msb) && this.lsb.equals(lcdImgLine.lsb) && this.opacity.equals(lcdImgLine.opacity);
+        }
+        return false;
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(msb, lsb, opacity);
+    }
+    
+    private BitVector applyColorMap(boolean repl, BitVector bits, BitVector mask) {
+        BitVector replacement = new BitVector(size, repl);
+        return multiplexer(replacement, bits, mask);
+    }
+    
+    private BitVector generateMask(int color) {
+        switch (color) {
+            case 0b00:
+                return msb.not().and(lsb.not());
+            case 0b01:
+                return msb.not().and(lsb);
+            case 0b10:
+                return msb.and(lsb.not());
+            case 0b11:
+                return msb.and(lsb);
+            
+             default: throw new IllegalArgumentException("Color code not valid");
+        }
+    }
+    
+    private BitVector multiplexer(BitVector high, BitVector low, BitVector toggle) {
+        return high.and(toggle).or(low.and(toggle.not()));
+    }
+    
+    private boolean extractReplacement(int color, boolean isLsb) {
+        return Bits.test(color, isLsb ? 0 : 1);
+    }
+    
+    private int extractColor(int palette, int index) {
+        return (palette >>> index * 2) & 0b11;
+    }
+    
+ }
