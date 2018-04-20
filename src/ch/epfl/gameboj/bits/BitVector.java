@@ -41,18 +41,21 @@ public final class BitVector {
         /**
          * Changes a byte at specified index
          * @param byteIndex : index of the byte to be modified
-         * @param b : byte to be set
+         * @param i : byte to be set
+         * @throws IllegalArgumentException if b is not 8 bits
          * @throws IllegalStateException if the builder has been disabled
          * @return this (to be able to chain build instructions)
          */
-        public Builder setByte(int byteIndex, byte b) {
+        public Builder setByte(int byteIndex, int b) {
+        	Preconditions.checkBits8(b);
+        	
             if (!enabled) {
                 throw new IllegalStateException();
             }
             
             Objects.checkIndex(byteIndex, fullSize);
             
-            bytes[byteIndex] = Byte.toUnsignedInt(b);
+            bytes[byteIndex] = b;
             return this;
         }
         

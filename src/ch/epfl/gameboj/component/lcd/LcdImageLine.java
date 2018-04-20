@@ -129,6 +129,8 @@ public final class LcdImageLine {
     }
     
     public LcdImageLine join(LcdImageLine second, int index) {
+    	Preconditions.checkArgument(size == second.size());
+    	
         BitVector newMsb = this.msb.extractZeroExtended(0, index).or(second.msb.shift(index));
         BitVector newLsb = this.lsb.extractZeroExtended(0, index).or(second.lsb.shift(index));
         BitVector newOpacity = this.opacity.extractZeroExtended(0, index).or(second.opacity.shift(index));
@@ -166,7 +168,7 @@ public final class LcdImageLine {
             case 0b11:
                 return msb.and(lsb);
             
-             default: throw new IllegalArgumentException("Color code not valid");
+             default: throw new IllegalArgumentException("Invalid color code");
         }
     }
     
