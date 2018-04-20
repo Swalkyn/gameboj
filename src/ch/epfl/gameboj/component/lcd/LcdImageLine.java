@@ -16,7 +16,29 @@ public final class LcdImageLine {
     
     private final int size;
     
-    public static final class Builder {}
+    public static final class Builder {
+    	
+    	private BitVector.Builder msbBuilder;
+    	private BitVector.Builder lsbBuilder;
+    	
+    	public Builder(int size) {
+    		msbBuilder = new BitVector.Builder(size);
+    		lsbBuilder = new BitVector.Builder(size);
+    	}
+    	
+    	public void setBytes(int byteIndex, byte msb, byte lsb) {
+    		msbBuilder.setByte(byteIndex, msb);
+    		lsbBuilder.setByte(byteIndex, lsb);
+       	}
+    	
+    	public LcdImageLine build() {
+    		BitVector msb = msbBuilder.build();
+    		BitVector lsb = lsbBuilder.build();
+    		BitVector opacity = msb.not().and(lsb.not());
+    		
+    		return new LcdImageLine(msb, lsb, opacity);
+    	}
+    }
     
     public LcdImageLine(BitVector msb, BitVector lsb, BitVector opacity) {
         Preconditions.checkArgument(msb.size() == lsb.size() && msb.size() == opacity.size());
@@ -82,7 +104,8 @@ public final class LcdImageLine {
         BitVector newMsb = multiplexer(above.msb, this.msb, opacity);
         BitVector newLsb = multiplexer(above.lsb, this.lsb, opacity);
         
-        return new LcdImageLine(newMsb, newLsb, this.opacity);
+        // TODO : Je ne suis pas sûr d'avoir compris Piazza sur ce point
+        return new LcdImageLine(newMsb, newLsb, this.opacity.or(opacity));
     }
     
     public LcdImageLine join(LcdImageLine second, int index) {
