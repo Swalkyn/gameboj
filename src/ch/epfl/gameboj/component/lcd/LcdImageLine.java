@@ -184,15 +184,20 @@ public final class LcdImageLine {
      * Join this line with another one
      * @param second : the other line
      * @param index : index of the pixel where the lines will be joined
+     * @throws IllegalArgumentException if the sizes don't match
+     * @throws IllegalArgumentException if index is not 0<=index<=size
      * @return a new line of the joined lines
      */
     public LcdImageLine join(LcdImageLine second, int index) {
-    	Preconditions.checkArgument(size == second.size());
+        Preconditions.checkArgument(0 <= index && index <= size);
+    	    Preconditions.checkArgument(size == second.size());
+    	    
+    	    BitVector mask = new BitVector(size, true).shift(index).not();
     	
-        BitVector newMsb = this.msb.shift(index).or(second.msb.shift(-index));
-        BitVector newLsb = this.lsb.shift(-index).or(second.lsb.shift(index));
-        BitVector newOpacity = this.opacity.shift(-index).or(second.opacity.shift(index));
-        
+        BitVector newMsb = multiplexer(this.msb, second.msb, mask);
+        BitVector newLsb = multiplexer(this.lsb, second.lsb, mask);
+        BitVector newOpacity = multiplexer(this.opacity, second.opacity, mask);
+                
         return new LcdImageLine(newMsb, newLsb, newOpacity);    
     }
     

@@ -71,6 +71,11 @@ class LcdImageLineTest {
 		LcdImageLine combined = main.join(oneLine, 21);
 		
 		assertEquals(Integer.toBinaryString(0xFFEF32AA), combined.msb().toString());
+		assertEquals(Integer.toBinaryString(0xFFEF71DD), combined.lsb().toString());
+		assertEquals(Integer.toBinaryString(0xFFE03F66), combined.opacity().toString());
+		
+		assertEquals(oneLine, main.join(oneLine, 0));
+		assertEquals(main, main.join(oneLine, SIZE));
 	}
 	
 
@@ -86,7 +91,7 @@ class LcdImageLineTest {
 	
 	private static BitVector buildOpactiy() {
 		BitVector.Builder bvb = new BitVector.Builder(32);
-		return bvb.setByte(0, 0x66).setByte(1, 0xFF).setByte(2, 0x00).setByte(3, 0x0F).build();
+		return bvb.setByte(0, 0x66).setByte(1, 0x3F).setByte(2, 0x00).setByte(3, 0x0F).build();
 	}
 	
 	
