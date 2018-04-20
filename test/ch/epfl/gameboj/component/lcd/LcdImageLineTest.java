@@ -65,16 +65,18 @@ class LcdImageLineTest {
 	
 	@Test
 	void joinWorksForComplexLines() {
-		int distance = 21;
+		BitVector one = new BitVector(SIZE, true);
+		LcdImageLine oneLine = new LcdImageLine(one, one, one);
+		LcdImageLine main = new LcdImageLine(MSB, LSB, OP);
+		LcdImageLine combined = main.join(oneLine, 21);
 		
-		
-		
+		assertEquals(Integer.toBinaryString(0xFFEF32AA), combined.msb().toString());
 	}
 	
 
 	private static BitVector buildMsb() {
 		BitVector.Builder bvb = new BitVector.Builder(32);
-		return bvb.setByte(0, 0xAA).setByte(1, 0x32).setByte(2, 0xFF).setByte(3, 0x69).build();
+		return bvb.setByte(0, 0xAA).setByte(1, 0x32).setByte(2, 0x0F).setByte(3, 0x69).build();
 	}
 	
 	private static BitVector buildLsb() {

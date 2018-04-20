@@ -131,9 +131,9 @@ public final class LcdImageLine {
     public LcdImageLine join(LcdImageLine second, int index) {
     	Preconditions.checkArgument(size == second.size());
     	
-        BitVector newMsb = this.msb.extractZeroExtended(0, index).or(second.msb.shift(index));
-        BitVector newLsb = this.lsb.extractZeroExtended(0, index).or(second.lsb.shift(index));
-        BitVector newOpacity = this.opacity.extractZeroExtended(0, index).or(second.opacity.shift(index));
+        BitVector newMsb = this.msb.shift(index).or(second.msb.shift(-index));
+        BitVector newLsb = this.lsb.shift(-index).or(second.lsb.shift(index));
+        BitVector newOpacity = this.opacity.shift(-index).or(second.opacity.shift(index));
         
         return new LcdImageLine(newMsb, newLsb, newOpacity);    
     }
