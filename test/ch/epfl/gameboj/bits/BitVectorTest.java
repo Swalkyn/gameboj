@@ -210,8 +210,8 @@ public class BitVectorTest {
         
         BitVector v1 = fill(int1);
         
-        assertEquals("0000010100000101100011100001011010011000111110010111000111101010", v1.shift(5).toString());
-        assertEquals("0001011000111000010110100110001111100101110001111010100110000000", v1.shift(-5).toString());
+        assertEquals("0001011000111000010110100110001111100101110001111010100110000000", v1.shift(5).toString());
+        assertEquals("0000010100000101100011100001011010011000111110010111000111101010", v1.shift(-5).toString());
     }
     
     public static String integerArrayToBinaryString(int[] ints) {

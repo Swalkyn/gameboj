@@ -208,7 +208,7 @@ public final class BitVector {
      * @return a new BitVector of the shifted bits
      */
     public BitVector shift(int distance) {         
-        return extractZeroExtended(distance, numberOfBits);
+        return extractZeroExtended(-distance, numberOfBits);
     }
     
     @Override

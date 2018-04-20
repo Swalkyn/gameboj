@@ -27,6 +27,8 @@ public final class LcdImageLine {
         	private BitVector.Builder msbBuilder;
         	private BitVector.Builder lsbBuilder;
         	
+        	private final int size;
+        	
         	/**
         	 * Creates a new builder
         	 * @param size : size of the line to be built
@@ -34,6 +36,8 @@ public final class LcdImageLine {
         	public Builder(int size) {
         		msbBuilder = new BitVector.Builder(size);
         		lsbBuilder = new BitVector.Builder(size);
+        		
+        		this.size = size;
         	}
         	
         	/**
@@ -43,6 +47,8 @@ public final class LcdImageLine {
         	 * @param lsb : byte containing least significant bits
         	 */
         	public void setBytes(int byteIndex, int msb, int lsb) {
+        	    Objects.checkIndex(byteIndex, size);
+        	    
         		msbBuilder.setByte(byteIndex, (byte) msb);
         		lsbBuilder.setByte(byteIndex, (byte) lsb);
        	}
@@ -60,6 +66,12 @@ public final class LcdImageLine {
         	}
     }
     
+    /**
+     * Creates a new line with given bits
+     * @param msb : vector containing the most significant bits of the colors
+     * @param lsb : vector containing the least significant bits of the colors
+     * @param opacity : vector containing the opacity of each pixel
+     */
     public LcdImageLine(BitVector msb, BitVector lsb, BitVector opacity) {
         Preconditions.checkArgument(msb.size() == lsb.size() && msb.size() == opacity.size());
 
@@ -70,30 +82,59 @@ public final class LcdImageLine {
         this.size = msb.size();
     }
     
+    /**
+     * @return the size of the line
+     */
     public int size() {
         return size;
     }
     
+    /**
+     * @return the vector containing the most significant bits
+     */
     public BitVector msb() {
         return msb;
     }
     
+    /**
+     * @return the vector containing the most significant bits
+     */
     public BitVector lsb() {
         return lsb;
     }
     
+    /**
+     * @return the vector containing the opacity of each pixel
+     */
     public BitVector opacity() {
         return opacity;
     }
     
+    /**
+     * Shifts the pixels of the line by a given distance
+     * @param distance : distance of the shift
+     * @return a new line with the shifted pixels
+     */
     public LcdImageLine shift(int distance) {
         return new LcdImageLine(msb.shift(distance), lsb.shift(distance), opacity.shift(distance));
     }
     
+    /**
+     * Extracts the line with zero extraction method
+     * @param start : start of the extraction
+     * @param size : size of the extraction
+     * @return a new line with the extracted pixels
+     */
     public LcdImageLine extractWrapped(int start, int size) {
         return new LcdImageLine(msb.extractWrapped(start, size), lsb.extractWrapped(start, size), opacity.extractWrapped(start, size));
     }
     
+    /**
+     * Changes the colors of the line in function of a given palette
+     * @param palette : 8-bit integer describing the color map
+     * @throws IllegalArgumentException if the palette is not 8 bits
+     * @return a new line with the new colors
+     */
     public LcdImageLine mapColors(int palette) {
         Preconditions.checkBits8(palette);
         
@@ -114,20 +155,37 @@ public final class LcdImageLine {
         return new LcdImageLine(newMsb, newLsb, opacity);
     }
     
+    /**
+     * Superimposes this line and another
+     * @param above : the other line
+     * @return a new line with the pixels of the combined lines
+     */
     public LcdImageLine below(LcdImageLine above) {
         return below(above, above.opacity);
     }
     
+    /**
+     * Superimposes this line and another
+     * @param above : the other line
+     * @param opacity : the opacity to use
+     * @return a new line with the pixels of the combined lines
+     */
     public LcdImageLine below(LcdImageLine above, BitVector opacity) {
+        Objects.requireNonNull(opacity);
         Preconditions.checkArgument(this.size == above.size);
         
         BitVector newMsb = multiplexer(above.msb, this.msb, opacity);
         BitVector newLsb = multiplexer(above.lsb, this.lsb, opacity);
         
-        // TODO : Je ne suis pas sûr d'avoir compris Piazza sur ce point
         return new LcdImageLine(newMsb, newLsb, this.opacity.or(opacity));
     }
     
+    /**
+     * Join this line with another one
+     * @param second : the other line
+     * @param index : index of the pixel where the lines will be joined
+     * @return a new line of the joined lines
+     */
     public LcdImageLine join(LcdImageLine second, int index) {
         BitVector newMsb = this.msb.extractZeroExtended(0, index).or(second.msb.shift(index));
         BitVector newLsb = this.lsb.extractZeroExtended(0, index).or(second.lsb.shift(index));

@@ -16,6 +16,18 @@ public final class DebugDrawImage {
     };
 
     public static void main(String[] args) throws IOException {
+        LcdImage li = sml2Image();
+        
+        int w = 256, h = 256;
+        BufferedImage i = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < h; ++y)
+            for (int x = 0; x < w; ++x)
+                i.setRGB(x, y, COLOR_MAP[li.get(x, y)]);
+        ImageIO.write(i, "png", new File("sml2.png"));
+        System.out.println("done");
+    }
+    
+    public static LcdImage smlImage() throws IOException {
         String f = "test/ch/epfl/gameboj/component/lcd/sml.bin.gz";
         int w = 256, h = 256;
         LcdImage.Builder ib = new LcdImage.Builder(w, h);
@@ -28,14 +40,28 @@ public final class DebugDrawImage {
                 ib.setLine(y, lb.build());
             }
         }
-        LcdImage li = ib.build();
-
-        BufferedImage i = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        for (int y = 0; y < h; ++y)
-            for (int x = 0; x < w; ++x)
-                i.setRGB(x, y, COLOR_MAP[li.get(x, y)]);
-        ImageIO.write(i, "png", new File("sml.png"));
-        System.out.println("done");
+        return ib.build();
     }
+    
+    public static LcdImage sml2Image() throws IOException {
+        String f = "test/ch/epfl/gameboj/component/lcd/sml.bin.gz";
+        int w = 256, h = 256;
+        LcdImage.Builder ib = new LcdImage.Builder(w, h);
+
+        try (InputStream s = new GZIPInputStream(new FileInputStream(f))) {
+            for (int y = 0; y < h; ++y) {
+                LcdImageLine.Builder lb = new LcdImageLine.Builder(w);
+                
+                for (int x = 0; x < w / Byte.SIZE; ++x) {
+                    lb.setBytes(x, s.read(), s.read());
+                }
+                lb.setBytes(12, y, y);
+                ib.setLine(y, lb.build());
+            }
+        }
+        return ib.build();
+    }
+    
+    
     
 }
