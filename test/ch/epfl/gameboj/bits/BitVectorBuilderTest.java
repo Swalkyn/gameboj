@@ -27,7 +27,7 @@ class BitVectorBuilderTest {
 		
 		for (int index: indexes) {
 			assertThrows(IndexOutOfBoundsException.class,
-					() -> bvb.setByte(index, (byte)0));
+					() -> bvb.setByte(index, 0));
 		}
 	}
 	
@@ -73,26 +73,26 @@ class BitVectorBuilderTest {
 		};
 		
 		BitVector.Builder bvb1 = new BitVector.Builder(DEFAULT_SIZE);
-		assertEquals(integerArrayToBinaryString(vectors[0]), bvb1.setByte(0, (byte)0xFF).build().toString());
+		assertEquals(integerArrayToBinaryString(vectors[0]), bvb1.setByte(0, 0xFF).build().toString());
 		
 		BitVector.Builder bvb2 = new BitVector.Builder(DEFAULT_SIZE);
-		assertEquals(integerArrayToBinaryString(vectors[1]), bvb2.setByte(2, (byte)0x01).build().toString());
+		assertEquals(integerArrayToBinaryString(vectors[1]), bvb2.setByte(2, 0x01).build().toString());
 		
-		BitVector bv3 = new BitVector.Builder(DEFAULT_SIZE).setByte(8, (byte)0xED).setByte(9, (byte)0xFF)
-				.setByte(11, (byte)0xFF).build();
+		BitVector bv3 = new BitVector.Builder(DEFAULT_SIZE).setByte(8, 0xED).setByte(9, 0xFF)
+				.setByte(11, 0xFF).build();
 		assertEquals(integerArrayToBinaryString(vectors[2]), bv3.toString());
 		
-		BitVector bv4 = new BitVector.Builder(DEFAULT_SIZE).setByte(4, (byte)0x10).setByte(5, (byte)0x10)
-				.setByte(6, (byte)0x10).setByte(7, (byte)0x10).build();
+		BitVector bv4 = new BitVector.Builder(DEFAULT_SIZE).setByte(4, 0x10).setByte(5, 0x10)
+				.setByte(6, 0x10).setByte(7, 0x10).build();
 		assertEquals(integerArrayToBinaryString(vectors[3]), bv4.toString());
 
-		BitVector bv5 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, (byte)0x78).setByte(13, (byte)0x56)
-				.setByte(14, (byte)0x34).setByte(15, (byte)0x12).build();
+		BitVector bv5 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, 0x78).setByte(13, 0x56)
+				.setByte(14, 0x34).setByte(15, 0x12).build();
 		assertEquals(integerArrayToBinaryString(vectors[4]), bv5.toString());
 		
-		BitVector bv6 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, (byte)0x78).setByte(13, (byte)0x56)
-                .setByte(14, (byte)0x34).setByte(15, (byte)0x12).setByte(4, (byte)0x10).setByte(5, (byte)0x10)
-                .setByte(6, (byte)0x10).setByte(7, (byte)0x10).build();
+		BitVector bv6 = new BitVector.Builder(DEFAULT_SIZE).setByte(12, 0x78).setByte(13, 0x56)
+                .setByte(14, 0x34).setByte(15, 0x12).setByte(4, 0x10).setByte(5, 0x10)
+                .setByte(6, 0x10).setByte(7, 0x10).build();
 		assertEquals(integerArrayToBinaryString(vectors[5]), bv6.toString());
 	}
 
