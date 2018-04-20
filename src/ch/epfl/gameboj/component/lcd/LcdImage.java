@@ -77,7 +77,7 @@ public final class LcdImage {
      * @throws IllegalArgumentException if number of lines is not the same as the height or if height or width are invalid
      */
     public LcdImage(int width, int height, List<LcdImageLine> lines) {
-        Preconditions.checkArgument(lines.size() == height && width > 0 && height > 0);
+        Preconditions.checkArgument(lines.size() == height && lines.get(0).size() == width && width > 0 && height > 0);
         
         this.width = width;
         this.height = height;
@@ -109,26 +109,21 @@ public final class LcdImage {
             throw new IndexOutOfBoundsException();
         }
         
-        int msb = lines.get(y).msb().testBit(x) ? 2 : 0;
-        int lsb = lines.get(y).lsb().testBit(x) ? 1 : 0;
-        return msb + lsb;
+        int msb = lines.get(y).msb().testBit(x) ? 0b10 : 0;
+        int lsb = lines.get(y).lsb().testBit(x) ? 0b01 : 0;
+        return msb | lsb;
     }
     
     @Override
     public boolean equals(Object that) {
         if (that instanceof LcdImage && ((LcdImage) that).width == this.width && ((LcdImage) that).height == this.height) {
-            for (int i = 0; i < height; i++) {
-                if (!((LcdImage) that).lines.get(i).equals(this.lines.get(i))) {
-                    return false;
-                }
-            }
-            return true;
+            return ((LcdImage) that).lines.equals(this.lines);
         }
         return false;
     }
     
     @Override
     public int hashCode() {
-        return lines.hashCode(); // Correct hashcode method ?
+        return lines.hashCode();
     }
 }

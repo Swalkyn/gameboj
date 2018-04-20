@@ -6,6 +6,12 @@ import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.BitVector;
 import ch.epfl.gameboj.bits.Bits;
 
+/**
+ * Represents a line of pixels part of an image
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
+ */
 public final class LcdImageLine {
     
     private static final int NOP_PALETTE = 0b11100100; 
@@ -18,26 +24,40 @@ public final class LcdImageLine {
     
     public static final class Builder {
     	
-    	private BitVector.Builder msbBuilder;
-    	private BitVector.Builder lsbBuilder;
-    	
-    	public Builder(int size) {
-    		msbBuilder = new BitVector.Builder(size);
-    		lsbBuilder = new BitVector.Builder(size);
-    	}
-    	
-    	public void setBytes(int byteIndex, byte msb, byte lsb) {
-    		msbBuilder.setByte(byteIndex, msb);
-    		lsbBuilder.setByte(byteIndex, lsb);
+        	private BitVector.Builder msbBuilder;
+        	private BitVector.Builder lsbBuilder;
+        	
+        	/**
+        	 * Creates a new builder
+        	 * @param size : size of the line to be built
+        	 */
+        	public Builder(int size) {
+        		msbBuilder = new BitVector.Builder(size);
+        		lsbBuilder = new BitVector.Builder(size);
+        	}
+        	
+        	/**
+        	 * Sets a byte at
+        	 * @param byteIndex
+        	 * @param msb : byte containing most significant bits
+        	 * @param lsb : byte containing least significant bits
+        	 */
+        	public void setBytes(int byteIndex, int msb, int lsb) {
+        		msbBuilder.setByte(byteIndex, (byte) msb);
+        		lsbBuilder.setByte(byteIndex, (byte) lsb);
        	}
-    	
-    	public LcdImageLine build() {
-    		BitVector msb = msbBuilder.build();
-    		BitVector lsb = lsbBuilder.build();
-    		BitVector opacity = msb.not().and(lsb.not());
-    		
-    		return new LcdImageLine(msb, lsb, opacity);
-    	}
+        	
+        	/**
+        	 * Builds the line that has been constructed so far
+        	 * @return the new line
+        	 */
+        	public LcdImageLine build() {
+        		BitVector msb = msbBuilder.build();
+        		BitVector lsb = lsbBuilder.build();
+        		BitVector opacity = msb.not().and(lsb.not());
+        		
+        		return new LcdImageLine(msb, lsb, opacity);
+        	}
     }
     
     public LcdImageLine(BitVector msb, BitVector lsb, BitVector opacity) {
