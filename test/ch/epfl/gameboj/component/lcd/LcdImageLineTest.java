@@ -1,13 +1,17 @@
 package ch.epfl.gameboj.component.lcd;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.BitVector;
-import ch.epfl.gameboj.bits.BitVector.Builder;
 
 class LcdImageLineTest {
 
@@ -93,6 +97,37 @@ class LcdImageLineTest {
 	    
 	    assertEquals(new LcdImageLine(ONE, ONE, ONE), below.below(new LcdImageLine(ONE, ONE, ONE)));
 	    assertEquals(below, below.below(new LcdImageLine(ZERO, ZERO, ZERO)));
+	}
+	
+	@Test
+	@SuppressWarnings("unlikely-arg-type")
+	void equalsWorksForKnownValues() {
+	    LcdImageLine fst = new LcdImageLine(MSB, LSB, OP);
+	    LcdImageLine snd = new LcdImageLine(MSB, LSB, OP);
+	    List<LcdImageLine> not = Arrays.asList(
+	            new LcdImageLine(MSB, LSB, repeat(92)),
+	            new LcdImageLine(MSB, repeat(92), OP),
+	            new LcdImageLine(repeat(92), LSB, OP)
+        );
+	    
+	    assertTrue(fst.equals(fst));
+	    assertTrue(fst.equals(snd));
+	    assertTrue(snd.equals(fst));
+	    
+	    for (LcdImageLine lcd : not) {
+	        assertFalse(fst.equals(lcd));
+	        assertFalse(lcd.equals(fst));
+	    }
+	    
+	    assertFalse(fst.equals(""));
+	}
+	
+	@Test
+	void hashCodeIsCompatible() {
+	    LcdImageLine fst = new LcdImageLine(MSB, LSB, OP);
+        LcdImageLine snd = new LcdImageLine(MSB, LSB, OP);
+        
+        assertTrue(fst.hashCode() == snd.hashCode());
 	}
 	
 	private static BitVector repeat(int pattern) {
