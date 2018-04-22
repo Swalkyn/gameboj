@@ -16,14 +16,14 @@ public final class DebugDrawImage {
     };
 
     public static void main(String[] args) throws IOException {
-        LcdImage li = sml2Image();
+        LcdImage li = sml3Image();
         
         int w = 256, h = 256;
         BufferedImage i = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         for (int y = 0; y < h; ++y)
             for (int x = 0; x < w; ++x)
                 i.setRGB(x, y, COLOR_MAP[li.get(x, y)]);
-        ImageIO.write(i, "png", new File("sml2.png"));
+        ImageIO.write(i, "png", new File("sml3.png"));
         System.out.println("done");
     }
     
@@ -62,6 +62,21 @@ public final class DebugDrawImage {
         return ib.build();
     }
     
-    
-    
+    public static LcdImage sml3Image() throws IOException {
+        String f = "test/ch/epfl/gameboj/component/lcd/sml.bin.gz";
+        int w = 256, h = 256;
+        LcdImage.Builder ib = new LcdImage.Builder(w, h);
+
+        try (InputStream s = new GZIPInputStream(new FileInputStream(f))) {
+            for (int y = 0; y < h; ++y) {
+                LcdImageLine.Builder lb = new LcdImageLine.Builder(w);
+                
+                for (int x = 0; x < w / Byte.SIZE; ++x) {
+                    lb.setBytes(x, s.read(), s.read());
+                }
+                ib.setLine(y, lb.build().mapColors(0b00011011));
+            }
+        }
+        return ib.build();
+    }
 }

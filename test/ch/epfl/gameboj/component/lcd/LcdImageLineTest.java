@@ -78,6 +78,25 @@ class LcdImageLineTest {
 		assertEquals(main, main.join(oneLine, SIZE));
 	}
 	
+	@Test
+	void mapColorsWorksForKnownValues() {
+	    int[] msbBytes = {0b00000011,  0b11110000, 0b00111111, 0b00000011,  0b11110000, 0b00111111, 
+	                       0b00000011,  0b11110000, 0b00111111, 0b00000011,  0b11110000, 0b00111111};
+	    int[] lsbBytes = {0b00011100, 0b01110001,  0b11000111, 0b00011100, 0b01110001,  0b11000111,
+	                       0b00011100, 0b01110001,  0b11000111, 0b00011100, 0b01110001,  0b11000111};
+	    
+	    BitVector msb = buildVector(msbBytes);
+	    BitVector lsb = buildVector(lsbBytes);
+	    BitVector opacity = new BitVector(96, true);
+	    
+	    LcdImageLine line = new LcdImageLine(msb, lsb, opacity);
+	    LcdImageLine line2 = line.mapColors(0b00011011);
+	    
+	    assertEquals(line.msb().not(), line2.msb());
+	    assertEquals(line.lsb().not(), line2.lsb());
+	    
+	}
+	
 
 	private static BitVector buildMsb() {
 		BitVector.Builder bvb = new BitVector.Builder(32);
@@ -92,6 +111,16 @@ class LcdImageLineTest {
 	private static BitVector buildOpactiy() {
 		BitVector.Builder bvb = new BitVector.Builder(32);
 		return bvb.setByte(0, 0x66).setByte(1, 0x3F).setByte(2, 0x00).setByte(3, 0x0F).build();
+	}
+	
+	private static BitVector buildVector(int[] bytes) {
+	    BitVector.Builder bvb = new BitVector.Builder(bytes.length * 8);
+	    
+	    for (int i = 0; i < bytes.length; i++) {
+	        bvb.setByte(i, bytes[i]);
+	    }
+	    
+	    return bvb.build();
 	}
 	
 	

@@ -49,8 +49,8 @@ public final class LcdImageLine {
         	public void setBytes(int byteIndex, int msb, int lsb) {
         	    Objects.checkIndex(byteIndex, size);
         	    
-        		msbBuilder.setByte(byteIndex, (byte) msb);
-        		lsbBuilder.setByte(byteIndex, (byte) lsb);
+        		msbBuilder.setByte(byteIndex, msb);
+        		lsbBuilder.setByte(byteIndex, lsb);
        	}
         	
         	/**
