@@ -5,6 +5,7 @@ import java.util.Objects;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.Timer;
 import ch.epfl.gameboj.component.cpu.Cpu;
+import ch.epfl.gameboj.component.lcd.LcdController;
 import ch.epfl.gameboj.component.memory.BootRomController;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
@@ -23,6 +24,7 @@ public class GameBoy {
     private final RamController workRam;
     private final RamController echoRam;
     private final BootRomController bootRom;
+    private final LcdController lcd;
     
     private long numberOfCycles = 0;
     
@@ -43,11 +45,14 @@ public class GameBoy {
         echoRam = new RamController(ram, AddressMap.ECHO_RAM_START, AddressMap.ECHO_RAM_END);
         bootRom = new BootRomController(cartridge);
         
+        lcd = new LcdController(mCpu);
+        
         mCpu.attachTo(mBus);
         mTimer.attachTo(mBus);
         workRam.attachTo(mBus);
         echoRam.attachTo(mBus);
         bootRom.attachTo(mBus);
+        lcd.attachTo(mBus);
     }
     
     /**
@@ -72,6 +77,13 @@ public class GameBoy {
     }
     
     /**
+     * @return the lcd controller of the gameboy
+     */
+    public LcdController lcd() {
+        return lcd;
+    }
+    
+    /**
      * @return returns the number of cycles the cpu has run
      */
     public long cycles() {
@@ -89,6 +101,7 @@ public class GameBoy {
         while(cycles() < cycle) {
             mTimer.cycle(numberOfCycles);
             mCpu.cycle(numberOfCycles);
+            lcd.cycle(numberOfCycles);
             numberOfCycles++;
         }
     }
