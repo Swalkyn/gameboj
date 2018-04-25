@@ -79,7 +79,7 @@ public class GameBoy {
     /**
      * @return the lcd controller of the gameboy
      */
-    public LcdController lcd() {
+    public LcdController lcdController() {
         return lcd;
     }
     
