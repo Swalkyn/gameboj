@@ -38,9 +38,11 @@ public final class DebugMain2 {
 	      new BufferedImage(li.width(),
 				li.height(),
 				BufferedImage.TYPE_INT_RGB);
-	    for (int y = 0; y < li.height(); ++y)
-	      for (int x = 0; x < li.width(); ++x)
-		i.setRGB(x, y, COLOR_MAP[li.get(x, y)]);
+	    for (int y = 0; y < li.height(); ++y) {
+	        for (int x = 0; x < li.width(); ++x) {
+	            i.setRGB(x, y, COLOR_MAP[li.get(x, y)]);
+	        }
+	    }
 	    ImageIO.write(i, "png", new File("gb.png"));
 	  }
-	}
+}

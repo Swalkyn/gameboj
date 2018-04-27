@@ -1,6 +1,11 @@
 package ch.epfl.gameboj.component.lcd;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
+
+import javax.imageio.ImageIO;
 
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Preconditions;
@@ -27,6 +32,9 @@ public final class LcdController implements Component, Clocked {
     public static final int LCD_HEIGHT = 144;
 
     private static final int FULL_LINE_CYCLES = 114;
+    private static final int FULL_CYLCLE = 17556;
+    
+    private static final int TILE_BYTES = 16;
 
     private final Cpu cpu;
     private final RamController vRam;
@@ -35,6 +43,9 @@ public final class LcdController implements Component, Clocked {
     private long lcdOnCycle = 0;
 
     private Mode nextMode;
+    
+    private LcdImage.Builder nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);;
+    private LcdImage image;
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -53,7 +64,6 @@ public final class LcdController implements Component, Clocked {
         M1_VBLANK(1140, Stat.INT_MODE1), 
         M2_SPRITE_MEM(20, Stat.INT_MODE2), 
         M3_VIDEO_MEM(43, null);
-        // TODO Do these count as magic numbers ?
 
         public final int cycles;
         public final Stat intMode;
@@ -95,11 +105,9 @@ public final class LcdController implements Component, Clocked {
         Preconditions.checkBits16(address);
         Preconditions.checkBits8(data);
 
-        if (AddressMap.VIDEO_RAM_START <= address
-                && address < AddressMap.VIDEO_RAM_END) {
+        if (AddressMap.VIDEO_RAM_START <= address && address < AddressMap.VIDEO_RAM_END) {
             vRam.write(address, data);
-        } else if (AddressMap.REGS_LCDC_START <= address
-                && address < AddressMap.REGS_LCDC_END) {
+        } else if (AddressMap.REGS_LCDC_START <= address && address < AddressMap.REGS_LCDC_END) {
             Reg r = indexToReg(address - AddressMap.REGS_LCDC_START);
 
             if (r == Reg.LCDC) {
@@ -129,22 +137,19 @@ public final class LcdController implements Component, Clocked {
      * @return an LcdImage
      */
     public LcdImage currentImage() {
-        return emptyImage();
+        return image;
     }
 
     @Override
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
-            // System.out.println((nextNonIdleCycle - lcdOnCycle) / FULL_LINE_CYCLES + currentMode().name());
             setMode(nextMode);
             reallyCycle();
         }
 
-        if (nextNonIdleCycle == Long.MAX_VALUE
-                && rf.testBit(Reg.LCDC, Lcdc.LCD_STATUS)) {
+        if (nextNonIdleCycle == Long.MAX_VALUE && rf.testBit(Reg.LCDC, Lcdc.LCD_STATUS)) {
             lcdOnCycle = cycle;
             nextNonIdleCycle = cycle;
-            // TODO Is this correct ?
             reallyCycle();
         }
     }
@@ -153,30 +158,37 @@ public final class LcdController implements Component, Clocked {
 
     private void reallyCycle() {
         Mode mode = currentMode();
-        raiseStatIfModeFlagOn(mode);
-
-        // TODO : LY what to do ?
 
         switch (mode) {
             case M1_VBLANK: {
                 cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
-                nextMode = Mode.M0_HBLANK; // TODO verify mode
-                lcdOnCycle = nextNonIdleCycle + mode.cycles;
+                image = nextImageBuilder.build();
+                
+                nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
+                
+                nextMode = Mode.M2_SPRITE_MEM; // TODO verify mode
             } break;
             case M2_SPRITE_MEM: {
                 nextMode = Mode.M3_VIDEO_MEM;
+                nextImageBuilder.setLine(currentLine(), computeLine());
+                
+                writeToLyLyc(Reg.LY, currentLine());
+
             } break;
             case M3_VIDEO_MEM: {
                 nextMode = Mode.M0_HBLANK;
             } break;
             case M0_HBLANK: {
-                if (allLinesDrawn()) {
+                if (currentLine() >= LCD_HEIGHT - 1) {
                     nextMode = Mode.M1_VBLANK;
                 } else {
                     nextMode = Mode.M2_SPRITE_MEM;
                 }
+                writeToLyLyc(Reg.LY, currentLine());
+
             } break;
         }
+        
 
         nextNonIdleCycle += mode.cycles;
     }
@@ -189,13 +201,6 @@ public final class LcdController implements Component, Clocked {
         }
     }
 
-    private boolean allLinesDrawn() {
-        long duration = nextNonIdleCycle - lcdOnCycle;
-        long numberOfLinesDrawn = duration / FULL_LINE_CYCLES;
-
-        return numberOfLinesDrawn >= LCD_HEIGHT;
-    }
-
     private Reg indexToReg(int index) {
         return Reg.values()[index];
     }
@@ -206,32 +211,47 @@ public final class LcdController implements Component, Clocked {
 
         return Mode.values()[msb | lsb];
     }
+    
+    private int currentLine() {
+        long duration = nextNonIdleCycle - lcdOnCycle;
+        return (int) (duration % FULL_CYLCLE) / FULL_LINE_CYCLES;
+    }
+    
+    private LcdImageLine computeLine() {
+        int startX = rf.get(Reg.SCX);
+        int startY = rf.get(Reg.SCY);
+        
+        LcdImageLine line = extractLine(startY + currentLine());
+        line = line.extractWrapped(startX, LCD_WIDTH).mapColors(rf.get(Reg.BGP));
+               
+        return line;
+    }
 
     private void setMode(Mode mode) {
         int modeCode = mode.index();
 
+        raiseStatIfModeFlagOn(mode);
+        
         rf.setBit(Reg.STAT, Stat.MODE1, Bits.test(modeCode, Stat.MODE1));
-        rf.setBit(Reg.STAT, Stat.MODE0, Bits.test(modeCode, Stat.MODE0));
+        rf.setBit(Reg.STAT, Stat.MODE0, Bits.test(modeCode, Stat.MODE0));        
     }
 
     private void writeToLyLyc(Reg r, int data) {
         Preconditions.checkArgument(r == Reg.LY || r == Reg.LYC);
         Preconditions.checkBits8(data);
-
-        if (rf.testBit(Reg.STAT, Stat.INT_LYC)) {
-            cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
-        }
-
-        boolean equal = rf.get(Reg.LY) == rf.get(Reg.LYC);
-        rf.setBit(Reg.STAT, Stat.LYC_EQ_LY, equal);
+        
         rf.set(r, data);
+        rf.setBit(Reg.STAT, Stat.LYC_EQ_LY, rf.get(Reg.LY) == rf.get(Reg.LYC));
+
+        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY)) {
+            cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
+        }        
     }
 
     private static LcdImage emptyImage() {
         BitVector zero = new BitVector(LCD_WIDTH, false);
         LcdImageLine emptyLine = new LcdImageLine(zero, zero, zero);
-        LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH,
-                LCD_HEIGHT);
+        LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
 
         for (int i = 0; i < LCD_HEIGHT; i++) {
             lcdBuilder.setLine(i, emptyLine);
@@ -239,5 +259,37 @@ public final class LcdController implements Component, Clocked {
 
         return lcdBuilder.build();
     }
-
+    
+    private LcdImageLine extractLine(int lineIndex) {
+        int startTileIndex = (lineIndex / 8) * 32;
+        int memoryStart = rf.testBit(Reg.LCDC, Lcdc.BG_AREA) ? AddressMap.BG_DISPLAY_DATA[1] : AddressMap.BG_DISPLAY_DATA[0];
+        
+        LcdImageLine.Builder lb = new LcdImageLine.Builder(256);
+       
+        for(int i = 0; i < 32; i++) {
+            int tileIndex = vRam.read(memoryStart + startTileIndex + i);
+            int lsb = Bits.reverse8(vRam.read(tileAddressBG(tileIndex) + (lineIndex % 8) * 2));
+            int msb = Bits.reverse8(vRam.read(tileAddressBG(tileIndex) + (lineIndex % 8) * 2 + 1));
+            lb.setBytes(i, msb, lsb);
+        }
+        
+        return lb.build();
+    }
+    
+    private int tileAddressBG(int index) {
+        // TODO fix magic numbers
+        
+        if (isBetweenIncl(index, 0x80, 0xFF)) {
+            return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
+        } else if (isBetweenIncl(index, 0x00, 0x7F)) {
+            int address = AddressMap.TILE_SOURCE[0] + index * TILE_BYTES;
+            return rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE) ? address : address + 0x1000;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+    
+    private boolean isBetweenIncl(int x, int lower, int upper) {
+        return x >= lower ? x <= upper : false;
+    }
 }
