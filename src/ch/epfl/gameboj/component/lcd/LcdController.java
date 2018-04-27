@@ -39,7 +39,7 @@ public final class LcdController implements Component, Clocked {
     private Mode nextMode;
     
     private LcdImage.Builder nextImageBuilder;
-    private LcdImage image;
+    private LcdImage image = emptyImage();
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
