@@ -25,6 +25,8 @@ public final class LcdImage {
         private final int height;
         private List<LcdImageLine> lines;
         
+        private boolean enabled = true;
+        
         /**
          * Creates a new builder
          * @param width : width of the image to build
@@ -55,6 +57,10 @@ public final class LcdImage {
             Preconditions.checkArgument(line.size() == width);
             Objects.checkIndex(index, height);
             
+            if (!enabled) {
+                throw new IllegalStateException();
+            }
+            
             lines.set(index, line);
             
             return this;
@@ -65,6 +71,7 @@ public final class LcdImage {
          * @return the new image
          */
         public LcdImage build() {
+            enabled = false;
             return new LcdImage(width, height, lines);
         }
     }

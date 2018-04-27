@@ -1,11 +1,6 @@
 package ch.epfl.gameboj.component.lcd;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
-
-import javax.imageio.ImageIO;
 
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Preconditions;
@@ -32,7 +27,8 @@ public final class LcdController implements Component, Clocked {
     public static final int LCD_HEIGHT = 144;
 
     private static final int FULL_LINE_CYCLES = 114;
-    private static final int FULL_CYLCLE = 17556;
+    
+    private static final int NUMBER_OF_LINES_IN_VBLANK = 10;
     
     private static final int TILE_BYTES = 16;
 
@@ -40,11 +36,9 @@ public final class LcdController implements Component, Clocked {
     private final RamController vRam;
 
     private long nextNonIdleCycle = 0;
-    private long lcdOnCycle = 0;
-
     private Mode nextMode;
     
-    private LcdImage.Builder nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);;
+    private LcdImage.Builder nextImageBuilder;
     private LcdImage image;
 
     private enum Reg implements Register {
@@ -61,7 +55,7 @@ public final class LcdController implements Component, Clocked {
 
     private enum Mode implements Bit {
         M0_HBLANK(51, Stat.INT_MODE0), 
-        M1_VBLANK(1140, Stat.INT_MODE1), 
+        M1_VBLANK(FULL_LINE_CYCLES, Stat.INT_MODE1), 
         M2_SPRITE_MEM(20, Stat.INT_MODE2), 
         M3_VIDEO_MEM(43, null);
 
@@ -83,6 +77,7 @@ public final class LcdController implements Component, Clocked {
         vRam = new RamController(ram, AddressMap.VIDEO_RAM_START);
 
         nextMode = Mode.M2_SPRITE_MEM;
+        nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
     }
 
     @Override
@@ -123,7 +118,8 @@ public final class LcdController implements Component, Clocked {
                 int msb = Bits.extract(data, 3, 5) << 3;
                 rf.set(r, msb | lsb);
             } else if (r == Reg.LY || r == Reg.LYC) {
-                writeToLyLyc(r, data);
+                // TODO : make this prettier
+                // LY is read-only
             } else {
                 rf.set(r, data);
             }
@@ -146,9 +142,8 @@ public final class LcdController implements Component, Clocked {
             setMode(nextMode);
             reallyCycle();
         }
-
+        
         if (nextNonIdleCycle == Long.MAX_VALUE && rf.testBit(Reg.LCDC, Lcdc.LCD_STATUS)) {
-            lcdOnCycle = cycle;
             nextNonIdleCycle = cycle;
             reallyCycle();
         }
@@ -158,38 +153,41 @@ public final class LcdController implements Component, Clocked {
 
     private void reallyCycle() {
         Mode mode = currentMode();
-
+        
+        // TODO System.out.println(currentLine() + ": " + mode);
+        
         switch (mode) {
             case M1_VBLANK: {
-                cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
-                image = nextImageBuilder.build();
+                if (enteringVBlank()) {
+                    cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
+                    
+                    image = nextImageBuilder.build();
+                    nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);   
+                } else if (exitingVBlank()) {
+                    nextMode = Mode.M2_SPRITE_MEM;                    
+                }
                 
-                nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
-                
-                nextMode = Mode.M2_SPRITE_MEM; // TODO verify mode
+                updateLineIndex();
             } break;
             case M2_SPRITE_MEM: {
                 nextMode = Mode.M3_VIDEO_MEM;
                 nextImageBuilder.setLine(currentLine(), computeLine());
-                
-                writeToLyLyc(Reg.LY, currentLine());
-
             } break;
             case M3_VIDEO_MEM: {
                 nextMode = Mode.M0_HBLANK;
             } break;
-            case M0_HBLANK: {
-                if (currentLine() >= LCD_HEIGHT - 1) {
+            case M0_HBLANK: {                
+                
+                if (allLinesDrawn()) {
                     nextMode = Mode.M1_VBLANK;
                 } else {
                     nextMode = Mode.M2_SPRITE_MEM;
                 }
-                writeToLyLyc(Reg.LY, currentLine());
-
+                
+                updateLineIndex();
             } break;
         }
         
-
         nextNonIdleCycle += mode.cycles;
     }
 
@@ -201,10 +199,6 @@ public final class LcdController implements Component, Clocked {
         }
     }
 
-    private Reg indexToReg(int index) {
-        return Reg.values()[index];
-    }
-
     private Mode currentMode() {
         int msb = rf.testBit(Reg.STAT, Stat.MODE1) ? 0b10 : 0b00;
         int lsb = rf.testBit(Reg.STAT, Stat.MODE0) ? 0b01 : 0b00;
@@ -213,8 +207,25 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int currentLine() {
-        long duration = nextNonIdleCycle - lcdOnCycle;
-        return (int) (duration % FULL_CYLCLE) / FULL_LINE_CYCLES;
+        return rf.get(Reg.LY);
+    }
+    
+    private boolean allLinesDrawn() {
+        return currentLine() >= LCD_HEIGHT - 1;
+    }
+    
+    private void updateLineIndex() {
+        int numberOfLines = LCD_HEIGHT + NUMBER_OF_LINES_IN_VBLANK;
+        // TODO System.out.println("Updated:" + (rf.get(Reg.LY) + 1));
+        writeToLyLyc(Reg.LY, (currentLine() + 1) % numberOfLines);
+    }
+    
+    private boolean enteringVBlank() {
+        return currentLine() == LCD_HEIGHT;
+    }
+    
+    private boolean exitingVBlank() {
+        return currentLine() == LCD_HEIGHT + NUMBER_OF_LINES_IN_VBLANK - 1;
     }
     
     private LcdImageLine computeLine() {
@@ -291,5 +302,9 @@ public final class LcdController implements Component, Clocked {
     
     private boolean isBetweenIncl(int x, int lower, int upper) {
         return x >= lower ? x <= upper : false;
+    }
+    
+    private Reg indexToReg(int index) {
+        return Reg.values()[index];
     }
 }
