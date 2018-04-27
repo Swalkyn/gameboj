@@ -288,16 +288,23 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int tileAddressBG(int index) {
-        // TODO fix magic numbers
+        if (rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE)) {
+            return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
+        } else {
+            int shiftedIndex = Bits.clip(8, index + 0x80);
+            return AddressMap.TILE_SOURCE[0] + shiftedIndex * TILE_BYTES;
+        }
+        
+        /*
         
         if (isBetweenIncl(index, 0x80, 0xFF)) {
             return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
         } else if (isBetweenIncl(index, 0x00, 0x7F)) {
             int address = AddressMap.TILE_SOURCE[0] + index * TILE_BYTES;
-            return rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE) ? address : address + 0x1000;
+            return address;//rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE) ? address : address + 0x1000;
         } else {
             throw new IllegalArgumentException();
-        }
+        }*/
     }
     
     private boolean isBetweenIncl(int x, int lower, int upper) {
