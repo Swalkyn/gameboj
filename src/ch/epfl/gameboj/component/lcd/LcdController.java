@@ -23,6 +23,7 @@ import ch.epfl.gameboj.component.memory.RamController;
  */
 public final class LcdController implements Component, Clocked {
 
+    private static final int FULL_LINE_SIZE = 256;
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
 
@@ -39,7 +40,7 @@ public final class LcdController implements Component, Clocked {
     private Mode nextMode;
     
     private LcdImage.Builder nextImageBuilder;
-    private LcdImage image = emptyImage();
+    private LcdImage image ;//= emptyImage();
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -117,10 +118,7 @@ public final class LcdController implements Component, Clocked {
                 int lsb = Bits.clip(3, rf.get(Reg.STAT));
                 int msb = Bits.extract(data, 3, 5) << 3;
                 rf.set(r, msb | lsb);
-            } else if (r == Reg.LY || r == Reg.LYC) {
-                // TODO : make this prettier
-                // LY is read-only
-            } else {
+            } else if (!(r == Reg.LY || r == Reg.LYC)) {
                 rf.set(r, data);
             }
         }
@@ -190,6 +188,8 @@ public final class LcdController implements Component, Clocked {
         
         nextNonIdleCycle += mode.cycles;
     }
+    
+    /* Mode control */
 
     private void raiseStatIfModeFlagOn(Mode mode) {
         if (mode.intMode != null) {
@@ -197,6 +197,27 @@ public final class LcdController implements Component, Clocked {
                 cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
             }
         }
+    }
+    
+    private void setMode(Mode mode) {
+        int modeCode = mode.index();
+
+        raiseStatIfModeFlagOn(mode);
+        
+        rf.setBit(Reg.STAT, Stat.MODE1, Bits.test(modeCode, Stat.MODE1));
+        rf.setBit(Reg.STAT, Stat.MODE0, Bits.test(modeCode, Stat.MODE0));        
+    }
+
+    private void writeToLyLyc(Reg r, int data) {
+        Preconditions.checkArgument(r == Reg.LY || r == Reg.LYC);
+        Preconditions.checkBits8(data);
+        
+        rf.set(r, data);
+        rf.setBit(Reg.STAT, Stat.LYC_EQ_LY, rf.get(Reg.LY) == rf.get(Reg.LYC));
+
+        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY)) {
+            cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
+        }        
     }
 
     private Mode currentMode() {
@@ -228,37 +249,77 @@ public final class LcdController implements Component, Clocked {
         return currentLine() == LCD_HEIGHT + NUMBER_OF_LINES_IN_VBLANK - 1;
     }
     
+    /* Line drawing */
+    
     private LcdImageLine computeLine() {
         int startX = rf.get(Reg.SCX);
         int startY = rf.get(Reg.SCY);
         
-        LcdImageLine line = extractLine(startY + currentLine());
-        line = line.extractWrapped(startX, LCD_WIDTH).mapColors(rf.get(Reg.BGP));
-               
+        LcdImageLine line = backgroundLine(startY + currentLine());
+        line = line.extractWrapped(startX, LCD_WIDTH);
+        
+        if (currentLine() >= rf.get(Reg.WY) && windowOn()) {
+            int winLineIndex = currentLine() - rf.get(Reg.WY);
+            LcdImageLine winLine = windowLine(winLineIndex).extractWrapped(0, LCD_WIDTH).shift(wx());
+            
+            line = line.join(winLine, wx());
+        }
+        
         return line;
     }
 
-    private void setMode(Mode mode) {
-        int modeCode = mode.index();
-
-        raiseStatIfModeFlagOn(mode);
-        
-        rf.setBit(Reg.STAT, Stat.MODE1, Bits.test(modeCode, Stat.MODE1));
-        rf.setBit(Reg.STAT, Stat.MODE0, Bits.test(modeCode, Stat.MODE0));        
+    private LcdImageLine backgroundLine(int lineIndex) {
+        if (rf.testBit(Reg.LCDC, Lcdc.BG)) {
+            return extractLine(lineIndex, memoryStart(Lcdc.BG_AREA)).mapColors(rf.get(Reg.BGP));
+        } else {
+            return emptyLine();
+        }
     }
-
-    private void writeToLyLyc(Reg r, int data) {
-        Preconditions.checkArgument(r == Reg.LY || r == Reg.LYC);
-        Preconditions.checkBits8(data);
-        
-        rf.set(r, data);
-        rf.setBit(Reg.STAT, Stat.LYC_EQ_LY, rf.get(Reg.LY) == rf.get(Reg.LYC));
-
-        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY)) {
-            cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
-        }        
+    
+    private LcdImageLine windowLine(int lineIndex) {
+        return extractLine(lineIndex, memoryStart(Lcdc.WIN_AREA)).mapColors(rf.get(Reg.BGP));
     }
-
+    
+    private LcdImageLine extractLine(int lineIndex, int memoryStart) {
+        LcdImageLine.Builder lb = new LcdImageLine.Builder(FULL_LINE_SIZE);
+        int startTileIndex = (lineIndex / 8) * 32;
+       
+        for(int i = 0; i < 32; i++) {
+            int tileIndex = vRam.read(memoryStart + startTileIndex + i);
+            int lsb = Bits.reverse8(vRam.read(tileAddress(tileIndex) + (lineIndex % 8) * 2));
+            int msb = Bits.reverse8(vRam.read(tileAddress(tileIndex) + (lineIndex % 8) * 2 + 1));
+            lb.setBytes(i, msb, lsb);
+        }
+        
+        return lb.build();
+    }
+    
+    private int memoryStart(Bit b) {
+        if (rf.testBit(Reg.LCDC, b)) {
+            return AddressMap.BG_DISPLAY_DATA[1];
+        } else {
+            return AddressMap.BG_DISPLAY_DATA[0];
+        }
+    }
+    
+    private int tileAddress(int index) {
+        if (rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE)) {
+            return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
+        } else {
+            int shiftedIndex = Bits.clip(8, index + 0x80);
+            return AddressMap.TILE_SOURCE[0] + shiftedIndex * TILE_BYTES;
+        }
+    }
+    
+    private boolean windowOn() {
+        final int WX_HIGH = 160;
+        final int WX_LOW = 0;
+        
+        return WX_LOW <= wx() && wx() < WX_HIGH && rf.testBit(Reg.LCDC, Lcdc.WIN);
+    }
+    
+    /* Utilities */
+    
     private static LcdImage emptyImage() {
         BitVector zero = new BitVector(LCD_WIDTH, false);
         LcdImageLine emptyLine = new LcdImageLine(zero, zero, zero);
@@ -271,47 +332,16 @@ public final class LcdController implements Component, Clocked {
         return lcdBuilder.build();
     }
     
-    private LcdImageLine extractLine(int lineIndex) {
-        int startTileIndex = (lineIndex / 8) * 32;
-        int memoryStart = rf.testBit(Reg.LCDC, Lcdc.BG_AREA) ? AddressMap.BG_DISPLAY_DATA[1] : AddressMap.BG_DISPLAY_DATA[0];
-        
-        LcdImageLine.Builder lb = new LcdImageLine.Builder(256);
-       
-        for(int i = 0; i < 32; i++) {
-            int tileIndex = vRam.read(memoryStart + startTileIndex + i);
-            int lsb = Bits.reverse8(vRam.read(tileAddressBG(tileIndex) + (lineIndex % 8) * 2));
-            int msb = Bits.reverse8(vRam.read(tileAddressBG(tileIndex) + (lineIndex % 8) * 2 + 1));
-            lb.setBytes(i, msb, lsb);
-        }
-        
-        return lb.build();
-    }
-    
-    private int tileAddressBG(int index) {
-        if (rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE)) {
-            return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
-        } else {
-            int shiftedIndex = Bits.clip(8, index + 0x80);
-            return AddressMap.TILE_SOURCE[0] + shiftedIndex * TILE_BYTES;
-        }
-        
-        /*
-        
-        if (isBetweenIncl(index, 0x80, 0xFF)) {
-            return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
-        } else if (isBetweenIncl(index, 0x00, 0x7F)) {
-            int address = AddressMap.TILE_SOURCE[0] + index * TILE_BYTES;
-            return address;//rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE) ? address : address + 0x1000;
-        } else {
-            throw new IllegalArgumentException();
-        }*/
-    }
-    
-    private boolean isBetweenIncl(int x, int lower, int upper) {
-        return x >= lower ? x <= upper : false;
+    private static LcdImageLine emptyLine() {
+        return new LcdImageLine.Builder(FULL_LINE_SIZE).build();
     }
     
     private Reg indexToReg(int index) {
         return Reg.values()[index];
+    }
+    
+    private int wx() {
+        final int WX_OFFSET = 7;
+        return rf.get(Reg.WX) - WX_OFFSET;
     }
 }
