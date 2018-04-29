@@ -23,6 +23,8 @@ import ch.epfl.gameboj.component.memory.RamController;
  */
 public final class LcdController implements Component, Clocked {
 
+    private static final int NUMBER_OF_TILES = 32;
+    private static final int LINES_PER_TILE = 8;
     private static final int FULL_LINE_SIZE = 256;
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
@@ -40,7 +42,7 @@ public final class LcdController implements Component, Clocked {
     private Mode nextMode;
     
     private LcdImage.Builder nextImageBuilder;
-    private LcdImage image ;//= emptyImage();
+    private LcdImage image = emptyImage();
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -152,8 +154,6 @@ public final class LcdController implements Component, Clocked {
     private void reallyCycle() {
         Mode mode = currentMode();
         
-        // TODO System.out.println(currentLine() + ": " + mode);
-        
         switch (mode) {
             case M1_VBLANK: {
                 if (enteringVBlank()) {
@@ -237,7 +237,6 @@ public final class LcdController implements Component, Clocked {
     
     private void updateLineIndex() {
         int numberOfLines = LCD_HEIGHT + NUMBER_OF_LINES_IN_VBLANK;
-        // TODO System.out.println("Updated:" + (rf.get(Reg.LY) + 1));
         writeToLyLyc(Reg.LY, (currentLine() + 1) % numberOfLines);
     }
     
@@ -255,7 +254,9 @@ public final class LcdController implements Component, Clocked {
         int startX = rf.get(Reg.SCX);
         int startY = rf.get(Reg.SCY);
         
-        LcdImageLine line = backgroundLine(startY + currentLine());
+        int lineIndex = (startY + currentLine()) % FULL_LINE_SIZE;
+        
+        LcdImageLine line = backgroundLine(lineIndex);
         line = line.extractWrapped(startX, LCD_WIDTH);
         
         if (currentLine() >= rf.get(Reg.WY) && windowOn()) {
@@ -282,12 +283,12 @@ public final class LcdController implements Component, Clocked {
     
     private LcdImageLine extractLine(int lineIndex, int memoryStart) {
         LcdImageLine.Builder lb = new LcdImageLine.Builder(FULL_LINE_SIZE);
-        int startTileIndex = (lineIndex / 8) * 32;
+        int startTileIndex = (lineIndex / LINES_PER_TILE) * NUMBER_OF_TILES;
        
-        for(int i = 0; i < 32; i++) {
+        for(int i = 0; i < NUMBER_OF_TILES; i++) {
             int tileIndex = vRam.read(memoryStart + startTileIndex + i);
-            int lsb = Bits.reverse8(vRam.read(tileAddress(tileIndex) + (lineIndex % 8) * 2));
-            int msb = Bits.reverse8(vRam.read(tileAddress(tileIndex) + (lineIndex % 8) * 2 + 1));
+            int lsb = Bits.reverse8(vRam.read(tileAddress(tileIndex) + (lineIndex % LINES_PER_TILE) * 2));
+            int msb = Bits.reverse8(vRam.read(tileAddress(tileIndex) + (lineIndex % LINES_PER_TILE) * 2 + 1));
             lb.setBytes(i, msb, lsb);
         }
         
@@ -303,10 +304,12 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int tileAddress(int index) {
+        final int OFFSET = 0x80;
+        
         if (rf.testBit(Reg.LCDC, Lcdc.TILE_SOURCE)) {
             return AddressMap.TILE_SOURCE[1] + index * TILE_BYTES;
         } else {
-            int shiftedIndex = Bits.clip(8, index + 0x80);
+            int shiftedIndex = Bits.clip(8, index + OFFSET);
             return AddressMap.TILE_SOURCE[0] + shiftedIndex * TILE_BYTES;
         }
     }
