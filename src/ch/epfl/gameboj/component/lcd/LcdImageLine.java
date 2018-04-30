@@ -46,11 +46,13 @@ public final class LcdImageLine {
         	 * @param msb : byte containing most significant bits
         	 * @param lsb : byte containing least significant bits
         	 */
-        	public void setBytes(int byteIndex, int msb, int lsb) {
+        	public LcdImageLine.Builder setBytes(int byteIndex, int msb, int lsb) {
         	    Objects.checkIndex(byteIndex, size);
         	    
         		msbBuilder.setByte(byteIndex, msb);
         		lsbBuilder.setByte(byteIndex, lsb);
+        		
+        		return this;
        	}
         	
         	/**

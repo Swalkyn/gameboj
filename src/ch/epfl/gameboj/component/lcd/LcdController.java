@@ -86,6 +86,10 @@ public final class LcdController implements Component, Clocked {
             this.intMode = intMode;
         }
     }
+    
+    private enum Sprite implements Bit {
+        UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, PALETTE, FLIP_H, FLIP_V, BEHIND_BG
+    }
 
 
     public LcdController(Cpu cpu) {
@@ -329,8 +333,21 @@ public final class LcdController implements Component, Clocked {
     }
     
     private LcdImageLine spritesLine(int lineIndex, boolean background) {
-        return null;
+        LcdImageLine line = new LcdImageLine.Builder(LCD_WIDTH).build();
+        
+        for (int spriteData : spritesIntersectingLine()) {
+            int spriteIndex = Bits.clip(8, spriteData);
+            if (spriteAttr(spriteIndex, Sprite.BEHIND_BG) == background) {
+                int msb = spriteByte(spriteIndex, lineIndex, true);
+                int lsb = spriteByte(spriteIndex, lineIndex, false);
+                LcdImageLine spriteLine = new LcdImageLine.Builder(LCD_WIDTH).setBytes(0, msb, lsb).build();
+                spriteLine = spriteLine.shift(spriteX(spriteIndex)).mapColors(spritePalette(spriteIndex));
+                line = line.below(spriteLine); // TODO order ?
+            }
+        }
+        return line;
     }
+    
     
     private LcdImageLine windowLine(int lineIndex) {
         return extractLine(lineIndex, memoryStart(Lcdc.WIN_AREA)).mapColors(rf.get(Reg.BGP));
@@ -424,15 +441,36 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int spriteY(int index) {
-        Objects.checkIndex(index, AddressMap.OAM_RAM_SIZE);
+        Objects.checkIndex(index, NUMBER_OF_SPRITES);
         
         return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index) - Y_OFFSET;
     }
     
     private int spriteX(int index) {
-        Objects.checkIndex(index, AddressMap.OAM_RAM_SIZE);
+        Objects.checkIndex(index, NUMBER_OF_SPRITES);
         
-        return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index) - X_OFFSET;
+        return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index + 1) - X_OFFSET;
+    }
+    
+    private int spriteTileAddress(int index) {
+        Objects.checkIndex(index, NUMBER_OF_SPRITES);
+        
+        return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index + 2);
+    }
+    
+    private boolean spriteAttr(int index, Bit bit) {
+        Objects.checkIndex(index, NUMBER_OF_SPRITES);
+        
+        return Bits.test(oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 3), bit);
+    }
+    
+    private int spriteByte(int index, int lineIndex, boolean msb) {
+        int byteIndex = 2 * (lineIndex - spriteY(index)) + (msb ? 1 : 0);
+        return vRam.read(spriteTileAddress(index) + byteIndex);
+    }
+    
+    private int spritePalette(int index) {
+        return spriteAttr(index, Sprite.PALETTE) ? rf.get(Reg.OBP1) : rf.get(Reg.OBP1);
     }
     
 }
