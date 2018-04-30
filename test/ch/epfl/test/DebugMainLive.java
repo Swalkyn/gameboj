@@ -21,7 +21,7 @@ import javafx.stage.Stage;
 
 public final class DebugMainLive extends Application {
 
-    private static final String ROM_PATH = "test/testBlargg/01-special.gb";
+    private static final String ROM_PATH = "test/testBlargg/flappyboy.gb";
 
     private static final int CYCLES_PER_ITERATION = 17_556;
 
