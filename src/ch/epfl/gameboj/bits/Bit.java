@@ -25,6 +25,6 @@ public interface Bit {
      * @return the mask of the ordinal
      */
     default int mask() {
-        return 1 << ordinal();
+        return Bits.mask(ordinal());
     }
 }

@@ -16,7 +16,7 @@ import ch.epfl.gameboj.component.memory.RamController;
  *  @author Sylvain Kuchen (282380)
  *  @author Luca Bataillard (282152)
  */
-public class GameBoy {
+public final class GameBoy {
     
     private final Bus mBus;
     private final Cpu mCpu;

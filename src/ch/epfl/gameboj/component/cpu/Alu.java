@@ -48,8 +48,11 @@ public final class Alu {
      * @return the bit mask
      */
     public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
-        return Bits.set(0, Flag.Z.index(), z) | Bits.set(0, Flag.N.index(), n)
-               | Bits.set(0, Flag.H.index(), h) | Bits.set(0, Flag.C.index(), c);
+        return fMask(Flag.Z, z) | fMask(Flag.N, n) | fMask(Flag.H, h) | fMask(Flag.C, c);
+    }
+    
+    private static int fMask(Flag f, boolean value) {
+		return value ? f.mask() : 0;
     }
     
     /**
@@ -115,17 +118,7 @@ public final class Alu {
      * @return the packed value and flags
      */
     public static int add16L(int l, int r) {
-        Preconditions.checkBits16(l);
-        Preconditions.checkBits16(r);
-        
-        int resultLSB = add(Bits.clip(8, l), Bits.clip(8, r));
-        int resultMSB = add(Bits.extract(l, 8, 8), Bits.extract(r, 8, 8), Bits.test(resultLSB, Flag.C));
-        
-        int result = Bits.make16(unpackValue(resultMSB), unpackValue(resultLSB));
-        boolean h = Bits.test(resultLSB, Flag.H.index());
-        boolean c = Bits.test(resultLSB, Flag.C.index());
-        
-        return packValueZNHC(result, false, false, h, c);
+    		return add16(l, r, true);
     }
     
     /**
@@ -137,15 +130,20 @@ public final class Alu {
      * @return the packed value and flags
      */
     public static int add16H(int l, int r) {
-        Preconditions.checkBits16(l);
+    		return add16(l, r, false);
+    }
+    
+    private static int add16(int l, int r, boolean lower) {
+    	Preconditions.checkBits16(l);
         Preconditions.checkBits16(r);
         
         int resultLSB = add(Bits.clip(8, l), Bits.clip(8, r));
         int resultMSB = add(Bits.extract(l, 8, 8), Bits.extract(r, 8, 8), Bits.test(resultLSB, Flag.C));
-        
         int result = Bits.make16(unpackValue(resultMSB), unpackValue(resultLSB));
-        boolean h = Bits.test(resultMSB, Flag.H.index());
-        boolean c = Bits.test(resultMSB, Flag.C.index());
+        
+        int testBits = lower ? resultLSB : resultMSB;
+        boolean h = Bits.test(testBits, Flag.H.index());
+        boolean c = Bits.test(testBits, Flag.C.index());
         
         return packValueZNHC(result, false, false, h, c);
     }
@@ -210,7 +208,9 @@ public final class Alu {
             va = v + fix;
         }
         
-        return packValueZNHC(Bits.clip(8, va), Bits.clip(8, va) == 0, n, false, fixH == 1);
+        int clippedVA = Bits.clip(8, va);
+        
+        return packValueZNHC(clippedVA, clippedVA == 0, n, false, fixH == 1);
     }
     
     /**
@@ -370,7 +370,7 @@ public final class Alu {
     public static int swap(int v) {
         Preconditions.checkBits8(v);
         
-        int result = Bits.clip(4, v) << 4 | Bits.extract(v, 4, 4);
+        int result = Bits.rotate(8, v, 4);
         return packValueZNHC(result, result == 0, false, false, false);
     }
     

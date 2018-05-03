@@ -25,7 +25,8 @@ import ch.epfl.gameboj.component.memory.Ram;
  */
 public final class Cpu implements Component, Clocked {
     
-    private static final int RAM_HALFPOINT = 0xFF00;
+    //private static final int NUMBER_OF_OPCODES = 256;
+	private static final int RAM_HALFPOINT = 0xFF00;
     private static final int INTERRUPT_CYCLE = 5;
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.DIRECT); 
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.PREFIXED);
@@ -301,8 +302,8 @@ public final class Cpu implements Component, Clocked {
         int lsb = Bits.clip(8, v);
         int msb = Bits.extract(v, 8, 8);
         
-        bus.write(address, lsb);
-        bus.write(address + 1, msb);
+        write8(address, lsb);
+        write8(address + 1, msb);
     }
     
     /**
@@ -446,6 +447,9 @@ public final class Cpu implements Component, Clocked {
     private static Opcode[] buildOpcodeTable(Kind kind) {
         ArrayList<Opcode> table = new ArrayList<>();
         
+        // TODO Disputer que tableau plus beau que arraylist
+        //Opcode[] table = new Opcode[NUMBER_OF_OPCODES];
+        
         for (Opcode o : Opcode.values()) {
             if (o.kind == kind) {
                 table.add(o);
@@ -572,10 +576,10 @@ public final class Cpu implements Component, Clocked {
                 setReg16(Reg16.HL, reg16(Reg16.HL) + extractHlIncrement(opcode));
             } break;
             case LD_A_N8R: {
-                rf.set(Reg.A, read8(RAM_HALFPOINT + read8AfterOpcode()));
+                rf.set(Reg.A, read8(AddressMap.REGS_START + read8AfterOpcode()));
             } break;
             case LD_A_CR: {
-                rf.set(Reg.A, read8(RAM_HALFPOINT + rf.get(Reg.C)));
+                rf.set(Reg.A, read8(AddressMap.REGS_START + rf.get(Reg.C)));
             } break;
             case LD_A_N16R: {
                 rf.set(Reg.A, read8(read16AfterOpcode()));
@@ -682,22 +686,16 @@ public final class Cpu implements Component, Clocked {
             } break;
             case ADD_HL_R16SP: {
                 Reg16 r = extractReg16(opcode);
-                int vf;
-                if (r == Reg16.AF) {
-                    vf = Alu.add16H(reg16(Reg16.HL), SP);
-                } else {
-                    vf = Alu.add16H(reg16(Reg16.HL), reg16(r));
-                }
+                int arg = r == Reg16.AF ? SP : reg16(r);
+                int vf = Alu.add16H(reg16(Reg16.HL), arg);
+                
                 setReg16(Reg16.HL, Alu.unpackValue(vf));
                 combineAluFlags(vf, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
             } break;
             case LD_HLSP_S8: {
                 int vf = Alu.add16L(SP, Bits.clip(16, Bits.signExtend8(read8AfterOpcode())));
-                if (Bits.test(opcode.encoding, 4)) {
-                    setReg16(Reg16.HL, Alu.unpackValue(vf));
-                } else {
-                    SP = Alu.unpackValue(vf);
-                }
+                Reg16 r = Bits.test(opcode.encoding, 4) ? Reg16.HL : Reg16.AF;
+                setReg16SP(r, Alu.unpackValue(vf));
                 combineAluFlags(vf, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
             } break;
             
@@ -739,14 +737,11 @@ public final class Cpu implements Component, Clocked {
             } break;
             case DEC_R16SP: {
                 Reg16 r = extractReg16(opcode);
-                if (r == Reg16.AF) {
-                    SP = Bits.clip(16, SP - 1);
-                } else {
-                    setReg16SP(r, Bits.clip(16, reg16(r) - 1));                    
-                }
+                int dec = r == Reg16.AF ? SP : reg16(r);
+                setReg16SP(r, Bits.clip(16, dec - 1));    
             } break;
             
-         // And, or, xor, complement
+            // And, or, xor, complement
             case AND_A_N8: {
                 int vf = Alu.and(rf.get(Reg.A), read8AfterOpcode());
                 setRegFlags(Reg.A, vf);

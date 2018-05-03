@@ -26,10 +26,7 @@ public interface Preconditions {
      * @return the integer if correct
      */
     static int checkBits8(int v) {
-        if (v < 0 || v > 0xFF) {
-            throw new IllegalArgumentException("Value is not 8 bits : " + v);
-        }
-        
+    		checkArgument(0 <= v && v <= 0xFF);
         return v;
     }
     
@@ -40,10 +37,7 @@ public interface Preconditions {
      * @return the integer if correct
      */
     static int checkBits16(int v) {
-        if (v < 0 || v > 0xFFFF) {
-            throw new IllegalArgumentException("Value is not 16 bits : " + v);
-        }
-        
+    		checkArgument(0 <= v && v <= 0xFFFF);
         return v;
     }
 }
