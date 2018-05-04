@@ -303,30 +303,22 @@ public final class LcdController implements Component, Clocked {
         return currentLine() == LCD_HEIGHT + LINES_IN_VBLANK - 1;
     }
     
+    
     /* Line drawing */
     
     private LcdImageLine computeLine() {
-        int startX = rf.get(Reg.SCX);
+        int startX = rf.get(Reg.SCX); // TODO are these variables necessary ?
         int startY = rf.get(Reg.SCY);
         
         int lineIndex = (startY + currentLine()) % FULL_LINE_SIZE;
         
-        LcdImageLine backroundSpritesLine = spritesLine(currentLine(), true);
+        LcdImageLine line = backgroundLine(lineIndex).extractWrapped(startX, LCD_WIDTH);
+        LcdImageLine bgSpritesLine = spritesLine(currentLine(), true);
+        LcdImageLine fgStritesLine = spritesLine(currentLine(), false);
         
-        LcdImageLine line = backgroundLine(lineIndex);
-        line = line.extractWrapped(startX, LCD_WIDTH);
+        line = mergeSpritesWithBackround(line, bgSpritesLine, fgStritesLine);
         
-        line = backroundSpritesLine.below(line);
-        
-        line = line.below(spritesLine(currentLine(), false));
-
-        
-        if (currentLine() >= rf.get(Reg.WY) && windowOn()) {
-            int winLineIndex = currentLine() - rf.get(Reg.WY);
-            LcdImageLine winLine = windowLine(winLineIndex).extractWrapped(0, LCD_WIDTH).shift(wx());
-            
-            line = line.join(winLine, wx());
-        }
+        line = addWindowLineIfNecessary(line);
                 
         return line;
     }
@@ -339,15 +331,22 @@ public final class LcdController implements Component, Clocked {
         }
     }
     
+    private LcdImageLine windowLine(int lineIndex) {
+        return extractLine(lineIndex, memoryStart(Lcdc.WIN_AREA)).mapColors(rf.get(Reg.BGP));
+    }
+    
     private LcdImageLine spritesLine(int lineIndex, boolean background) {
         LcdImageLine line = new LcdImageLine.Builder(LCD_WIDTH).build();
         
         for (int spriteData : spritesIntersectingLine()) {
             int spriteIndex = Bits.clip(8, spriteData);
+            
             if (spriteAttr(spriteIndex, Sprite.BEHIND_BG) == background) {
                 int msb = Bits.reverse8(spriteByte(spriteIndex, lineIndex, true));
                 int lsb = Bits.reverse8(spriteByte(spriteIndex, lineIndex, false));
+                
                 LcdImageLine spriteLine = new LcdImageLine.Builder(LCD_WIDTH).setBytes(0, msb, lsb).build();
+                
                 spriteLine = spriteLine.shift(spriteX(spriteIndex)).mapColors(spritePalette(spriteIndex));
                 line = line.below(spriteLine); // TODO order ?
             }
@@ -355,14 +354,25 @@ public final class LcdController implements Component, Clocked {
         return line;
     }
     
-    private LcdImageLine mergeSpritesWithBackround(LcdImageLine background, LcdImageLine sprites) {
-        BitVector mask = background.opacity().not().and(sprites.opacity());
-        
-        return sprites.below(background, mask);
+    private static LcdImageLine emptyLine() {
+        return new LcdImageLine.Builder(FULL_LINE_SIZE).build();
     }
     
-    private LcdImageLine windowLine(int lineIndex) {
-        return extractLine(lineIndex, memoryStart(Lcdc.WIN_AREA)).mapColors(rf.get(Reg.BGP));
+    private LcdImageLine mergeSpritesWithBackround(LcdImageLine background, LcdImageLine bgSprites, LcdImageLine fgSprites) {
+        BitVector opacityMask = background.opacity().and(bgSprites.opacity().not()); // TODO : correct opacity ?
+        
+        return bgSprites.below(background, opacityMask).below(fgSprites);
+    }
+    
+    private LcdImageLine addWindowLineIfNecessary(LcdImageLine line) {
+        if (currentLine() >= rf.get(Reg.WY) && windowOn()) {
+            int winLineIndex = currentLine() - rf.get(Reg.WY);
+            LcdImageLine winLine = windowLine(winLineIndex).extractWrapped(0, LCD_WIDTH).shift(wx());
+            
+            line = line.join(winLine, wx());
+        }
+        
+        return line;
     }
     
     private LcdImageLine extractLine(int lineIndex, int memoryStart) {
@@ -454,8 +464,7 @@ public final class LcdController implements Component, Clocked {
     /* Utilities */
     
     private static LcdImage emptyImage() {
-        BitVector zero = new BitVector(LCD_WIDTH, false);
-        LcdImageLine emptyLine = new LcdImageLine(zero, zero, zero);
+        LcdImageLine emptyLine = new LcdImageLine.Builder(LCD_WIDTH).build();
         LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
 
         for (int i = 0; i < LCD_HEIGHT; i++) {
@@ -463,10 +472,6 @@ public final class LcdController implements Component, Clocked {
         }
 
         return lcdBuilder.build();
-    }
-    
-    private static LcdImageLine emptyLine() {
-        return new LcdImageLine.Builder(FULL_LINE_SIZE).build();
     }
     
     private Reg indexToReg(int index) {
@@ -508,7 +513,7 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int spritePalette(int index) {
-        return spriteAttr(index, Sprite.PALETTE) ? rf.get(Reg.OBP1) : rf.get(Reg.OBP1);
+        return spriteAttr(index, Sprite.PALETTE) ? rf.get(Reg.OBP1) : rf.get(Reg.OBP0);
     }
     
     /*private int extractLineFromTile(int tileIndex, int lineIndex, boolean msb) {
