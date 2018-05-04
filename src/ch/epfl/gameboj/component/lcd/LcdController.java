@@ -37,7 +37,7 @@ public final class LcdController implements Component, Clocked {
     
     private static final int TILE_BYTES = 16;
     private static final int SPRITE_BYTES = 4;
-    private static final int NUMBER_OF_SPRITES = AddressMap.OAM_RAM_SIZE / SPRITE_BYTES;
+    private static final int SPRITES_IN_MEMORY = AddressMap.OAM_RAM_SIZE / SPRITE_BYTES;
     private static final int SPRITES_PER_LINE = 10;
 
     
@@ -311,8 +311,15 @@ public final class LcdController implements Component, Clocked {
         
         int lineIndex = (startY + currentLine()) % FULL_LINE_SIZE;
         
+        LcdImageLine backroundSpritesLine = spritesLine(currentLine(), true);
+        
         LcdImageLine line = backgroundLine(lineIndex);
         line = line.extractWrapped(startX, LCD_WIDTH);
+        
+        line = backroundSpritesLine.below(line);
+        
+        line = line.below(spritesLine(currentLine(), false));
+
         
         if (currentLine() >= rf.get(Reg.WY) && windowOn()) {
             int winLineIndex = currentLine() - rf.get(Reg.WY);
@@ -320,7 +327,7 @@ public final class LcdController implements Component, Clocked {
             
             line = line.join(winLine, wx());
         }
-        
+                
         return line;
     }
 
@@ -338,8 +345,8 @@ public final class LcdController implements Component, Clocked {
         for (int spriteData : spritesIntersectingLine()) {
             int spriteIndex = Bits.clip(8, spriteData);
             if (spriteAttr(spriteIndex, Sprite.BEHIND_BG) == background) {
-                int msb = spriteByte(spriteIndex, lineIndex, true);
-                int lsb = spriteByte(spriteIndex, lineIndex, false);
+                int msb = Bits.reverse8(spriteByte(spriteIndex, lineIndex, true));
+                int lsb = Bits.reverse8(spriteByte(spriteIndex, lineIndex, false));
                 LcdImageLine spriteLine = new LcdImageLine.Builder(LCD_WIDTH).setBytes(0, msb, lsb).build();
                 spriteLine = spriteLine.shift(spriteX(spriteIndex)).mapColors(spritePalette(spriteIndex));
                 line = line.below(spriteLine); // TODO order ?
@@ -348,6 +355,11 @@ public final class LcdController implements Component, Clocked {
         return line;
     }
     
+    private LcdImageLine mergeSpritesWithBackround(LcdImageLine background, LcdImageLine sprites) {
+        BitVector mask = background.opacity().not().and(sprites.opacity());
+        
+        return sprites.below(background, mask);
+    }
     
     private LcdImageLine windowLine(int lineIndex) {
         return extractLine(lineIndex, memoryStart(Lcdc.WIN_AREA)).mapColors(rf.get(Reg.BGP));
@@ -399,10 +411,10 @@ public final class LcdController implements Component, Clocked {
         int i = 0;
         int j = 0;
         
-        while (i < NUMBER_OF_SPRITES && j < SPRITES_PER_LINE) {
+        while (i < SPRITES_IN_MEMORY && j < SPRITES_PER_LINE) {
             int distance = currentLine() - spriteY(i);
             if (0 <= distance && distance < spriteVertSize) {
-                lineSprites[i] = Bits.make16(spriteX(i), i);
+                lineSprites[j] = Bits.make16(spriteX(i), i);
                 j++;
             }
             i++;
@@ -411,6 +423,32 @@ public final class LcdController implements Component, Clocked {
         Arrays.sort(lineSprites, 0, j);
         
         return Arrays.copyOfRange(lineSprites, 0, j);
+    }
+    
+    /* Test */
+    
+    public void printSpritesY() {
+        for (int i = 0; i < SPRITES_IN_MEMORY; i++) {
+            System.out.println(spriteY(i));
+        }
+    }
+    
+    public LcdImage spriteTiles() {
+        LcdImage.Builder ib = new LcdImage.Builder(8 * SPRITES_IN_MEMORY, LINES_PER_TILE);
+        
+        for (int i = 0; i < LINES_PER_TILE; i++) {
+            LcdImageLine.Builder lb = new LcdImageLine.Builder(8 * SPRITES_IN_MEMORY);
+                    
+            for (int j = 0; j < SPRITES_IN_MEMORY; j++) {
+                int msb = Bits.reverse8(vRam.read(spriteTileAddress(j) + (2 * i) + 1));
+                int lsb = Bits.reverse8(vRam.read(spriteTileAddress(j) + (2 * i)));
+                lb.setBytes(j, msb, lsb);
+            }
+            
+            ib.setLine(i, lb.build());
+        }
+        
+        return ib.build();
     }
     
     /* Utilities */
@@ -441,25 +479,25 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int spriteY(int index) {
-        Objects.checkIndex(index, NUMBER_OF_SPRITES);
+        Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
-        return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index) - Y_OFFSET;
+        return oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET;
     }
     
     private int spriteX(int index) {
-        Objects.checkIndex(index, NUMBER_OF_SPRITES);
+        Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
-        return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index + 1) - X_OFFSET;
+        return oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1) - X_OFFSET;
     }
     
     private int spriteTileAddress(int index) {
-        Objects.checkIndex(index, NUMBER_OF_SPRITES);
+        Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
-        return oamRam.read(AddressMap.OAM_RAM_SIZE + SPRITE_BYTES * index + 2);
+        return AddressMap.TILE_SOURCE[1] + oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 2) * TILE_BYTES; // TODO : signal RamController
     }
     
     private boolean spriteAttr(int index, Bit bit) {
-        Objects.checkIndex(index, NUMBER_OF_SPRITES);
+        Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
         return Bits.test(oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 3), bit);
     }
@@ -472,5 +510,9 @@ public final class LcdController implements Component, Clocked {
     private int spritePalette(int index) {
         return spriteAttr(index, Sprite.PALETTE) ? rf.get(Reg.OBP1) : rf.get(Reg.OBP1);
     }
+    
+    /*private int extractLineFromTile(int tileIndex, int lineIndex, boolean msb) {
+        return vRam.read(tileAddress(tileIndex) + 2 * (lineIndex) + (msb ? 1 : 0));
+    }*/
     
 }

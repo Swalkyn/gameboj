@@ -33,6 +33,7 @@ public final class DebugMain2 {
 	    }
 	    System.out.println("+--------------------+");
 
+	    
 	    LcdImage li = gb.lcdController().currentImage();
 	    BufferedImage i =
 	      new BufferedImage(li.width(),
