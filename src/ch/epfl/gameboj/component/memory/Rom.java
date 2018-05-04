@@ -3,15 +3,13 @@ package ch.epfl.gameboj.component.memory;
 import java.util.Arrays;
 import java.util.Objects;
 
-import ch.epfl.gameboj.component.Component;
-
 /**
  * Read-only memory that stores a byte array
  * 
  * @author Sylvain Kuchen (282380)
  * @author Luca Bataillard (282152)
  */
-public final class Rom implements Component {
+public final class Rom {
     
     private final byte[] memory;
     
@@ -38,18 +36,10 @@ public final class Rom implements Component {
      * @throws IndexOutOfBoundsException
      * @return the unsigned byte at specified index
      */
-    @Override
     public int read(int index) {
         Objects.checkIndex(index, size());
         
         return Byte.toUnsignedInt(memory[index]);
     }
-
-    /* (non-Javadoc)
-     * @see ch.epfl.gameboj.component.Component#write(int, int)
-     */
-    @Override
-    public void write(int address, int data) {
-        // Does nothing
-    }    
+    
 }

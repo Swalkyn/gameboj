@@ -91,10 +91,12 @@ public final class Bits {
      * @return the modified int
      */
     public static int set(int bits, int index, boolean newValue) {
+    		int m = mask(index);
+    	
         if (newValue) {
-            return mask(index) | bits;
+            return m | bits;
         } else {
-            return ~mask(index) & bits; 
+            return ~m & bits; 
         }
     }
     
@@ -106,9 +108,9 @@ public final class Bits {
      * @return the clipped value
      */
     public static int clip(int size, int bits) {
-        Preconditions.checkArgument(size >= 0 && size <= 32);           
+        Preconditions.checkArgument(size >= 0 && size <= Integer.SIZE);           
         
-        if (size == 32) {
+        if (size == Integer.SIZE) {
             return bits; 
         }
         
@@ -126,10 +128,11 @@ public final class Bits {
     public static int extract(int bits, int start, int size) {
         Objects.checkFromIndexSize(start, size, Integer.SIZE);
         
-        if (size == 32) {
+        if (size == Integer.SIZE) {
             return bits; 
         }
-        return (~(~0 << size) << start & bits) >>> start;
+        
+        return clip(size, bits >> start);
     }
     
     /**
@@ -141,7 +144,7 @@ public final class Bits {
      * @return the rotated value
      */
     public static int rotate(int size, int bits, int distance) {
-        Preconditions.checkArgument(size > 0 && size <= 32);
+        Preconditions.checkArgument(size > 0 && size <= Integer.SIZE);
         
         int d = Math.floorMod(distance, size);
         
