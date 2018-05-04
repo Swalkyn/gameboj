@@ -26,7 +26,7 @@ public final class Joypad implements Component {
 	private int secondRow = 0;
 	
 	private static final int BUTTONS_PER_ROW = 4;
-	private static final int SELECT_MASK = P1.SELECT_ROW_0.mask() | P1.SELECT_ROW_0.mask();
+	private static final int SELECT_MASK = P1.SELECT_ROW_0.mask() | P1.SELECT_ROW_1.mask();
 	
 	private static final P1[] P1_COLUMNS = {P1.COL_0, P1.COL_1, P1.COL_2, P1.COL_3};
 	private static final P1[] P1_ROWS = {P1.SELECT_ROW_0, P1.SELECT_ROW_1};
@@ -53,7 +53,7 @@ public final class Joypad implements Component {
 		Preconditions.checkBits8(data);
 		
 		if (address == AddressMap.REG_P1) {
-			 updateRows(data);
+			 updateRows(Bits.complement8(data));
 		}
 	}
 	
@@ -94,7 +94,7 @@ public final class Joypad implements Component {
 		boolean currentState = Bits.test(p1, column);
 		boolean newState = newColumnState(column);
 		
-		if (!currentState && newState) {
+		if (!currentState && newState) {		// TODO Ordre inversé ?
 			cpu.requestInterrupt(Cpu.Interrupt.JOYPAD);
 		}
 		
