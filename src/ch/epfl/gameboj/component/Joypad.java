@@ -94,7 +94,7 @@ public final class Joypad implements Component {
 		boolean currentState = Bits.test(p1, column);
 		boolean newState = newColumnState(column);
 		
-		if (!currentState && newState) {		// TODO Ordre inversé ?
+		if (!currentState && newState) {
 			cpu.requestInterrupt(Cpu.Interrupt.JOYPAD);
 		}
 		
