@@ -477,14 +477,14 @@ public final class LcdController implements Component, Clocked {
     
     private int spriteY(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
-        
-        return oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET;
+        // TODO : Bits.clip juste ?
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET);
     }
     
     private int spriteX(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
-        return oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1) - X_OFFSET;
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1) - X_OFFSET);
     }
     
     private int spriteTileAddress(int index) {
