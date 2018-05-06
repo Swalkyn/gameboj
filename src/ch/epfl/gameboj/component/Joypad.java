@@ -98,7 +98,7 @@ public final class Joypad implements Component {
 			cpu.requestInterrupt(Cpu.Interrupt.JOYPAD);
 		}
 		
-		Bits.set(p1, column.index(), newState);
+		p1 = Bits.set(p1, column.index(), newState);
 	}
 	
 	private boolean newColumnState(P1 column) {

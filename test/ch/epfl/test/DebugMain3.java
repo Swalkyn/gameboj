@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad.Key;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
@@ -15,9 +16,11 @@ public final class DebugMain3 {
     private static final int[] COLOR_MAP = new int[] {
       0xFF_FF_FF, 0xD3_D3_D3, 0xA9_A9_A9, 0x00_00_00
     };
+    
+    private static final String PATH = "test/testBlargg/flappyboy.gb";
 
     public static void main(String[] args) throws IOException {
-      File romFile = new File(args[0]);
+      File romFile = new File(PATH);
       long cycles = 30_000_000;
 
       GameBoy gb = new GameBoy(Cartridge.ofFile(romFile));
@@ -27,6 +30,7 @@ public final class DebugMain3 {
       gb.joypad().keyReleased(Key.A);
       gb.runUntil(cycles + 2 * (1L << 20));
 
+      
       LcdImage li = gb.lcdController().currentImage();
       BufferedImage i =
         new BufferedImage(li.width(),
