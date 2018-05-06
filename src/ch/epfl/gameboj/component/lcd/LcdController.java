@@ -327,7 +327,7 @@ public final class LcdController implements Component, Clocked {
             LcdImageLine backLine = extractLine(lineIndex, memoryStart(Lcdc.BG_AREA));
             return backLine.mapColors(rf.get(Reg.BGP)).extractWrapped(scx(), LCD_WIDTH);
         } else {
-            return emptyLine();
+            return emptyLine().extractWrapped(scx(), LCD_WIDTH);
         }
     }
     
