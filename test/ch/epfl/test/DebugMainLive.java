@@ -48,6 +48,7 @@ public final class DebugMainLive extends Application {
         stage.setScene(scene);
         stage.sizeToScene();
         stage.show();
+        stage.requestFocus();
 
         // Update GameBoy
         new AnimationTimer() {
