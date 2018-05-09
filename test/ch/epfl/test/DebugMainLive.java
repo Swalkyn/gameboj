@@ -1,13 +1,10 @@
 package ch.epfl.test;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.lcd.LcdController;
 import ch.epfl.gameboj.component.lcd.LcdImage;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
@@ -19,12 +16,18 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 public final class DebugMainLive extends Application {
 
-    private static final String ROM_PATH = "test/testBlargg/tasmaniaStory.gb";
+    /** Configuration */
 
-    private static final int CYCLES_PER_ITERATION = 17_556;
+    private static final String ROM_PATH = "test/testBlargg/flappyboy.gb";
 
+    private static final float EMULATION_SPEED = 1f;
+    private static final int CYCLES_PER_ITERATION = (int)(17_556 * EMULATION_SPEED);
     private static final int[] COLOR_MAP = new int[] {
             0xFF_FF_FF, 0xD3_D3_D3, 0xA9_A9_A9, 0x00_00_00
     };
@@ -37,8 +40,11 @@ public final class DebugMainLive extends Application {
         // Create Scene
         ImageView imageView = new ImageView();
         imageView.setImage(getImage(gb));
+        imageView.setSmooth(false);
         Group root = new Group();
         Scene scene = new Scene(root);
+        imageView.fitWidthProperty().bind(scene.widthProperty());
+        imageView.fitHeightProperty().bind(scene.heightProperty());
         scene.setFill(Color.BLACK);
         HBox box = new HBox();
         box.getChildren().add(imageView);
@@ -47,6 +53,9 @@ public final class DebugMainLive extends Application {
         stage.setHeight(LcdController.LCD_HEIGHT);
         stage.setScene(scene);
         stage.sizeToScene();
+        stage.minWidthProperty().bind(scene.heightProperty());
+        stage.minHeightProperty().bind(scene.widthProperty());
+        stage.setTitle("gameboj");
         stage.show();
         stage.requestFocus();
 

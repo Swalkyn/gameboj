@@ -1,5 +1,7 @@
 package ch.epfl.gameboj.component;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bit;
@@ -32,7 +34,7 @@ public final class Joypad implements Component {
 	private static final P1[] P1_ROWS = {P1.SELECT_ROW_0, P1.SELECT_ROW_1};
 	
 	public Joypad(Cpu cpu) {
-		this.cpu = cpu;
+		this.cpu = Objects.requireNonNull(cpu);
 	}
 	
 	@Override
@@ -71,8 +73,6 @@ public final class Joypad implements Component {
 		} else {
 			secondRow = Bits.set(secondRow, k.column(), value);
 		}
-		
-		updateColumn(k.column());
 	}
 	
 	private void updateRows(int selectedRows) {
@@ -84,10 +84,6 @@ public final class Joypad implements Component {
 		for (P1 column : P1_COLUMNS) {
 			updateColumn(column);
 		}
-	}
-	
-	private void updateColumn(int columnIndex) {
-		updateColumn(P1.values()[columnIndex]);
 	}
 	
 	private void updateColumn(P1 column) {
@@ -105,7 +101,7 @@ public final class Joypad implements Component {
 		boolean newState = false;
 		
 		for (P1 row : P1_ROWS) {
-			newState = keyState(column, row) && Bits.test(p1, row);
+			newState = newState || keyState(column, row) && Bits.test(p1, row);
 		}
 		
 		return newState;
