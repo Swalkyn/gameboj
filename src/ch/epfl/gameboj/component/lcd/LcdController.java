@@ -51,7 +51,7 @@ public final class LcdController implements Component, Clocked {
     
     private final RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
 
-    private long nextNonIdleCycle = 0;
+    private long nextNonIdleCycle = Long.MAX_VALUE;
     private Mode nextMode;
     
     private boolean quickCopyEnabled = false;
@@ -59,6 +59,8 @@ public final class LcdController implements Component, Clocked {
     
     private LcdImage.Builder nextImageBuilder;
     private LcdImage image = emptyImage();
+    
+    private long previousVBLANK = 0;
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -158,6 +160,8 @@ public final class LcdController implements Component, Clocked {
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
             setMode(nextMode);
+            //TODO remove
+            System.out.println((nextNonIdleCycle - previousVBLANK) + " : " + currentLine() + " / " + currentMode());
             reallyCycle();
         }
         
@@ -167,6 +171,7 @@ public final class LcdController implements Component, Clocked {
         
         if (nextNonIdleCycle == Long.MAX_VALUE && rf.testBit(Reg.LCDC, Lcdc.LCD_STATUS)) {
             nextNonIdleCycle = cycle;
+            setMode(Mode.M2_SPRITE_MEM);
             reallyCycle();
         }
     }
@@ -178,6 +183,11 @@ public final class LcdController implements Component, Clocked {
             case M1_VBLANK: {
                 if (enteringVBlank()) {
                     cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
+                    
+                    //TODO remove
+                    System.out.println("request VBLANK at cycle "+nextNonIdleCycle);
+                    System.out.println("Diff VBLANK: " + (nextNonIdleCycle - previousVBLANK));
+                    previousVBLANK = nextNonIdleCycle;
                     
                     image = nextImageBuilder.build();
                     nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);   
@@ -217,7 +227,7 @@ public final class LcdController implements Component, Clocked {
 
         if (r == Reg.LCDC) {
             if (!Bits.test(data, Lcdc.LCD_STATUS)) {
-                rf.set(Reg.LY, 0);
+                writeToLyLyc(Reg.LY, 0);
                 setMode(Mode.M0_HBLANK);
                 nextNonIdleCycle = Long.MAX_VALUE;
             }
