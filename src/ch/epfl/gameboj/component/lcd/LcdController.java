@@ -328,14 +328,14 @@ public final class LcdController implements Component, Clocked {
         line = mergeSpritesWithBackround(line, bgSpritesLine, fgStritesLine);
         
         line = addWindowLineIfNecessary(line);
-                
+//                
         return line;
     }
 
     private LcdImageLine backgroundLine(int lineIndex) {
         if (rf.testBit(Reg.LCDC, Lcdc.BG)) {
             LcdImageLine backLine = extractLine(lineIndex, memoryStart(Lcdc.BG_AREA));
-            return backLine.mapColors(rf.get(Reg.BGP)).extractWrapped(scx(), LCD_WIDTH);
+            return backLine.mapColors(rf.get(Reg.BGP)).extractWrapped(scx(), LCD_WIDTH); // scx() foire
         } else {
             return emptyLine().extractWrapped(scx(), LCD_WIDTH);
         }
@@ -347,6 +347,12 @@ public final class LcdController implements Component, Clocked {
     }
     
     private LcdImageLine spritesLine(int lineIndex, boolean background) {
+        
+        if (!rf.testBit(Reg.LCDC, Lcdc.OBJ)) {
+            return emptyLine().extractWrapped(0, LCD_WIDTH);
+        }
+        
+        
         LcdImageLine line = new LcdImageLine.Builder(LCD_WIDTH).build();
         
         for (int spriteData : spritesIntersectingLine()) {
