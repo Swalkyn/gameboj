@@ -34,6 +34,7 @@ public final class LcdController implements Component, Clocked {
     private static final int FULL_LINE_CYCLES = 114;
     
     private static final int LINES_IN_VBLANK = 10;
+	private static final int LINES_PER_FRAME = LCD_HEIGHT + LINES_IN_VBLANK;
     
     private static final int TILE_BYTES = 16;
     private static final int SPRITE_BYTES = 4;
@@ -52,6 +53,7 @@ public final class LcdController implements Component, Clocked {
     private final RegisterFile<Reg> rf = new RegisterFile<>(Reg.values());
 
     private long nextNonIdleCycle = Long.MAX_VALUE;
+    private int nextLineIndex = 0;
     private Mode nextMode;
     
     private boolean quickCopyEnabled = false;
@@ -60,8 +62,9 @@ public final class LcdController implements Component, Clocked {
     private LcdImage.Builder nextImageBuilder;
     private LcdImage image = emptyImage();
     
-    private long previousVBLANK = 0;
-
+    private long DEBUG_last_image_cycle = 0;
+    private long DEBUG_cycle = 0;
+    
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
     }
@@ -159,9 +162,13 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
-            setMode(nextMode);
+        		DEBUG_cycle = cycle;
+        	
             //TODO remove
-            System.out.println((nextNonIdleCycle - previousVBLANK) + " : " + currentLine() + " / " + currentMode());
+
+        		updateLineIndex();
+            System.out.printf("cycles: %7d since frame %5d | mode %s -> %s \n", cycle, cycle - DEBUG_last_image_cycle, currentMode().ordinal(), nextMode.ordinal());
+            setMode(nextMode);
             reallyCycle();
         }
         
@@ -176,26 +183,33 @@ public final class LcdController implements Component, Clocked {
         }
     }
 
-    private void reallyCycle() {
+    private void updateLineIndex() {
+    		if (currentLine() != nextLineIndex) {
+    			System.out.printf("cycles: %7d since frame %5d | LY %3d -> %3d \n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle, currentLine(),  nextLineIndex);
+    			writeToLyLyc(Reg.LY, nextLineIndex);    			
+    		}
+	}
+
+	private void reallyCycle() {
         Mode mode = currentMode();
         
         switch (mode) {
             case M1_VBLANK: {
+            		
+            	
                 if (enteringVBlank()) {
+                		System.out.printf("cycles: %7d since frame %5d | request VBLANK\n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle);
+                	
                     cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
-                    
-                    //TODO remove
-                    System.out.println("request VBLANK at cycle "+nextNonIdleCycle);
-                    System.out.println("Diff VBLANK: " + (nextNonIdleCycle - previousVBLANK));
-                    previousVBLANK = nextNonIdleCycle;
-                    
                     image = nextImageBuilder.build();
                     nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);   
                 } else if (exitingVBlank()) {
-                    nextMode = Mode.M2_SPRITE_MEM;                    
+                    nextMode = Mode.M2_SPRITE_MEM;
+                    
+                    DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
                 }
                 
-                updateLineIndex();
+                incrLineIndex();
             } break;
             case M2_SPRITE_MEM: {
                 nextMode = Mode.M3_VIDEO_MEM;
@@ -212,7 +226,7 @@ public final class LcdController implements Component, Clocked {
                     nextMode = Mode.M2_SPRITE_MEM;
                 }
                 
-                updateLineIndex();
+                incrLineIndex();
             } break;
         }
         
@@ -302,9 +316,8 @@ public final class LcdController implements Component, Clocked {
         return currentLine() >= LCD_HEIGHT - 1;
     }
     
-    private void updateLineIndex() {
-        int numberOfLines = LCD_HEIGHT + LINES_IN_VBLANK;
-        writeToLyLyc(Reg.LY, (currentLine() + 1) % numberOfLines);
+    private void incrLineIndex() {
+    		nextLineIndex = (currentLine() + 1) % LINES_PER_FRAME;
     }
     
     private boolean enteringVBlank() {
@@ -312,7 +325,7 @@ public final class LcdController implements Component, Clocked {
     }
     
     private boolean exitingVBlank() {
-        return currentLine() == LCD_HEIGHT + LINES_IN_VBLANK - 1;
+        return currentLine() == LINES_PER_FRAME - 1;
     }
     
     
@@ -487,7 +500,6 @@ public final class LcdController implements Component, Clocked {
     
     private int spriteY(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
-        // TODO : Bits.clip juste ?
         return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET);
     }
     
