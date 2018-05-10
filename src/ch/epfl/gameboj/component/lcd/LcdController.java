@@ -62,8 +62,8 @@ public final class LcdController implements Component, Clocked {
     private LcdImage.Builder nextImageBuilder;
     private LcdImage image = emptyImage();
     
-    private long DEBUG_last_image_cycle = 0;
-    private long DEBUG_cycle = 0;
+    //private long DEBUG_last_image_cycle = 0;
+    //private long DEBUG_cycle = 0;
     
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -162,12 +162,12 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
-        		DEBUG_cycle = cycle;
+        		//DEBUG_cycle = cycle;
         	
             //TODO remove
 
         		updateLineIndex();
-            System.out.printf("cycles: %7d since frame %5d | mode %s -> %s \n", cycle, cycle - DEBUG_last_image_cycle, currentMode().ordinal(), nextMode.ordinal());
+            //TODO System.out.printf("cycles: %7d since frame %5d | mode %s -> %s \n", cycle, cycle - DEBUG_last_image_cycle, currentMode().ordinal(), nextMode.ordinal());
             setMode(nextMode);
             reallyCycle();
         }
@@ -185,7 +185,7 @@ public final class LcdController implements Component, Clocked {
 
     private void updateLineIndex() {
     		if (currentLine() != nextLineIndex) {
-    			System.out.printf("cycles: %7d since frame %5d | LY %3d -> %3d \n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle, currentLine(),  nextLineIndex);
+    			//TODO System.out.printf("cycles: %7d since frame %5d | LY %3d -> %3d \n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle, currentLine(),  nextLineIndex);
     			writeToLyLyc(Reg.LY, nextLineIndex);    			
     		}
 	}
@@ -198,7 +198,7 @@ public final class LcdController implements Component, Clocked {
             		
             	
                 if (enteringVBlank()) {
-                		System.out.printf("cycles: %7d since frame %5d | request VBLANK\n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle);
+                		//TODO System.out.printf("cycles: %7d since frame %5d | request VBLANK\n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle);
                 	
                     cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
                     image = nextImageBuilder.build();
@@ -206,7 +206,7 @@ public final class LcdController implements Component, Clocked {
                 } else if (exitingVBlank()) {
                     nextMode = Mode.M2_SPRITE_MEM;
                     
-                    DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
+                    //DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
                 }
                 
                 incrLineIndex();

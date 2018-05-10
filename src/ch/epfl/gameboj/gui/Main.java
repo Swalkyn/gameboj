@@ -22,7 +22,6 @@ import javafx.stage.Stage;
 
 public final class Main extends Application {
         
-    
     private GameBoy gb;
     
     private static final double TIME_TO_CYCLES = Math.pow(2, 20) / Math.pow(10, 9);
