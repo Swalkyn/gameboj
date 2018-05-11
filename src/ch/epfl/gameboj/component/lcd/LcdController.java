@@ -23,18 +23,6 @@ import ch.epfl.gameboj.component.memory.RamController;
  * @author Sylvain Kuchen (282380)
  * @author Luca Bataillard (282152)
  */
-/**
- * @author luca
- *
- */
-/**
- * @author luca
- *
- */
-/**
- * @author luca
- *
- */
 public final class LcdController implements Component, Clocked {
 
 	public static final int LCD_WIDTH = 160;
@@ -267,7 +255,7 @@ public final class LcdController implements Component, Clocked {
             rf.set(r, data);
             quickCopyEnabled = true;
         }  else if (r == Reg.LYC) {
-        		writeToLyLyc(r, data);
+            writeToLyLyc(r, data);
         } else if (r != Reg.LY) {
             rf.set(r, data);
         }
@@ -308,7 +296,7 @@ public final class LcdController implements Component, Clocked {
         rf.set(r, data);
         rf.setBit(Reg.STAT, Stat.LYC_EQ_LY, rf.get(Reg.LY) == rf.get(Reg.LYC));
 
-        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY)) {
+        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY) && r == Reg.LY) {
             cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
         }        
     }
