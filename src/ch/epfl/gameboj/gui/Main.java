@@ -94,9 +94,6 @@ public final class Main extends Application {
         KeyCode keyCode = e.getCode();
         String keyString = e.getText();
         
-        System.out.println("Keycode : " + keyCode);
-        System.out.println("Keystring : " + keyString);
-        
         Key k;
         
         switch (keyString) {

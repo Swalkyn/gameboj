@@ -192,9 +192,9 @@ public final class LcdImageLine {
      */
     public LcdImageLine join(LcdImageLine second, int index) {
         Preconditions.checkArgument(0 <= index && index <= size);
-    	    Preconditions.checkArgument(size == second.size());
+	    Preconditions.checkArgument(size == second.size());
     	    
-    	    BitVector mask = new BitVector(size, true).shift(index).not();
+	    BitVector mask = new BitVector(size, true).shift(index).not();
     	
         BitVector newMsb = multiplexer(this.msb, second.msb, mask);
         BitVector newLsb = multiplexer(this.lsb, second.lsb, mask);
