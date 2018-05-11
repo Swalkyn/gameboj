@@ -20,7 +20,7 @@ public final class DebugMain3 {
 
     public static void main(String[] args) throws IOException {
       File romFile = new File(PATH);
-      long cycles = 110000;
+      long cycles = 30000000;
 
       GameBoy gb = new GameBoy(Cartridge.ofFile(romFile));
       gb.runUntil(cycles);

@@ -73,6 +73,8 @@ public final class Joypad implements Component {
 		} else {
 			secondRow = Bits.set(secondRow, k.column(), value);
 		}
+		
+		updateColumn(k.column());
 	}
 	
 	private void updateRows(int selectedRows) {
@@ -84,6 +86,10 @@ public final class Joypad implements Component {
 		for (P1 column : P1_COLUMNS) {
 			updateColumn(column);
 		}
+	}
+	
+	private void updateColumn(int columnIndex) {
+		updateColumn(P1.values()[columnIndex]);
 	}
 	
 	private void updateColumn(P1 column) {

@@ -114,8 +114,8 @@ public final class GameBoy {
         
         while(cycles() < cycle) {
             mTimer.cycle(numberOfCycles);
-            mCpu.cycle(numberOfCycles);
             lcd.cycle(numberOfCycles);
+            mCpu.cycle(numberOfCycles);
             numberOfCycles++;
         }
     }

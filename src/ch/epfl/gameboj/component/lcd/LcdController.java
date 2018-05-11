@@ -62,8 +62,8 @@ public final class LcdController implements Component, Clocked {
     private LcdImage.Builder nextImageBuilder;
     private LcdImage image = emptyImage();
     
-    //private long DEBUG_last_image_cycle = 0;
-    //private long DEBUG_cycle = 0;
+    private long DEBUG_last_image_cycle = 0;
+    private long DEBUG_cycle = 0;
     
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -162,12 +162,13 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
-        		//DEBUG_cycle = cycle;
+        		DEBUG_cycle = cycle;
         	
             //TODO remove
 
         		updateLineIndex();
-            //TODO System.out.printf("cycles: %7d since frame %5d | mode %s -> %s \n", cycle, cycle - DEBUG_last_image_cycle, currentMode().ordinal(), nextMode.ordinal());
+            //TODO 
+        		//System.out.printf("cycles: %7d since frame %5d | mode %s -> %s \n", cycle, cycle - DEBUG_last_image_cycle, currentMode().ordinal(), nextMode.ordinal());
             setMode(nextMode);
             reallyCycle();
         }
@@ -185,7 +186,8 @@ public final class LcdController implements Component, Clocked {
 
     private void updateLineIndex() {
     		if (currentLine() != nextLineIndex) {
-    			//TODO System.out.printf("cycles: %7d since frame %5d | LY %3d -> %3d \n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle, currentLine(),  nextLineIndex);
+    			//TODO 
+    			//System.out.printf("cycles: %7d since frame %5d | LY %3d -> %3d \n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle, currentLine(),  nextLineIndex);
     			writeToLyLyc(Reg.LY, nextLineIndex);    			
     		}
 	}
@@ -195,10 +197,9 @@ public final class LcdController implements Component, Clocked {
         
         switch (mode) {
             case M1_VBLANK: {
-            		
-            	
                 if (enteringVBlank()) {
-                		//TODO System.out.printf("cycles: %7d since frame %5d | request VBLANK\n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle);
+                		//TODO 
+                		//System.out.printf("cycles: %7d since frame %5d | request VBLANK\n", DEBUG_cycle, DEBUG_cycle - DEBUG_last_image_cycle);
                 	
                     cpu.requestInterrupt(Cpu.Interrupt.VBLANK);
                     image = nextImageBuilder.build();
@@ -206,7 +207,7 @@ public final class LcdController implements Component, Clocked {
                 } else if (exitingVBlank()) {
                     nextMode = Mode.M2_SPRITE_MEM;
                     
-                    //DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
+                    DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
                 }
                 
                 incrLineIndex();
@@ -255,7 +256,9 @@ public final class LcdController implements Component, Clocked {
         } else if (r == Reg.DMA) {
             rf.set(r, data);
             quickCopyEnabled = true;
-        } else if (!(r == Reg.LY || r == Reg.LYC)) {
+        }  else if (r == Reg.LYC) {
+        		writeToLyLyc(r, data);
+        } else if (r != Reg.LY) {
             rf.set(r, data);
         }
     }
@@ -282,11 +285,11 @@ public final class LcdController implements Component, Clocked {
     
     private void setMode(Mode mode) {
         int modeCode = mode.index();
-
-        raiseStatIfModeFlagOn(mode);
         
         rf.setBit(Reg.STAT, Stat.MODE1, Bits.test(modeCode, Stat.MODE1));
         rf.setBit(Reg.STAT, Stat.MODE0, Bits.test(modeCode, Stat.MODE0));        
+
+        raiseStatIfModeFlagOn(mode);
     }
 
     private void writeToLyLyc(Reg r, int data) {
@@ -341,14 +344,14 @@ public final class LcdController implements Component, Clocked {
         line = mergeSpritesWithBackround(line, bgSpritesLine, fgStritesLine);
         
         line = addWindowLineIfNecessary(line);
-//                
+               
         return line;
     }
 
     private LcdImageLine backgroundLine(int lineIndex) {
         if (rf.testBit(Reg.LCDC, Lcdc.BG)) {
             LcdImageLine backLine = extractLine(lineIndex, memoryStart(Lcdc.BG_AREA));
-            return backLine.mapColors(rf.get(Reg.BGP)).extractWrapped(0, LCD_WIDTH); // scx() foire
+            return backLine.mapColors(rf.get(Reg.BGP)).extractWrapped(scx(), LCD_WIDTH);
         } else {
             return emptyLine().extractWrapped(scx(), LCD_WIDTH);
         }
@@ -490,6 +493,7 @@ public final class LcdController implements Component, Clocked {
     }
     
     private int scx() {
+    		
         return rf.get(Reg.SCX);
     }
     

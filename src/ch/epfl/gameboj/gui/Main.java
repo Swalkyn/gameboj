@@ -34,7 +34,6 @@ public final class Main extends Application {
     @Override
     public void start(Stage primaryStage){
         verifyArguments();
-        
         createGameboy();
         
         ImageView imgView = new ImageView();
@@ -93,9 +92,6 @@ public final class Main extends Application {
     private void handleKeyEvent(KeyEvent e, Consumer<Joypad.Key> c) {
         KeyCode keyCode = e.getCode();
         String keyString = e.getText();
-        
-        System.out.println("Keycode : " + keyCode);
-        System.out.println("Keystring : " + keyString);
         
         Key k;
         
