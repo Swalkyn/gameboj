@@ -47,7 +47,7 @@ public final class BitVector {
          * @return this (to be able to chain build instructions)
          */
         public Builder setByte(int byteIndex, int b) {
-        	Preconditions.checkBits8(b);
+        		Preconditions.checkBits8(b);
         	
             if (!enabled) {
                 throw new IllegalStateException();

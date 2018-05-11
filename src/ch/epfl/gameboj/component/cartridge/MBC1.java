@@ -21,6 +21,11 @@ public final class MBC1 implements Component {
     private int romLsb5, ramRom2;
     private final int romMask, ramMask;
 
+    /**
+     * 
+     * @param rom
+     * @param ramSize
+     */
     public MBC1(Rom rom, int ramSize) {
         this.rom = rom;
         this.ram = new Ram(ramSize);
@@ -33,7 +38,11 @@ public final class MBC1 implements Component {
         this.romMask = rom.size() - 1;
         this.ramMask = ramSize - 1;
     }
-
+    
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
+    @Override
     public int read(int address) {
         switch (Bits.extract(checkBits16(address), 13, 3)) {
         case 0: case 1:
@@ -47,6 +56,9 @@ public final class MBC1 implements Component {
         }
     }
 
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
         checkBits8(data);
@@ -72,9 +84,9 @@ public final class MBC1 implements Component {
 
     private int msb2() {
         switch (mode) {
-        case MODE_0: return 0;
-        case MODE_1: return ramRom2;
-        default: throw new Error();
+        		case MODE_0: return 0;
+        		case MODE_1: return ramRom2;
+        		default: throw new Error();
         }
     }
 
