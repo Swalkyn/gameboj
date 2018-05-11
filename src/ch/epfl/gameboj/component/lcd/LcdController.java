@@ -388,7 +388,7 @@ public final class LcdController implements Component, Clocked {
                 
                 LcdImageLine oneSpriteLine = new LcdImageLine.Builder(LCD_WIDTH).setBytes(0, msb, lsb).build();
                 
-                oneSpriteLine = oneSpriteLine.shift(spriteX(spriteIndex)).mapColors(spritePalette(spriteIndex));
+                oneSpriteLine = oneSpriteLine.shift(spriteX(spriteIndex) - X_OFFSET).mapColors(spritePalette(spriteIndex));
                 line = oneSpriteLine.below(line);
             }
         }
@@ -511,13 +511,13 @@ public final class LcdController implements Component, Clocked {
     
     private int spriteY(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
-        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index)  - Y_OFFSET);
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET);
     }
     
     private int spriteX(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
-        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1) - X_OFFSET);
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1));
     }
     
     private int spriteTileAddress(int index) {
