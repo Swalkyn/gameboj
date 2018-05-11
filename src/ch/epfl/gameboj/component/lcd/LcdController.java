@@ -3,8 +3,6 @@ package ch.epfl.gameboj.component.lcd;
 import java.util.Arrays;
 import java.util.Objects;
 
-import com.sun.prism.shader.Mask_TextureRGB_AlphaTest_Loader;
-
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
@@ -64,8 +62,8 @@ public final class LcdController implements Component, Clocked {
     private LcdImage.Builder nextImageBuilder;
     private LcdImage image = emptyImage();
     
-    private long DEBUG_last_image_cycle = 0;
-    private long DEBUG_cycle = 0;
+    //private long DEBUG_last_image_cycle = 0;
+    //private long DEBUG_cycle = 0;
     
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OBP0, OBP1, WY, WX
@@ -164,7 +162,7 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
-        		DEBUG_cycle = cycle;
+        		//DEBUG_cycle = cycle;
         	
             //TODO remove
 
@@ -209,7 +207,7 @@ public final class LcdController implements Component, Clocked {
                 } else if (exitingVBlank()) {
                     nextMode = Mode.M2_SPRITE_MEM;
                     
-                    DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
+                    //DEBUG_last_image_cycle = DEBUG_cycle + mode.cycles;
                 }
                 
                 incrLineIndex();
@@ -275,7 +273,6 @@ public final class LcdController implements Component, Clocked {
             quickCopyIndex = 0;
         }
     }
-    
     
     /* Mode control */
 
@@ -493,7 +490,7 @@ public final class LcdController implements Component, Clocked {
     
     private int wx() {
         final int WX_OFFSET = 7;
-        return rf.get(Reg.WX) - WX_OFFSET;
+        return Math.max(0, rf.get(Reg.WX) - WX_OFFSET);
     }
     
     private int scx() {
