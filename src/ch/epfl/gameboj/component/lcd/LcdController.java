@@ -3,6 +3,8 @@ package ch.epfl.gameboj.component.lcd;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.sun.prism.shader.Mask_TextureRGB_AlphaTest_Loader;
+
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
@@ -337,14 +339,15 @@ public final class LcdController implements Component, Clocked {
     private LcdImageLine computeLine() {
         int lineIndex = (scy() + currentLine()) % FULL_LINE_SIZE;
         
+        //System.out.println(rf.testBit(Reg.LCDC, Lcdc.OBJ));
+        
         LcdImageLine line = backgroundLine(lineIndex);
         LcdImageLine bgSpritesLine = spritesLine(currentLine(), true);
-        LcdImageLine fgStritesLine = spritesLine(currentLine(), false);
-        
-        line = mergeSpritesWithBackround(line, bgSpritesLine, fgStritesLine);
-        
+        LcdImageLine fgSpritesLine = spritesLine(currentLine(), false);
+                
         line = addWindowLineIfNecessary(line);
-               
+        line = mergeSpritesWithBackground(line, bgSpritesLine, fgSpritesLine);
+
         return line;
     }
 
@@ -402,13 +405,14 @@ public final class LcdController implements Component, Clocked {
         return lb.build();
     }
     
-    private LcdImageLine mergeSpritesWithBackround(LcdImageLine background, LcdImageLine bgSprites, LcdImageLine fgSprites) {
-        BitVector opacityMask = background.opacity().and(bgSprites.opacity().not()); // TODO : correct opacity ?
+    private LcdImageLine mergeSpritesWithBackground(LcdImageLine background, LcdImageLine bgSprites, LcdImageLine fgSprites) {
+        BitVector opacityMask = background.opacity().or(bgSprites.opacity().not()); // TODO : correct opacity ?
         
         return bgSprites.below(background, opacityMask).below(fgSprites);
     }
     
     private LcdImageLine addWindowLineIfNecessary(LcdImageLine line) {
+        //System.out.println(windowOn());
         if (currentLine() >= rf.get(Reg.WY) && windowOn()) {
             int winLineIndex = currentLine() - rf.get(Reg.WY);
             LcdImageLine winLine = windowLine(winLineIndex);
@@ -510,7 +514,7 @@ public final class LcdController implements Component, Clocked {
     
     private int spriteY(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
-        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET);
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index)  - Y_OFFSET);
     }
     
     private int spriteX(int index) {
