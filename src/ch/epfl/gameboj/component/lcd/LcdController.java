@@ -380,7 +380,7 @@ public final class LcdController implements Component, Clocked {
                 
                 LcdImageLine oneSpriteLine = new LcdImageLine.Builder(LCD_WIDTH).setBytes(0, msb, lsb).build();
                 
-                oneSpriteLine = oneSpriteLine.shift(spriteX(spriteIndex) - X_OFFSET).mapColors(spritePalette(spriteIndex));
+                oneSpriteLine = oneSpriteLine.shift(spriteX(spriteIndex)).mapColors(spritePalette(spriteIndex));
                 line = oneSpriteLine.below(line);
             }
         }
@@ -447,7 +447,7 @@ public final class LcdController implements Component, Clocked {
         while (i < SPRITES_IN_MEMORY && j < SPRITES_PER_LINE) {
             int distance = currentLine() - spriteY(i);
             if (0 <= distance && distance < spriteHeight) {
-                lineSprites[j] = Bits.make16(spriteX(i), i);
+                lineSprites[j] = Bits.make16(spriteX(i) + X_OFFSET, i);
                 j++;
             }
             i++;
@@ -511,13 +511,13 @@ public final class LcdController implements Component, Clocked {
     
     private int spriteY(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
-        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET);
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index)) - Y_OFFSET;
     }
     
     private int spriteX(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
         
-        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1));
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index + 1)) - X_OFFSET;
     }
     
     private int spriteTileAddress(int index) {
@@ -538,7 +538,7 @@ public final class LcdController implements Component, Clocked {
         
         int byteIndex;
         if (flipV) {
-            byteIndex = 2 * (spritesHeight() - (lineIndex - spriteY(index))) + (msb ? 1 : 0);
+            byteIndex = 2 * (spritesHeight() - (lineIndex - (index))) + (msb ? 1 : 0);
         } else {
             byteIndex = 2 * (lineIndex - spriteY(index)) + (msb ? 1 : 0);
         }
