@@ -554,28 +554,4 @@ public final class LcdController implements Component, Clocked {
     private int spritePalette(int index) {
         return spriteAttr(index, Sprite.PALETTE) ? rf.get(Reg.OBP1) : rf.get(Reg.OBP0);
     }
-    
-    
-    /* Tests */
-    
-    /**
-     * @return image of the tiles used for drawing the sprites
-     */
-    public LcdImage spriteTiles() {
-        LcdImage.Builder ib = new LcdImage.Builder(8 * SPRITES_IN_MEMORY, LINES_PER_TILE);
-        
-        for (int i = 0; i < LINES_PER_TILE; i++) {
-            LcdImageLine.Builder lb = new LcdImageLine.Builder(8 * SPRITES_IN_MEMORY);
-                    
-            for (int j = 0; j < SPRITES_IN_MEMORY; j++) {
-                int msb = Bits.reverse8(vRam.read(spriteTileAddress(j) + (2 * i) + 1));
-                int lsb = Bits.reverse8(vRam.read(spriteTileAddress(j) + (2 * i)));
-                lb.setBytes(j, msb, lsb);
-            }
-            
-            ib.setLine(i, lb.build());
-        }
-        
-        return ib.build();
-    }
 }

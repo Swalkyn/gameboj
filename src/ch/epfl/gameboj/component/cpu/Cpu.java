@@ -25,7 +25,6 @@ import ch.epfl.gameboj.component.memory.Ram;
  */
 public final class Cpu implements Component, Clocked {
     
-    //private static final int NUMBER_OF_OPCODES = 256;
 	private static final int RAM_HALFPOINT = 0xFF00;
     private static final int INTERRUPT_CYCLE = 5;
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(Opcode.Kind.DIRECT); 
