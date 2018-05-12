@@ -499,7 +499,7 @@ public final class LcdController implements Component, Clocked {
     
     private int spriteY(int index) {
         Objects.checkIndex(index, SPRITES_IN_MEMORY);
-        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index)) - Y_OFFSET;
+        return Bits.clip(8, oamRam.read(AddressMap.OAM_START + SPRITE_BYTES * index) - Y_OFFSET);
     }
     
     private int spriteX(int index) {
@@ -525,7 +525,7 @@ public final class LcdController implements Component, Clocked {
         
         int byteIndex;
         if (flipV) {
-            byteIndex = 2 * (spritesHeight() - (lineIndex - (index))) + (msb ? 1 : 0);
+            byteIndex = 2 * (spritesHeight() - (lineIndex - spriteY(index))) + (msb ? 1 : 0);
         } else {
             byteIndex = 2 * (lineIndex - spriteY(index)) + (msb ? 1 : 0);
         }
