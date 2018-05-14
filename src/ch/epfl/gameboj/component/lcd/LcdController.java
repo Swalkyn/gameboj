@@ -174,8 +174,7 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         if (cycle == nextNonIdleCycle) {
-        		updateLineIndex();
-            setMode(nextMode);
+    		
             reallyCycle();
         }
         
@@ -185,18 +184,22 @@ public final class LcdController implements Component, Clocked {
         
         if (nextNonIdleCycle == Long.MAX_VALUE && rf.testBit(Reg.LCDC, Lcdc.LCD_STATUS)) {
             nextNonIdleCycle = cycle;
-            setMode(Mode.M2_SPRITE_MEM);
+            nextMode = Mode.M2_SPRITE_MEM;
+            nextLineIndex = 0;
             reallyCycle();
         }
     }
 
     private void updateLineIndex() {
-    		if (currentLine() != nextLineIndex) {
-    			writeToLyLyc(Reg.LY, nextLineIndex);    			
-    		}
+		if (currentLine() != nextLineIndex) {
+			writeToLyLyc(Reg.LY, nextLineIndex);    			
+		}
 	}
 
 	private void reallyCycle() {
+		updateLineIndex();
+        setMode(nextMode);
+		
         Mode mode = currentMode();
         
         switch (mode) {
@@ -296,7 +299,7 @@ public final class LcdController implements Component, Clocked {
         rf.set(r, data);
         rf.setBit(Reg.STAT, Stat.LYC_EQ_LY, rf.get(Reg.LY) == rf.get(Reg.LYC));
 
-        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY) && r == Reg.LY) {
+        if (rf.testBit(Reg.STAT, Stat.INT_LYC) && rf.testBit(Reg.STAT, Stat.LYC_EQ_LY)) {
             cpu.requestInterrupt(Cpu.Interrupt.LCD_STAT);
         }        
     }
