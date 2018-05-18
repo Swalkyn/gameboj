@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad.Key;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
@@ -21,7 +20,7 @@ public final class DebugMain3 {
 
     public static void main(String[] args) throws IOException {
       File romFile = new File(PATH);
-      long cycles = 30_000_000;
+      long cycles = 30000000;
 
       GameBoy gb = new GameBoy(Cartridge.ofFile(romFile));
       gb.runUntil(cycles);

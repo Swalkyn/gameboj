@@ -19,6 +19,9 @@ public final class LcdImage {
     private final int height;
     private final List<LcdImageLine> lines;
     
+    /**
+     * Mutable builder for LcdImage
+     */
     public static final class Builder {
         
         private final int width;
@@ -29,6 +32,7 @@ public final class LcdImage {
         
         /**
          * Creates a new builder
+         * 
          * @param width : width of the image to build
          * @param height : height of the image to build
          * @throws IllegalArgumentException if width or height are negative
@@ -47,6 +51,7 @@ public final class LcdImage {
         
         /**
          * Sets a given line of pixels at specified index
+         * 
          * @param index : index
          * @param line : line to be set
          * @throws IllegalArgumentException if line has an incorrect size
@@ -58,7 +63,7 @@ public final class LcdImage {
             Objects.checkIndex(index, height);
             
             if (!enabled) {
-                throw new IllegalStateException();
+                throw new IllegalStateException("This builder has already constructed an image");
             }
             
             lines.set(index, line);
@@ -68,6 +73,7 @@ public final class LcdImage {
         
         /**
          * Builds the image that has been constructed so far
+         * 
          * @return the new image
          */
         public LcdImage build() {
@@ -78,6 +84,7 @@ public final class LcdImage {
     
     /**
      * Creates a new image with given parameters
+     * 
      * @param width : width of the new image
      * @param height : height of the new image
      * @param lines : the lines that form the image
@@ -107,8 +114,10 @@ public final class LcdImage {
     
     /**
      * Returns the value of the pixel at specified coordinates
+     * 
      * @param x : horizontal position of the pixel
      * @param y : vertical position of the pixel
+     * @throws IndexOutOfBoundsException if the given coordinates are not in range
      * @return the color value (0-3) of the pixel 
      */
     public int get(int x, int y) {

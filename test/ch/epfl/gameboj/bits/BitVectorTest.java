@@ -41,7 +41,7 @@ public class BitVectorTest {
     void notWorksOnKnownValues() {
         BitVector v1 = new BitVector(DEFAULT_SIZE, true);
         BitVector v2 = new BitVector(DEFAULT_SIZE, false);
-        BitVector v3 = new BitVector.Builder(32).setByte(2, (byte) 0xFF).build();
+        BitVector v3 = new BitVector.Builder(32).setByte(2,  0xFF).build();
         
         assertTrue(v1.not().equals(v2));
         assertTrue(v2.not().equals(v1));
@@ -51,7 +51,7 @@ public class BitVectorTest {
     @Test
     void andWorksOnKnownValues() {
         BitVector v1 = new BitVector(DEFAULT_SIZE, true);
-        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1, (byte) 0xFF).setByte(3, (byte) 0xDD).setByte(11, (byte) 0xAA).build();
+        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1,  0xFF).setByte(3,  0xDD).setByte(11,  0xAA).build();
         
         int[] check = {0, 0, 0, 0 ,0, 0xAA000000, 0, 0xDD00FF00};
         assertEquals(integerArrayToBinaryString(check), v1.and(v2).toString());
@@ -68,7 +68,7 @@ public class BitVectorTest {
     @Test
     void orWorksOnKnownValues() {
         BitVector v1 = new BitVector(DEFAULT_SIZE, false);
-        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1, (byte) 0xFF).setByte(3, (byte) 0xDD).setByte(11, (byte) 0xAA).build();
+        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(1,  0xFF).setByte(3,  0xDD).setByte(11,  0xAA).build();
         
         int[] check = {0, 0, 0, 0 ,0, 0xAA000000, 0, 0xDD00FF00};
         assertEquals(integerArrayToBinaryString(check), v1.or(v2).toString());
@@ -163,8 +163,8 @@ public class BitVectorTest {
         BitVector v1 = new BitVector(DEFAULT_SIZE, false);
         BitVector v2 = new BitVector(DEFAULT_SIZE, false);
         
-        BitVector v3 = new BitVector.Builder(32).setByte(2, (byte) 0xAA).build();
-        BitVector v4 = new BitVector.Builder(32).setByte(2, (byte) 0xAA).build();
+        BitVector v3 = new BitVector.Builder(32).setByte(2,  0xAA).build();
+        BitVector v4 = new BitVector.Builder(32).setByte(2,  0xAA).build();
 
         assertTrue(v1.equals(v2));
         assertTrue(v3.equals(v4));
@@ -175,8 +175,8 @@ public class BitVectorTest {
         BitVector v1 = new BitVector(DEFAULT_SIZE, false);
         BitVector v2 = new BitVector(64, false);
         
-        BitVector v3 = new BitVector.Builder(64).setByte(5, (byte) 0xA1).build();
-        BitVector v4 = new BitVector.Builder(64).setByte(5, (byte) 0xAA).build();
+        BitVector v3 = new BitVector.Builder(64).setByte(5,  0xA1).build();
+        BitVector v4 = new BitVector.Builder(64).setByte(5,  0xAA).build();
         
         assertFalse(v1.equals(v2));
         assertFalse(v3.equals(v4));
@@ -184,9 +184,9 @@ public class BitVectorTest {
     
     @Test
     void hashCodeAndEqualsAreCompatible() {
-        BitVector v1 = new BitVector.Builder(DEFAULT_SIZE).setByte(3, (byte) 0xDD).setByte(18, (byte) 0xFF).setByte(23, (byte) 0xAA).build();
-        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(3, (byte) 0xDD).setByte(18, (byte) 0xFF).setByte(23, (byte) 0xAA).build();
-        BitVector v3 = new BitVector.Builder(DEFAULT_SIZE).setByte(3, (byte) 0xDA).setByte(18, (byte) 0xFF).setByte(23, (byte) 0xAA).build();
+        BitVector v1 = new BitVector.Builder(DEFAULT_SIZE).setByte(3,  0xDD).setByte(18,  0xFF).setByte(23,  0xAA).build();
+        BitVector v2 = new BitVector.Builder(DEFAULT_SIZE).setByte(3,  0xDD).setByte(18,  0xFF).setByte(23,  0xAA).build();
+        BitVector v3 = new BitVector.Builder(DEFAULT_SIZE).setByte(3,  0xDA).setByte(18,  0xFF).setByte(23,  0xAA).build();
 
         assertTrue(v1.hashCode() == v2.hashCode());
         assertFalse(v1.hashCode() == v3.hashCode());
@@ -194,8 +194,8 @@ public class BitVectorTest {
     
     @Test
     void toStringWorksForKnownValues() {
-        BitVector v1 = new BitVector.Builder(DEFAULT_SIZE).setByte(3, (byte) 0xDD).setByte(18, (byte) 0xFF).setByte(23, (byte) 0xAA).build();
-        BitVector v2 = new BitVector.Builder(64).setByte(6, (byte) 0xDA).build();
+        BitVector v1 = new BitVector.Builder(DEFAULT_SIZE).setByte(3,  0xDD).setByte(18,  0xFF).setByte(23,  0xAA).build();
+        BitVector v2 = new BitVector.Builder(64).setByte(6,  0xDA).build();
         
         int[] check1 = {0, 0, 0xAA000000, 0x00FF0000, 0, 0, 0, 0xDD000000};
         int[] check2 = {0x00DA0000, 0};
@@ -229,7 +229,7 @@ public class BitVectorTest {
 
         for (int i = 0; i < blocks.length; i++) {
             for (int j = 0; j < 4; j++) {
-                byte b = (byte)((blocks[i] >> 8*j) & 0xFF);
+                int b = ((blocks[i] >> 8*j) & 0xFF);
                 bvb.setByte(4*(blocks.length - i - 1) + j, b);
             }
         }

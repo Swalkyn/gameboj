@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
@@ -19,7 +20,11 @@ public final class Cartridge implements Component {
     
     private final Component memoryBank;
     public static final int MB_TYPE_ADDRESS = 0x147;
-    public static final int MB_TYPE = 0;
+    public static final int RAM_SIZE_ADDRESS = 0x149;
+    public static final int MB_TYPE_0 = 0;
+    public static final int[] MB_TYPE_1 = {1, 2, 3};
+    
+    private static final int[] RAM_SIZES = {0x0000, 0x0800, 0x2000, 0x8000};
     
     private Cartridge(Component memoryBank) {
         this.memoryBank = memoryBank;
@@ -44,10 +49,16 @@ public final class Cartridge implements Component {
                 throw new IOException();
             }
             
-            Preconditions.checkArgument(data[MB_TYPE_ADDRESS] == MB_TYPE);
-            
             Rom rom = new Rom(data);
-            return new Cartridge(new MBC0(rom));
+            
+            if(data[MB_TYPE_ADDRESS] == MB_TYPE_0) {
+                return new Cartridge(new MBC0(rom));
+            } else if (isType1(data)) {
+                int ramSize = RAM_SIZES[data[RAM_SIZE_ADDRESS]];
+                return new Cartridge(new MBC1(rom, ramSize));
+            } else {
+                throw new IllegalArgumentException("Cartridge type is not supported : type " + data[MB_TYPE_ADDRESS]);
+            }
         }
     }        
 
@@ -76,5 +87,9 @@ public final class Cartridge implements Component {
         Preconditions.checkBits8(data);
         
         memoryBank.write(address, data);
+    }
+
+    private static boolean isType1(byte[] data) {
+        return Arrays.binarySearch(MB_TYPE_1, data[MB_TYPE_ADDRESS]) >= 0;
     }
 }
