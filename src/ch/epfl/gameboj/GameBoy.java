@@ -19,7 +19,7 @@ import ch.epfl.gameboj.component.memory.RamController;
  */
 public final class GameBoy {
 	
-	public static final long CYCLES_PER_SECOND = 1 << 20;
+	public static final long CYCLES_PER_SECOND = (long) Math.pow(2, 20);
 	public static final double CYCLES_PER_NANOSECOND = CYCLES_PER_SECOND * 1E-9;
     
     private final Bus mBus;

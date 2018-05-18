@@ -53,7 +53,7 @@ public final class Cartridge implements Component {
             
             if(data[MB_TYPE_ADDRESS] == MB_TYPE_0) {
                 return new Cartridge(new MBC0(rom));
-            } else if (Arrays.binarySearch(MB_TYPE_1, data[MB_TYPE_ADDRESS]) >= 0) {
+            } else if (isType1(data)) {
                 int ramSize = RAM_SIZES[data[RAM_SIZE_ADDRESS]];
                 return new Cartridge(new MBC1(rom, ramSize));
             } else {
@@ -87,5 +87,9 @@ public final class Cartridge implements Component {
         Preconditions.checkBits8(data);
         
         memoryBank.write(address, data);
+    }
+
+    private static boolean isType1(byte[] data) {
+        return Arrays.binarySearch(MB_TYPE_1, data[MB_TYPE_ADDRESS]) >= 0;
     }
 }

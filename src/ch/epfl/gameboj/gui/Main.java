@@ -30,7 +30,7 @@ public final class Main extends Application {
     private static final Map<String, Key> TEXT_KEY_MAP = buildTextKeyMap();
     private static final Map<KeyCode, Key> CODE_KEY_MAP = buildCodeKeyMap();
     
-    private static final double TIME_TO_CYCLES = Math.pow(2, 20) / Math.pow(10, 9);
+    private static final double TIME_TO_CYCLES = GameBoy.CYCLES_PER_NANOSECOND;
     
     public static void main(String[] args) {
         Application.launch(args);
@@ -61,18 +61,18 @@ public final class Main extends Application {
         };
         
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Gameboy Emulator");
+        primaryStage.setTitle("Gameboj");
         primaryStage.sizeToScene();
         primaryStage.show();
         imgView.requestFocus();
         
         previousTime = System.nanoTime();
         timer.start();
-        
     }
     
     private void verifyArguments() {
         if (getParameters().getRaw().size() != 1) {
+            System.err.println("Invalid number of arguments");
             System.exit(1);
         }
     }
@@ -96,25 +96,25 @@ public final class Main extends Application {
     private void handleKeyEvent(KeyEvent e, Consumer<Joypad.Key> c) {
         Key k = TEXT_KEY_MAP.getOrDefault(e.getText(), CODE_KEY_MAP.getOrDefault(e.getCode(), null));
         if (k != null) {
-        		c.accept(k);
+    		c.accept(k);
         }
     }
     
     private static Map<String, Key> buildTextKeyMap() {
-    		Map<String, Key> keyMap = new HashMap<>();
-    		keyMap.put("a", Key.A);
-    		keyMap.put("b", Key.B);
-    		keyMap.put("s", Key.START);
-    		keyMap.put(" ", Key.SELECT);
-    		return keyMap;
+		Map<String, Key> keyMap = new HashMap<>();
+		keyMap.put("a", Key.A);
+		keyMap.put("b", Key.B);
+		keyMap.put("s", Key.START);
+		keyMap.put(" ", Key.SELECT);
+		return keyMap;
     }
     
     private static Map<KeyCode, Key> buildCodeKeyMap() {
-    		Map<KeyCode, Key> keyMap = new HashMap<>();
-    		keyMap.put(KeyCode.LEFT, Key.LEFT);
-    		keyMap.put(KeyCode.RIGHT, Key.RIGHT);
-    		keyMap.put(KeyCode.UP, Key.UP);
-    		keyMap.put(KeyCode.DOWN, Key.DOWN);
-    		return keyMap;
+		Map<KeyCode, Key> keyMap = new HashMap<>();
+		keyMap.put(KeyCode.LEFT, Key.LEFT);
+		keyMap.put(KeyCode.RIGHT, Key.RIGHT);
+		keyMap.put(KeyCode.UP, Key.UP);
+		keyMap.put(KeyCode.DOWN, Key.DOWN);
+		return keyMap;
     }
 }
