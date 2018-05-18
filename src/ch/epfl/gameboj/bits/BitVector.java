@@ -13,15 +13,21 @@ import ch.epfl.gameboj.Preconditions;
  */
 public final class BitVector {
 
-	private static final int BLOCK_SIZE = 32;
+    private static final int BLOCK_SIZE = 32;
     private final int[] blocks;
     private final int numberOfBits;
     
-    private static enum Extraction {
+    private enum Extraction {
         ZERO, WRAP;
     }
     
+    /**
+     * Mutable Builder for BitVector
+     */
     public static final class Builder {
+        
+        private static final int BYTES_PER_BLOCK = 4;
+        
         private final int[] bytes;
         private final int fullSize;
         private boolean enabled = true;
@@ -47,10 +53,10 @@ public final class BitVector {
          * @return this (to be able to chain build instructions)
          */
         public Builder setByte(int byteIndex, int b) {
-        		Preconditions.checkBits8(b);
+        	Preconditions.checkBits8(b);
         	
             if (!enabled) {
-                throw new IllegalStateException();
+                throw new IllegalStateException("This builder has already constructed a vector");
             }
             
             Objects.checkIndex(byteIndex, fullSize);
@@ -66,13 +72,13 @@ public final class BitVector {
          */
         public BitVector build() {
             if (!enabled) {
-                throw new IllegalStateException();
+                throw new IllegalStateException("This builder has already constructed a vector");
             }
             
             int[] vector = new int[fullSize / BLOCK_SIZE];
             
             for(int i = 0; i < vector.length; i++) {
-                vector[i] = combineFourBytes(4 * i);
+                vector[i] = combineFourBytes(BYTES_PER_BLOCK * i);
             }
             
             enabled = false;
@@ -82,13 +88,16 @@ public final class BitVector {
         private int combineFourBytes(int index) {
             int value = 0;
             
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < BYTES_PER_BLOCK; i++) {
                 value = value | (bytes[index + i] << i * Byte.SIZE);
             }
             
             return value;
         }
     }
+    
+    
+    /* Constructors */
     
     /**
      * Creates a new vector of given size, with all of its bits set to 0
@@ -110,14 +119,17 @@ public final class BitVector {
         
         this.numberOfBits = size;
         this.blocks = new int[size / BLOCK_SIZE];
-        int v = initialValue ? ~0 : 0;
-        Arrays.fill(blocks, v);     
+        int initBlock = initialValue ? ~0 : 0;
+        Arrays.fill(blocks, initBlock);     
     }
     
     private BitVector(int[] blocks) {
         this.numberOfBits = BLOCK_SIZE * blocks.length;
         this.blocks = blocks;
     }
+    
+    
+    /* Public methods */
     
     /**
      * @return the size of the vector in bits
@@ -129,6 +141,7 @@ public final class BitVector {
     /**
      * Gives the value of the bits at specified index
      * @param index : index of the bit to be tested
+     * @throws IndexOutOfBoundsException if the index is not in range
      * @return the value of the bit
      */
     public boolean testBit(int index) {
@@ -188,8 +201,8 @@ public final class BitVector {
      * Extract a given number of bits at specified index, with a zero extension
      * @param start : start of the extraction
      * @param numberOfBits : number of bits to be extracted
+     * @throws IllegalArgumentException if the number of bits is negative
      * @return a new BitVector of the extracted bits
-     * @throws 
      */
     public BitVector extractZeroExtended(int start, int numberOfBits) {
         return new BitVector(extract(start, numberOfBits, Extraction.ZERO));
@@ -199,6 +212,7 @@ public final class BitVector {
      * Extract a given number of bits at specified index, with a wrapped extension
      * @param start : start of the extraction
      * @param numberOfBits : number of bits to be extracted
+     * @throws IllegalArgumentException if the number of bits is negative
      * @return a new BitVector of the extracted bits
      */
     public BitVector extractWrapped(int start, int numberOfBits) {
@@ -238,6 +252,9 @@ public final class BitVector {
         
         return sb.toString();
     }
+    
+    
+    /* Private methods */
     
     private int[] extract(int start, int numberOfBits, Extraction e) {
         Preconditions.checkArgument(numberOfBits >= 0 && numberOfBits % BLOCK_SIZE == 0);
