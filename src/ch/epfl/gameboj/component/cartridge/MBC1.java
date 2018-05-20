@@ -97,7 +97,8 @@ public final class MBC1 implements Component {
         Preconditions.checkArgument(data.length <= ram.size());
         
         for (int i = 0; i < data.length; i++) {
-            ram.write(i, data[i]);
+            System.out.println(data[i]);
+            ram.write(i, Byte.toUnsignedInt(data[i]));
         }
     }
 

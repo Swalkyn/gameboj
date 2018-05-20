@@ -26,12 +26,13 @@ public final class Main extends Application {
         
     private GameBoy gb;
     private Cartridge cartridge;
+    private File save;
     private long previousTime;
     
     private static final Map<String, Key> TEXT_KEY_MAP = buildTextKeyMap();
     private static final Map<KeyCode, Key> CODE_KEY_MAP = buildCodeKeyMap();
     
-    private static final double TIME_TO_CYCLES = GameBoy.CYCLES_PER_NANOSECOND;
+    private static final double TIME_TO_CYCLES = GameBoy.CYCLES_PER_NANOSECOND;    
     
     public static void main(String[] args) {
         Application.launch(args);
@@ -74,10 +75,7 @@ public final class Main extends Application {
     @Override
     public void stop() {
         try {
-            if (getParameters().getRaw().size() == 2) {
-                File save = new File(getParameters().getRaw().get(1));
-                cartridge.save(save);        
-            }
+            cartridge.save(save);
         } catch (IOException e) {
             System.err.println("Error happened during save");
         }
@@ -94,19 +92,26 @@ public final class Main extends Application {
     private void createGameboy() {
         try {
             File rom = new File(getParameters().getRaw().get(0));
-            cartridge = Cartridge.ofFile(rom);
             
             if (getParameters().getRaw().size() == 2) {
-                File save = new File(getParameters().getRaw().get(1));
-                cartridge.load(save);
+               save = new File(getParameters().getRaw().get(1));
+            } else {
+                String gameName = getParameters().getRaw().get(0);
+                String saveName = gameName.substring(0, gameName.length() - 3) + "Save.bin";
+                save = new File(saveName);
             }
-            gb = new GameBoy(cartridge);            
+            
+            cartridge = Cartridge.ofFile(rom);
+            cartridge.load(save);
+            
+                     
         } catch (IOException e) {
-            System.err.println("File not found");
-            System.exit(1);
+            System.out.println("Warning : no save file found, starting new game");
 //        } catch (IllegalArgumentException e) {
 //            System.err.println("Invalid save file : size does not match");
 //            System.exit(1);
+        } finally {
+            gb = new GameBoy(cartridge);   
         }
     }
     
