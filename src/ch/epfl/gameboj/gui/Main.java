@@ -5,22 +5,13 @@ import java.io.IOException;
 
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
-import ch.epfl.gameboj.component.lcd.LcdController;
-import ch.epfl.gameboj.component.lcd.LcdImage;
-import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public final class Main extends Application {
         
     private GameBoy gb;
-    private long previousTime;
-    
-    private static final double TIME_TO_CYCLES = GameBoy.CYCLES_PER_NANOSECOND;
     
     public static void main(String[] args) {
         Application.launch(args);
@@ -31,32 +22,16 @@ public final class Main extends Application {
         verifyArguments();
         createGameboy();
         
-        ImageView imgView = new ImageView();
-        BorderPane bpane = new BorderPane(imgView);
-        Scene scene = new Scene(bpane);
-        
-        KeyboardHandler kh = new KeyboardHandler(imgView, gb.joypad());
-        
-        imgView.setFitWidth(2 * LcdController.LCD_WIDTH);
-        imgView.setFitHeight(2 * LcdController.LCD_HEIGHT);
-        
-        AnimationTimer timer = new AnimationTimer() {
-            public void handle(long currentNanoTime) {
-                long cycles = (long) ((currentNanoTime - previousTime) * TIME_TO_CYCLES);
-                gb.runUntil(gb.cycles() + cycles);
-                previousTime = currentNanoTime;
-                imgView.setImage(getImage(gb));
-            }
-        };
+        GBScreen screen = new GBScreen(gb);
+        Scene scene = new Scene(screen.asPane());
         
         primaryStage.setScene(scene);
         primaryStage.setTitle("Gameboj");
         primaryStage.sizeToScene();
         primaryStage.show();
-        imgView.requestFocus();
         
-        previousTime = System.nanoTime();
-        timer.start();
+        screen.requestFocus();
+        screen.startTimer();
     }
     
     private void verifyArguments() {
@@ -75,10 +50,5 @@ public final class Main extends Application {
             System.err.println("File not found");
             System.exit(1);
         }
-    }
-    
-    private Image getImage(GameBoy gb) {
-        LcdImage currentImage = gb.lcdController().currentImage();
-        return ImageConverter.convert(currentImage);
     }
 }
