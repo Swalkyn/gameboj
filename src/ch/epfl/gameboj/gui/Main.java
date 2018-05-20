@@ -25,6 +25,7 @@ import javafx.stage.Stage;
 public final class Main extends Application {
         
     private GameBoy gb;
+    private Cartridge cartridge;
     private long previousTime;
     
     private static final Map<String, Key> TEXT_KEY_MAP = buildTextKeyMap();
@@ -70,8 +71,21 @@ public final class Main extends Application {
         timer.start();
     }
     
+    @Override
+    public void stop() {
+        try {
+            if (getParameters().getRaw().size() == 2) {
+                File save = new File(getParameters().getRaw().get(1));
+                cartridge.save(save);        
+            }
+        } catch (IOException e) {
+            System.err.println("Error happened during save");
+        }
+        
+    }
+    
     private void verifyArguments() {
-        if (getParameters().getRaw().size() != 1) {
+        if (getParameters().getRaw().size() > 2) {
             System.err.println("Invalid number of arguments");
             System.exit(1);
         }
@@ -80,11 +94,19 @@ public final class Main extends Application {
     private void createGameboy() {
         try {
             File rom = new File(getParameters().getRaw().get(0));
-            Cartridge cartridge = Cartridge.ofFile(rom);
+            cartridge = Cartridge.ofFile(rom);
+            
+            if (getParameters().getRaw().size() == 2) {
+                File save = new File(getParameters().getRaw().get(1));
+                cartridge.load(save);
+            }
             gb = new GameBoy(cartridge);            
         } catch (IOException e) {
             System.err.println("File not found");
             System.exit(1);
+//        } catch (IllegalArgumentException e) {
+//            System.err.println("Invalid save file : size does not match");
+//            System.exit(1);
         }
     }
     

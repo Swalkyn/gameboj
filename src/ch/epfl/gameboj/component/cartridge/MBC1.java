@@ -3,6 +3,7 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
+import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
@@ -79,6 +80,24 @@ public final class MBC1 implements Component {
             if (ramEnabled)
                 ram.write(ramAddress(address), data);
             break;
+        }
+    }
+    
+    public byte[] readWholeRam() {
+        byte[] ramData = new byte[ram.size()];
+        
+        for (int i = 0; i < ram.size(); i++) {
+            ramData[i] = (byte) ram.read(i);
+        }
+        
+        return ramData;
+    }
+    
+    public void writeWholeRam(byte[] data) {
+        Preconditions.checkArgument(data.length <= ram.size());
+        
+        for (int i = 0; i < data.length; i++) {
+            ram.write(i, data[i]);
         }
     }
 
