@@ -7,6 +7,7 @@ import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public final class Main extends Application {
@@ -23,15 +24,21 @@ public final class Main extends Application {
         createGameboy();
         
         GBScreen screen = new GBScreen(gb);
-        Scene scene = new Scene(screen.asPane());
+        GameList list = new GameList();
+        
+        BorderPane pane = new BorderPane();
+        pane.setCenter(screen.asPane());
+        pane.setRight(list.asPane());
+        
+        Scene scene = new Scene(pane);
         
         primaryStage.setScene(scene);
         primaryStage.setTitle("Gameboj");
         primaryStage.sizeToScene();
         primaryStage.show();
         
-        screen.requestFocus();
-        screen.startTimer();
+        //screen.requestFocus();
+        //screen.startTimer();
     }
     
     private void verifyArguments() {
