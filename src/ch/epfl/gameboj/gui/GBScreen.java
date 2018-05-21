@@ -20,27 +20,37 @@ import javafx.scene.layout.Pane;
 public final class GBScreen {
 
     private static final int GUI_SCALE = 2;
+    public static final int SIZE = GUI_SCALE * LcdController.LCD_WIDTH;
     
-    private final GameBoy gb;
     private final ImageView imgView;
     private final Pane pane;
     private final AnimationTimer timer = createTimer();
 
     private double previousTime = 0;
+    private GameBoy gb;
 
     /**
      * Creates a new GBScreen using the given gameboy
-     * @param gb
      */
-    public GBScreen(GameBoy gb) {
-        this.gb = Objects.requireNonNull(gb);
+    public GBScreen() {
         this.imgView = new ImageView();
         this.pane = new BorderPane(imgView);
         
-        imgView.setFitWidth(GUI_SCALE * LcdController.LCD_WIDTH);
-        imgView.setFitHeight(GUI_SCALE * LcdController.LCD_HEIGHT);
-
+        imgView.setFitWidth(SIZE);
+        imgView.setFitHeight(SIZE);
+    }
+    
+    /**
+     * Attaches gameboy to screen
+     * @param gb
+     */
+    public void attachGameboy(GameBoy gb) {
+        this.gb = Objects.requireNonNull(gb);
         KeyboardHandler.attachTo(imgView, gb.joypad());
+        
+        previousTime = System.nanoTime();
+        imgView.requestFocus();
+        timer.start();
     }
     
     /**
@@ -48,21 +58,6 @@ public final class GBScreen {
      */
     public Pane asPane() {
         return pane;
-    }
-    
-    /**
-     * Starts the animation timer for the gameboy
-     */
-    public void startTimer() {
-        previousTime = System.nanoTime();
-        timer.start();
-    }
-    
-    /**
-     * Request focus for the gameboy screen
-     */
-    public void requestFocus() {
-        imgView.requestFocus();
     }
     
     private AnimationTimer createTimer() {

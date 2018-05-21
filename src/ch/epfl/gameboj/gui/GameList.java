@@ -5,7 +5,7 @@ import java.util.List;
 import ch.epfl.gameboj.Games;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.scene.layout.Pane;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 
 /**
@@ -17,7 +17,7 @@ import javafx.scene.layout.VBox;
 public final class GameList {
     private static final List<GameItem> GAMES = Games.asList();
     private static final GameItem DEFAULT_GAME = Games.game("zelda");
-    private final VBox pane;
+    private final ScrollPane pane;
     
     private ReadOnlyObjectWrapper<GameItem> selectedGame = new ReadOnlyObjectWrapper<>();
     
@@ -25,22 +25,28 @@ public final class GameList {
      * Creates a new GameList
      */
     public GameList() {
-        pane = new VBox();
+        VBox vbox = new VBox();
+        vbox.setFillWidth(true);
         
         for (int i = 0; i < GAMES.size(); i++) {
             GameItem game = GAMES.get(i);
             game.asPane().setOnMouseClicked(e -> selectedGame.set(game));
-            pane.getChildren().add(game.asPane());
+            vbox.getChildren().add(game.asPane());
         }
         
         selectedGame.set(DEFAULT_GAME);
+        
+        pane = new ScrollPane(vbox);
+        pane.setFitToWidth(true);
+        pane.setMaxHeight(GBScreen.SIZE);
+        
     }
    
     
     /**
      * @return the pane associated with the GameList
      */
-    public Pane asPane() {
+    public ScrollPane asPane() {
         return pane;
     }
     

@@ -19,8 +19,12 @@ public final class Games {
     
     private static final String ROM_PATH = "res/rom/";
     private static final String IMG_PATH = "res/img/";
-    private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.png")
+    private static final String ROM_EXT = ".gb";
+    private static final String IMG_EXT = ".jpg";
+    private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.jpg")
             .toURI().toString());
+    
+    private static final List<String> IDS = buildIDs();
     
     private static final Map<String, String> NAMES = buildNames();
     private static final Map<String, File> ROMS = buildRoms();
@@ -48,16 +52,30 @@ public final class Games {
         return GAMES.get(id);
     }
     
+    private static List<String> buildIDs() {
+        return List.of(
+                "zelda",
+                "flappy",
+                "tetris",
+                "mario",
+                "mario2",
+                "2048",
+                "bomber",
+                "donkey",
+                "tasman"
+        );
+    }
+    
     private static GameItem buildGame(String id) {
         return new GameItem(id, NAMES.get(id), ROMS.get(id), IMGS.get(id));
     }
     
     private static Map<String, GameItem> buildGames() {
         Map<String, GameItem> games = new HashMap<>();
-        games.put("flappy", buildGame("flappy"));
-        games.put("zelda", buildGame("zelda"));
-        games.put("mario", buildGame("mario"));
-        games.put("mario2", buildGame("mario2"));
+        
+        for (String id: IDS) {
+            games.put(id, buildGame(id));
+        }
         
         return games;
     }
@@ -68,32 +86,36 @@ public final class Games {
         names.put("flappy", "Flappy Boy");
         names.put("mario", "Super Mario Land");
         names.put("mario2", "Super Mario Land 2");
-        
+        names.put("tetris", "Tetris");
+        names.put("2048", "2048");
+        names.put("bomber", "Bomberman");
+        names.put("donkey", "Donkey Kong");
+        names.put("tasman", "Tasmania Story");
         return names;
     }
     
     private static Map<String, File> buildRoms() {
         Map<String, File> roms = new HashMap<>();
-        roms.put("zelda", new File(ROM_PATH + "zelda"));
-        roms.put("flappy", new File(ROM_PATH + "flappy"));
-        roms.put("mario", new File(ROM_PATH + "mario"));
-        roms.put("mario2", new File(ROM_PATH + "mario2"));
+        
+        for (String id: IDS) {
+            roms.put(id, new File(ROM_PATH + id + ROM_EXT));
+        }
         
         return roms;
     }
     
     private static Map<String, Image> buildImages() {
         Map<String, Image> imgs = new HashMap<>();
-        imgs.put("zelda", readImage("zelda"));
-        imgs.put("flappy", readImage("flappy"));
-        imgs.put("mario", readImage("mario"));
-        imgs.put("mario2", readImage("mario2"));
+        
+        for (String id : IDS) {
+            imgs.put(id, readImage(id));
+        }
         
         return imgs;
     }
     
     private static Image readImage(String id) {
-        File file = new File(IMG_PATH + id);
+        File file = new File(IMG_PATH + id + IMG_EXT);
         return file.exists() ? new Image(file.toURI().toString()) : PLACEHOLDER;
     }
 }

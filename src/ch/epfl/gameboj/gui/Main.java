@@ -7,55 +7,45 @@ import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 public final class Main extends Application {
         
-    private GameBoy gb;
-    
     public static void main(String[] args) {
         Application.launch(args);
     }
     
     @Override
     public void start(Stage primaryStage){
-        verifyArguments();
-        createGameboy();
-        
-        GBScreen screen = new GBScreen(gb);
+        GBScreen screen = new GBScreen();
         GameList list = new GameList();
+        list.selectedGameProperty().addListener((o, oV, nV) -> {
+            screen.attachGameboy(createGameboy(nV.rom()));
+        });
         
-        BorderPane pane = new BorderPane();
-        pane.setCenter(screen.asPane());
-        pane.setRight(list.asPane());
+        HBox pane = new HBox(screen.asPane(), list.asPane());
+        HBox.setHgrow(list.asPane(), Priority.ALWAYS);
+        HBox.setHgrow(screen.asPane(), Priority.NEVER);
+        pane.setMaxHeight(GBScreen.SIZE);
         
         Scene scene = new Scene(pane);
-        
         primaryStage.setScene(scene);
         primaryStage.setTitle("Gameboj");
         primaryStage.sizeToScene();
         primaryStage.show();
-        
-        //screen.requestFocus();
-        //screen.startTimer();
     }
     
-    private void verifyArguments() {
-        if (getParameters().getRaw().size() != 1) {
-            System.err.println("Invalid number of arguments");
-            System.exit(1);
-        }
-    }
-    
-    private void createGameboy() {
+    private GameBoy createGameboy(File rom) {
         try {
-            File rom = new File(getParameters().getRaw().get(0));
             Cartridge cartridge = Cartridge.ofFile(rom);
-            gb = new GameBoy(cartridge);            
+            return new GameBoy(cartridge);            
         } catch (IOException e) {
             System.err.println("File not found");
             System.exit(1);
         }
+        
+        return null;
     }
 }

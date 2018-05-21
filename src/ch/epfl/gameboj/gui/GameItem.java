@@ -6,7 +6,6 @@ import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -55,6 +54,9 @@ public final class GameItem {
         return pane;
     }
     
+    /**
+     * @return the id associated with the game item
+     */
     public String id() {
         return id;
     }
