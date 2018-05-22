@@ -441,8 +441,7 @@ public final class LcdController implements Component, Clocked {
 
     private static LcdImage emptyImage() {
         LcdImageLine emptyLine = emptyLine(LCD_WIDTH);
-        LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH,
-                LCD_HEIGHT);
+        LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
 
         for (int i = 0; i < LCD_HEIGHT; i++) {
             lcdBuilder.setLine(i, emptyLine);
@@ -540,7 +539,7 @@ public final class LcdController implements Component, Clocked {
         boolean flipV = spriteAttr(index, SpriteAttr.FLIP_V);
 
         int line = lineIndex - spriteY(index);
-        line = flipV ? spritesHeight() - line : line;
+        line = flipV ? spritesHeight() - 1 - line : line;
         
         int byteIndex = 2 * line + (msb ? 1 : 0);
 
