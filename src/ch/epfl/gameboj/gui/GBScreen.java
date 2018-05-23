@@ -28,6 +28,7 @@ public final class GBScreen {
 
     private double previousTime = 0;
     private GameBoy gb;
+    private KeyboardHandler kh;
 
     /**
      * Creates a new GBScreen using the given gameboy
@@ -46,11 +47,24 @@ public final class GBScreen {
      */
     public void attachGameboy(GameBoy gb) {
         this.gb = Objects.requireNonNull(gb);
-        KeyboardHandler.attachTo(imgView, gb.joypad());
+        kh = new KeyboardHandler(imgView, gb.joypad());
         
         previousTime = System.nanoTime();
         imgView.requestFocus();
         timer.start();
+    }
+    
+    /**
+     * Detaches the current gameboy and keyboard from the screen
+     */
+    public void detachGameboy() {
+    	if (kh != null) {
+    		kh.detach();    		
+    		kh = null;
+    	}
+    	
+    	timer.stop();
+    	gb = null;
     }
     
     /**
@@ -62,6 +76,7 @@ public final class GBScreen {
     
     private AnimationTimer createTimer() {
         return new AnimationTimer() {
+        	@Override
             public void handle(long currentNanoTime) {
                 long cycles = (long) ((currentNanoTime - previousTime) * GameBoy.CYCLES_PER_NANOSECOND);
                 gb.runUntil(gb.cycles() + cycles);

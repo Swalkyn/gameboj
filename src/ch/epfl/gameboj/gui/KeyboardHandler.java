@@ -30,24 +30,13 @@ public final class KeyboardHandler {
     private final Node node;
     
     /**
-     * Attaches a new keyboard handler to the node, using the joypad
-     * @param node : the node to which the KH will be attached
-     * @param joypad : the joypad to be controlled
-     * @throws NullPointerException if either node or joypad are null
-     * @return the new keyboard handler
-     */
-    public static KeyboardHandler attachTo(Node node, Joypad joypad) {
-        return new KeyboardHandler(node, joypad);
-    }
-    
-    /**
      * Creates a new KeyboardHandler, attached to given node and controlling
      * given joypad
      * @param node : the node to which the KH will be attached
      * @param joypad : the joypad to be controlled by the KH
      * @throws NullPointerException if either node or joypad are null
      */
-    private KeyboardHandler(Node node, Joypad joypad) {
+    public KeyboardHandler(Node node, Joypad joypad) {
         Objects.requireNonNull(joypad);
         
         this.node = Objects.requireNonNull(node);
