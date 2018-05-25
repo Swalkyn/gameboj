@@ -466,25 +466,25 @@ public final class LcdController implements Component, Clocked {
     private int[] spritesIntersectingLine() {
         int spriteHeight = spritesHeight();
         int[] lineSprites = new int[SPRITES_PER_LINE];
-        int total = 0;
-        int selected = 0;
-
-        while (total < SPRITES_IN_MEMORY && selected < SPRITES_PER_LINE) {
-            int distance = currentLine() - spriteY(total);
+        
+        int spritesChecked = 0; 
+        int spritesSelected = 0;
+        while (spritesChecked < SPRITES_IN_MEMORY && spritesSelected < SPRITES_PER_LINE) {
+            int distance = currentLine() - spriteY(spritesChecked);
             if (0 <= distance && distance < spriteHeight) {
-                lineSprites[selected] = Bits.make16(spriteX(total) + X_OFFSET, total);
-                selected++;
+                lineSprites[spritesSelected] = Bits.make16(spriteX(spritesChecked) + X_OFFSET, spritesChecked);
+                spritesSelected++;
             }
-            total++;
+            spritesChecked++;
         }
 
-        Arrays.sort(lineSprites, 0, selected);
+        Arrays.sort(lineSprites, 0, spritesSelected);
         
-        for (int i = 0; i < selected; i++) {
+        for (int i = 0; i < spritesSelected; i++) {
             lineSprites[i] = Bits.clip(8, lineSprites[i]);
         }
         
-        return Arrays.copyOfRange(lineSprites, 0, selected);
+        return Arrays.copyOfRange(lineSprites, 0, spritesSelected);
     }
 
     private int memoryStart(Bit b) {
