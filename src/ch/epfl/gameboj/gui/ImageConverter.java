@@ -11,7 +11,8 @@ import javafx.scene.image.WritableImage;
 public final class ImageConverter {
 
     private static final int[] RGB_VALUES = { 0xFFFFFFFF, 0xFFD3D3D3, 0xFFA9A9A9, 0xFF000000 };
-
+//  private static final int[] RGB_VALUES = { 0xFF9BBC0F, 0xFF8BAC0F, 0xFF306230, 0xFF0F380F };
+    
     /**
      * Converts an LcdImage to a writable javafx Image
      * @param image : an lcd image from the gameboy
