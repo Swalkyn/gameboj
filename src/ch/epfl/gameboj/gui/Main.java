@@ -11,12 +11,25 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
+/**
+ * GUI Application for gameboy emulator
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
+ */
 public final class Main extends Application {
         
+    /**
+     * Launch the application with given rom file
+     * @param args : takes one argument, the path to the rom file
+     */
     public static void main(String[] args) {
         Application.launch(args);
     }
     
+    /* (non-Javadoc)
+     * @see javafx.application.Application#start(javafx.stage.Stage)
+     */
     @Override
     public void start(Stage primaryStage){
         GBScreen screen = new GBScreen();

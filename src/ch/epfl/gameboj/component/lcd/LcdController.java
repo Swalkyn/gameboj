@@ -92,6 +92,14 @@ public final class LcdController implements Component, Clocked {
             this.intMode = intMode;
         }
     }
+    
+    private enum ZPos {
+    	BG, FG
+    }
+    
+    private enum Endian {
+    	MSB, LSB
+    }
 
     private enum SpriteData {
         Y, X, TILE, ATTR
@@ -380,13 +388,13 @@ public final class LcdController implements Component, Clocked {
         return winLine.mapColors(rf.get(Reg.BGP)).extractWrapped(0, LCD_WIDTH).shift(wx());
     }
 
-    private LcdImageLine spritesLine(int lineIndex, boolean background) {
-        LcdImageLine line = new LcdImageLine.Builder(LCD_WIDTH).build();
+    private LcdImageLine spritesLine(int lineIndex, ZPos zpos) {
+        LcdImageLine line = emptyLine(LCD_WIDTH);
 
         for (int spriteIndex : spritesIntersectingLine()) {
-            if (spriteAttr(spriteIndex, SpriteAttr.BEHIND_BG) == background) {
-                int msb = spriteByte(spriteIndex, lineIndex, true);
-                int lsb = spriteByte(spriteIndex, lineIndex, false);
+            if (spriteZ(spriteIndex) == zpos) {
+                int msb = spriteByte(spriteIndex, lineIndex, Endian.MSB);
+                int lsb = spriteByte(spriteIndex, lineIndex, Endian.LSB);
 
                 LcdImageLine singleSpriteLine = new LcdImageLine.Builder(LCD_WIDTH).setBytes(0, msb, lsb).build();
                 singleSpriteLine = singleSpriteLine.shift(spriteX(spriteIndex)).mapColors(spritePalette(spriteIndex));
@@ -415,8 +423,8 @@ public final class LcdController implements Component, Clocked {
 
     private LcdImageLine addSpritesLines(LcdImageLine line) {
         if (rf.testBit(Reg.LCDC, Lcdc.OBJ)) {
-            LcdImageLine bgSpritesLine = spritesLine(currentLine(), true);
-            LcdImageLine fgSpritesLine = spritesLine(currentLine(), false);
+            LcdImageLine bgSpritesLine = spritesLine(currentLine(), ZPos.BG);
+            LcdImageLine fgSpritesLine = spritesLine(currentLine(), ZPos.FG);
             
             BitVector opacityMask = line.opacity().or(bgSpritesLine.opacity().not());
             
@@ -441,8 +449,7 @@ public final class LcdController implements Component, Clocked {
 
     private static LcdImage emptyImage() {
         LcdImageLine emptyLine = emptyLine(LCD_WIDTH);
-        LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH,
-                LCD_HEIGHT);
+        LcdImage.Builder lcdBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
 
         for (int i = 0; i < LCD_HEIGHT; i++) {
             lcdBuilder.setLine(i, emptyLine);
@@ -459,25 +466,25 @@ public final class LcdController implements Component, Clocked {
     private int[] spritesIntersectingLine() {
         int spriteHeight = spritesHeight();
         int[] lineSprites = new int[SPRITES_PER_LINE];
-        int total = 0;
-        int selected = 0;
-
-        while (total < SPRITES_IN_MEMORY && selected < SPRITES_PER_LINE) {
-            int distance = currentLine() - spriteY(total);
+        
+        int spritesChecked = 0; 
+        int spritesSelected = 0;
+        while (spritesChecked < SPRITES_IN_MEMORY && spritesSelected < SPRITES_PER_LINE) {
+            int distance = currentLine() - spriteY(spritesChecked);
             if (0 <= distance && distance < spriteHeight) {
-                lineSprites[selected] = Bits.make16(spriteX(total) + X_OFFSET, total);
-                selected++;
+                lineSprites[spritesSelected] = Bits.make16(spriteX(spritesChecked) + X_OFFSET, spritesChecked);
+                spritesSelected++;
             }
-            total++;
+            spritesChecked++;
         }
 
-        Arrays.sort(lineSprites, 0, selected);
+        Arrays.sort(lineSprites, 0, spritesSelected);
         
-        for (int i = 0; i < selected; i++) {
+        for (int i = 0; i < spritesSelected; i++) {
             lineSprites[i] = Bits.clip(8, lineSprites[i]);
         }
         
-        return Arrays.copyOfRange(lineSprites, 0, selected);
+        return Arrays.copyOfRange(lineSprites, 0, spritesSelected);
     }
 
     private int memoryStart(Bit b) {
@@ -522,6 +529,10 @@ public final class LcdController implements Component, Clocked {
     private int spriteY(int index) {
         return spriteData(index, SpriteData.Y) - Y_OFFSET;
     }
+   
+    private ZPos spriteZ(int index) {
+    	return spriteAttr(index, SpriteAttr.BEHIND_BG) ? ZPos.BG : ZPos.FG;
+    }
 
     private int spriteX(int index) {
         return spriteData(index, SpriteData.X) - X_OFFSET;
@@ -533,16 +544,16 @@ public final class LcdController implements Component, Clocked {
 
     private boolean spriteAttr(int index, Bit bit) {
         return Bits.test(spriteData(index, SpriteData.ATTR), bit);
-    } 
+    }
 
-    private int spriteByte(int index, int lineIndex, boolean msb) {
+    private int spriteByte(int index, int lineIndex, Endian endian) {
         boolean flipH = spriteAttr(index, SpriteAttr.FLIP_H);
         boolean flipV = spriteAttr(index, SpriteAttr.FLIP_V);
 
         int line = lineIndex - spriteY(index);
-        line = flipV ? spritesHeight() - line : line;
+        line = flipV ? spritesHeight() - 1 - line : line;
         
-        int byteIndex = 2 * line + (msb ? 1 : 0);
+        int byteIndex = 2 * line + (endian == Endian.MSB ? 1 : 0);
 
         int readByte = vRam.read(spriteTileAddress(index) + byteIndex);
         return flipH ? readByte : Bits.reverse8(readByte);
