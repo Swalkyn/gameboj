@@ -20,10 +20,11 @@ import javafx.scene.layout.Pane;
 public final class GBScreen {
 
     private static final int GUI_SCALE = 2;
-    public static final int SIZE = GUI_SCALE * LcdController.LCD_WIDTH;
+    public static final int WIDTH = GUI_SCALE * LcdController.LCD_WIDTH;
+    public static final int HEIGHT = GUI_SCALE * LcdController.LCD_HEIGHT;
     
     private final ImageView imgView;
-    private final Pane pane;
+    private final BorderPane pane;
     private final AnimationTimer timer = createTimer();
 
     private double previousTime = 0;
@@ -38,8 +39,9 @@ public final class GBScreen {
         this.pane = new BorderPane(imgView);
         this.kh = new KeyboardHandler(pane);
         
-        imgView.setFitWidth(SIZE);
-        imgView.setFitHeight(SIZE);
+        imgView.setFitWidth(WIDTH);
+        imgView.setFitHeight(HEIGHT);
+        pane.getStyleClass().add("screen");
     }
     
     /**

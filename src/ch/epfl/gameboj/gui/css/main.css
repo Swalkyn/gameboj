@@ -1,0 +1,48 @@
+.screen {
+	-fx-background-color: #FFF;
+}
+
+.game-item-even {
+	-fx-background-color: #8dbad6;
+}
+
+.game-item-odd {
+	-fx-background-color: #eaedf2;
+}
+
+.game-item-even:hover {
+	-fx-background-color: #81aac4;
+}
+
+.game-item-odd:hover {
+	-fx-background-color: #d9dce0;
+}
+
+.game-item-even .game-label {
+	-fx-text-fill: white;
+}
+
+.game-item-odd .game-label {
+	-fx-text-fill: black;
+}
+
+.thumb-circle {
+	-fx-border-width: 10px;
+	-fx-border-color: red;
+}
+
+.game-thumbnail {
+	-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);
+}
+
+.game-item:hover .game-thumbnail {
+	/*-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);*/
+}
+
+.selected-game .game-thumbnail {
+	-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
+	-fx-padding: 1px;
+	-fx-background-color: black;
+	-fx-background-radius: 100px;
+}
+
