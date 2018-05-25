@@ -22,6 +22,12 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+/**
+ * GUI Application for gameboy emulator
+ * 
+ * @author Sylvain Kuchen (282380)
+ * @author Luca Bataillard (282152)
+ */
 public final class Main extends Application {
         
     private GameBoy gb;
@@ -32,10 +38,17 @@ public final class Main extends Application {
     
     private static final double TIME_TO_CYCLES = GameBoy.CYCLES_PER_NANOSECOND;
     
+    /**
+     * Launch the application with given rom file
+     * @param args : takes one argument, the path to the rom file
+     */
     public static void main(String[] args) {
         Application.launch(args);
     }
     
+    /* (non-Javadoc)
+     * @see javafx.application.Application#start(javafx.stage.Stage)
+     */
     @Override
     public void start(Stage primaryStage){
         verifyArguments();
