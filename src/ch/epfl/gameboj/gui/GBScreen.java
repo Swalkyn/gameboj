@@ -31,11 +31,12 @@ public final class GBScreen {
     private KeyboardHandler kh;
 
     /**
-     * Creates a new GBScreen using the given gameboy
+     * Creates a new GBScreen
      */
     public GBScreen() {
         this.imgView = new ImageView();
         this.pane = new BorderPane(imgView);
+        this.kh = new KeyboardHandler(pane);
         
         imgView.setFitWidth(SIZE);
         imgView.setFitHeight(SIZE);
@@ -47,7 +48,7 @@ public final class GBScreen {
      */
     public void attachGameboy(GameBoy gb) {
         this.gb = Objects.requireNonNull(gb);
-        kh = new KeyboardHandler(imgView, gb.joypad());
+        kh.attach(gb.joypad());
         
         previousTime = System.nanoTime();
         imgView.requestFocus();
@@ -58,11 +59,7 @@ public final class GBScreen {
      * Detaches the current gameboy and keyboard from the screen
      */
     public void detachGameboy() {
-    	if (kh != null) {
-    		kh.detach();    		
-    		kh = null;
-    	}
-    	
+		kh.detach();    		    	
     	timer.stop();
     	gb = null;
     }

@@ -16,7 +16,6 @@ import javafx.scene.layout.VBox;
  */
 public final class GameList {
     private static final List<GameItem> GAMES = Games.asList();
-    private static final GameItem DEFAULT_GAME = Games.game("zelda");
     private final ScrollPane pane;
     
     private ReadOnlyObjectWrapper<GameItem> selectedGame = new ReadOnlyObjectWrapper<>();
@@ -33,8 +32,6 @@ public final class GameList {
             game.asPane().setOnMouseClicked(e -> selectedGame.set(game));
             vbox.getChildren().add(game.asPane());
         }
-        
-        selectedGame.set(DEFAULT_GAME);
         
         pane = new ScrollPane(vbox);
         pane.setFitToWidth(true);

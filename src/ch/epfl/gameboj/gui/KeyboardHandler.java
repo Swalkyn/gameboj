@@ -3,6 +3,7 @@ package ch.epfl.gameboj.gui;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import ch.epfl.gameboj.component.Joypad;
@@ -27,7 +28,7 @@ public final class KeyboardHandler {
     
     private final EventHandler<KeyEvent> pressed; 
     private final EventHandler<KeyEvent> released;
-    private final Node node;
+    private Optional<Joypad> joypad = Optional.empty();
     
     /**
      * Creates a new KeyboardHandler, attached to given node and controlling
@@ -36,23 +37,29 @@ public final class KeyboardHandler {
      * @param joypad : the joypad to be controlled by the KH
      * @throws NullPointerException if either node or joypad are null
      */
-    public KeyboardHandler(Node node, Joypad joypad) {
-        Objects.requireNonNull(joypad);
-        
-        this.node = Objects.requireNonNull(node);
-        this.pressed = e -> handleKeyEvent(e, k -> joypad.keyPressed(k));
-        this.released = e -> handleKeyEvent(e, k -> joypad.keyReleased(k));
+    public KeyboardHandler(Node node) {
+        Objects.requireNonNull(node);
+        this.pressed = e -> handleKeyEvent(e, k -> joypad.ifPresent(j -> j.keyPressed(k)));
+        this.released = e -> handleKeyEvent(e, k -> joypad.ifPresent(j -> j.keyReleased(k)));
         
         node.setOnKeyPressed(pressed);
         node.setOnKeyReleased(released);
+    }
+    
+    /** 
+     * Attaches given joypad to handler
+     * @param joypad : non-null joypad
+     * @throws NullPointerException if value is null
+     */
+    public void attach(Joypad joypad) {
+    	this.joypad = Optional.of(joypad);
     }
     
     /**
      * Removes the event handlers from the node. Renders the KeyboardHandler useless
      */
     public void detach() {
-        node.removeEventHandler(KeyEvent.KEY_PRESSED, pressed);
-        node.removeEventHandler(KeyEvent.KEY_RELEASED, released);
+    	joypad = Optional.empty();
     }
     
     private void handleKeyEvent(KeyEvent e, Consumer<Joypad.Key> c) {

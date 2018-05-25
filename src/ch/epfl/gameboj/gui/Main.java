@@ -34,7 +34,6 @@ public final class Main extends Application {
     public void start(Stage primaryStage){
         GBScreen screen = new GBScreen();
         GameList list = new GameList();
-        screen.attachGameboy(createGameboy(list.getSelectedGame().rom()));
         
         list.selectedGameProperty().addListener((o, oV, nV) -> {
         	screen.detachGameboy();
