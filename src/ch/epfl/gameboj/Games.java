@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.gui.GameItem;
@@ -32,7 +33,7 @@ public final class Games {
     
     private static final Map<String, String> NAMES = buildNames();
     private static final Map<String, File> ROMS = buildRoms();
-    private static final Map<String, File> SAVES = buildSaves();
+    private static final Map<String, Optional<File>> SAVES = buildSaves();
     private static final Map<String, Image> IMGS = buildImages();
     private static final Map<String, GameItem> GAMES = buildGames();
     
@@ -108,13 +109,13 @@ public final class Games {
         return roms;
     }
     
-    private static Map<String, File> buildSaves() {
-        Map<String, File> saves = new HashMap<>();
+    private static Map<String, Optional<File>> buildSaves() {
+        Map<String, Optional<File>> saves = new HashMap<>();
         
         for (String id: IDS) {
             try {
                 boolean canBeSaved = Cartridge.cartridgeOfCanBeSaved(ROMS.get(id));
-                File save = canBeSaved ? new File(SAVE_PATH + id + SAVE_EXT) : null;
+                Optional<File> save = canBeSaved ? Optional.of(new File(SAVE_PATH + id + SAVE_EXT)) : Optional.empty();
                 saves.put(id, save);
             } catch (IOException e) {
                 System.err.println("An error occured while determining if the game with id '" + id + "' could be saved");

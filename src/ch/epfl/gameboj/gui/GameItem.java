@@ -2,6 +2,7 @@ package ch.epfl.gameboj.gui;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -35,7 +36,7 @@ public final class GameItem {
     private final String id;
     private final String name;
     private final File rom;
-    private final File save;
+    private final Optional<File> save;
     private final Image image;
 
     private final Pane pane;
@@ -49,7 +50,7 @@ public final class GameItem {
      * @param image : an image of the game (nullable)
      * @throws NullPointerException if name or rom are null
      */
-    public GameItem(String id, String name, File rom, File save, Image image) {
+    public GameItem(String id, String name, File rom, Optional<File> save, Image image) {
         this.id = Objects.requireNonNull(id);
         this.name = Objects.requireNonNull(name);
         this.rom = Objects.requireNonNull(rom);
@@ -81,7 +82,7 @@ public final class GameItem {
         return rom;
     }
     
-    public File save() {
+    public Optional<File> save() {
         return save;
     }
 
