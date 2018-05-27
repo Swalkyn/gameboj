@@ -19,6 +19,8 @@ import javafx.stage.Stage;
  */
 public final class Main extends Application {
 
+    GBSaver saver = new GBSaver();
+
     /**
      * Launch the application with given rom file
      * 
@@ -37,10 +39,19 @@ public final class Main extends Application {
     public void start(Stage primaryStage) {
         GBScreen screen = new GBScreen();
         GameList list = new GameList();
+        
 
         list.selectedGameProperty().addListener((o, oV, nV) -> {
             screen.detachGameboy();
-            screen.attachGameboy(createGameboy(nV.rom()));
+            saver.save();
+            
+            try {
+                Cartridge newGame = createCartridge(nV.rom());
+                saver.load(newGame, nV.save());
+                screen.attachGameboy(createGameboy(newGame));                
+            } catch (IOException e) {
+                System.err.println("Something went wrong when loading this game :" + e);
+            }
         });
 
         list.asPane().setOnMouseClicked(e -> screen.asPane().requestFocus());
@@ -58,16 +69,20 @@ public final class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
     }
-
-    private GameBoy createGameboy(File rom) {
-        try {
-            Cartridge cartridge = Cartridge.ofFile(rom);
-            return new GameBoy(cartridge);
-        } catch (IOException e) {
-            System.err.println("File not found");
-            System.exit(1);
-        }
-
-        return null;
+    
+    @Override
+    public void stop() {
+        saver.save(); // TODO : static saver or cartridge variable ?      
     }
+    
+    
+    private Cartridge createCartridge(File rom) throws IOException {
+        return Cartridge.ofFile(rom);
+    }
+
+    
+    private GameBoy createGameboy(Cartridge cartridge) {
+        return new GameBoy(cartridge);
+    }
+
 }

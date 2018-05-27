@@ -3,12 +3,12 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
+import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
-import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.Rom;
 
-public final class MBC1 implements Component {
+public final class MBC1 extends MBC {
     private static final int RAM_ENABLE = 0xA;
 
     private enum Mode { MODE_0, MODE_1 };
@@ -20,6 +20,7 @@ public final class MBC1 implements Component {
     private Mode mode;
     private int romLsb5, ramRom2;
     private final int romMask, ramMask;
+    private final int ramSize;
 
     /**
      * 
@@ -27,6 +28,7 @@ public final class MBC1 implements Component {
      * @param ramSize
      */
     public MBC1(Rom rom, int ramSize) {
+        super(ramSize);
         this.rom = rom;
         this.ram = new Ram(ramSize);
 
@@ -37,6 +39,8 @@ public final class MBC1 implements Component {
 
         this.romMask = rom.size() - 1;
         this.ramMask = ramSize - 1;
+        
+        this.ramSize = ramSize;
     }
     
     /* (non-Javadoc)
@@ -81,12 +85,30 @@ public final class MBC1 implements Component {
             break;
         }
     }
+    
+    public byte[] readWholeRam() {
+        byte[] ramData = new byte[ram.size()];
+        
+        for (int i = 0; i < ram.size(); i++) {
+            ramData[i] = (byte) ram.read(i);
+        }
+        
+        return ramData;
+    }
+    
+    public void writeWholeRam(byte[] data) {
+        Preconditions.checkArgument(data.length <= ram.size());
+        
+        for (int i = 0; i < data.length; i++) {
+            ram.write(i, Byte.toUnsignedInt(data[i]));
+        }
+    }
 
     private int msb2() {
         switch (mode) {
-        		case MODE_0: return 0;
-        		case MODE_1: return ramRom2;
-        		default: throw new Error();
+		case MODE_0: return 0;
+		case MODE_1: return ramRom2;
+		default: throw new Error();
         }
     }
 

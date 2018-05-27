@@ -35,6 +35,7 @@ public final class GameItem {
     private final String id;
     private final String name;
     private final File rom;
+    private final File save;
     private final Image image;
 
     private final Pane pane;
@@ -48,10 +49,11 @@ public final class GameItem {
      * @param image : an image of the game (nullable)
      * @throws NullPointerException if name or rom are null
      */
-    public GameItem(String id, String name, File rom, Image image) {
+    public GameItem(String id, String name, File rom, File save, Image image) {
         this.id = Objects.requireNonNull(id);
         this.name = Objects.requireNonNull(name);
         this.rom = Objects.requireNonNull(rom);
+        this.save = save;
         this.image = image;
 
         this.pane = buildPane();
@@ -77,6 +79,10 @@ public final class GameItem {
      */
     public File rom() {
         return rom;
+    }
+    
+    public File save() {
+        return save;
     }
 
     private Pane buildPane() {
