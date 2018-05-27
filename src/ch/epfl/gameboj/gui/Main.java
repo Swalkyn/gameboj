@@ -75,7 +75,9 @@ public final class Main extends Application {
     @Override
     public void stop() {
         try {
-            cartridge.save(save);
+            if(cartridge.canBeSaved()) {
+                cartridge.save(save);                
+            }
         } catch (IOException e) {
             System.err.println("Error happened during save");
         }
@@ -92,27 +94,36 @@ public final class Main extends Application {
     private void createGameboy() {
         try {
             File rom = new File(getParameters().getRaw().get(0));
-            
-            if (getParameters().getRaw().size() == 2) {
-               save = new File(getParameters().getRaw().get(1));
-            } else {
-                String gameName = getParameters().getRaw().get(0);
-                String saveName = gameName.substring(0, gameName.length() - 3) + "Save.bin";
-                save = new File(saveName);
-            }
-            
-            cartridge = Cartridge.ofFile(rom);
-            cartridge.load(save);
-            
-                     
+            cartridge = Cartridge.ofFile(rom);            
         } catch (IOException e) {
-            System.out.println("Warning : no save file found, starting new game");
-//        } catch (IllegalArgumentException e) {
-//            System.err.println("Invalid save file : size does not match");
-//            System.exit(1);
-        } finally {
-            gb = new GameBoy(cartridge);   
+            System.err.println("This type of cartridge is not supported");
         }
+        
+        if (cartridge.canBeSaved()) {
+            try {
+                save = getSave();
+                cartridge.load(save);                    
+            } catch (IOException e) {
+                System.err.println("Error during loading of save");
+                System.exit(1);
+            }
+        }
+        
+        gb = new GameBoy(cartridge);
+    }
+    
+    private File getSave() {
+        String saveName;
+        
+        if (getParameters().getRaw().size() == 2) {
+            saveName = getParameters().getRaw().get(1);                
+        } else {
+            String gameName = getParameters().getRaw().get(0);
+            saveName = gameName.substring(0, gameName.length() - 3) + "Save.bin";
+        }
+        
+        System.out.println(saveName);
+        return new File(saveName);
     }
     
     private Image getImage(GameBoy gb) {

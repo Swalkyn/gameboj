@@ -20,7 +20,7 @@ import ch.epfl.gameboj.component.memory.Rom;
  */
 public final class Cartridge implements Component {
     
-    private final Component memoryBank;
+    private final MBC memoryBank;
     public static final int MB_TYPE_ADDRESS = 0x147;
     public static final int RAM_SIZE_ADDRESS = 0x149;
     public static final int MB_TYPE_0 = 0;
@@ -28,7 +28,7 @@ public final class Cartridge implements Component {
     
     private static final int[] RAM_SIZES = {0x0000, 0x0800, 0x2000, 0x8000};
         
-    private Cartridge(Component memoryBank) {
+    private Cartridge(MBC memoryBank) {
         this.memoryBank = memoryBank;
     }
     
@@ -57,17 +57,25 @@ public final class Cartridge implements Component {
         
     }
     
-    public void load(File save) throws IOException {
-        
-        // check that cartridge has MBC1
+    /**
+     * Loads a save file of the game
+     * @param save : save file
+     * @throws IOException if the save fails to load
+     */
+    public void load(File save) throws IOException {        
+        Preconditions.checkArgument(canBeSaved());
         
         MBC1 mbc1 = (MBC1) memoryBank;
         mbc1.writeWholeRam(readFile(save));
     }
     
+    /**
+     * Saves the game state to a game file
+     * @param save : save file
+     * @throws IOException if saving the game fails
+     */
     public void save(File save) throws IOException {
-        
-        // check that cartridge has MBC1
+        Preconditions.checkArgument(canBeSaved());
         
         MBC1 mbc1 = (MBC1) memoryBank;
         writeFile(save, mbc1.readWholeRam());
@@ -100,9 +108,14 @@ public final class Cartridge implements Component {
         memoryBank.write(address, data);
     }
 
+    public boolean canBeSaved() {
+        return memoryBank.ramSize() != 0;
+    }
+    
     private static boolean isType1(byte[] data) {
         return Arrays.binarySearch(MB_TYPE_1, data[MB_TYPE_ADDRESS]) >= 0;
     }
+    
     
     private static byte[] readFile(File file) throws IOException {
         try(InputStream stream = new FileInputStream(file)) {
