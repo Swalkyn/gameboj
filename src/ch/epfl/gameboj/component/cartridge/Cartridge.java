@@ -108,12 +108,22 @@ public final class Cartridge implements Component {
         memoryBank.write(address, data);
     }
     
-    public static boolean cartridgeOfCanBeSaved(File rom) throws IOException {
+    /**
+     * Determines if the cartridge created with this file can be saved
+     * @param rom : file of cartridge's rom
+     * @return whether the cartridge of this file could be saved
+     * @throws IOException if an error happened during file reading
+     */
+    public static boolean fileCanBeSaved(File rom) throws IOException {
         byte[] data = readFile(rom);
         
         return isType1(data) && hasRam(data);
     }
-
+    
+    /**
+     * Determines if the cartridge can be saved
+     * @return whether the cartridge can be saved or not
+     */
     public boolean canBeSaved() {
         return memoryBank.ramSize() != 0;
     }

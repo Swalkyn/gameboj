@@ -26,8 +26,7 @@ public final class Games {
     private static final String ROM_EXT = ".gb";
     private static final String SAVE_EXT = ".sav";
     private static final String IMG_EXT = ".jpg";
-    private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.jpg")
-            .toURI().toString());
+    private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.jpg").toURI().toString());
     
     private static final List<String> IDS = buildIDs();
     
@@ -114,7 +113,7 @@ public final class Games {
         
         for (String id: IDS) {
             try {
-                boolean canBeSaved = Cartridge.cartridgeOfCanBeSaved(ROMS.get(id));
+                boolean canBeSaved = Cartridge.fileCanBeSaved(ROMS.get(id));
                 Optional<File> save = canBeSaved ? Optional.of(new File(SAVE_PATH + id + SAVE_EXT)) : Optional.empty();
                 saves.put(id, save);
             } catch (IOException e) {
