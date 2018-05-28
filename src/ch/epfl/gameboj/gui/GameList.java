@@ -47,7 +47,7 @@ public final class GameList {
         scroll.setFitToWidth(true);
         
        
-        pane = new VBox(scroll/*, buttonContainer*/);
+        pane = new VBox(scroll);
         pane.setMaxHeight(GBScreen.HEIGHT);
     }
 
