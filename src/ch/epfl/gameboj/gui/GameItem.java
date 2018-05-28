@@ -46,7 +46,7 @@ public final class GameItem {
      * 
      * @param name : game name
      * @param rom : game rom file
-     * @param description : a description of the game (nullable)
+     * @param save : save file (if exists)
      * @param image : an image of the game (nullable)
      * @throws NullPointerException if name or rom are null
      */
@@ -82,6 +82,9 @@ public final class GameItem {
         return rom;
     }
     
+    /**
+     * @return the game's save file (if it can be saved)
+     */
     public Optional<File> save() {
         return save;
     }

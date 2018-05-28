@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
+import ch.epfl.gameboj.component.cartridge.GBSaver;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
@@ -30,9 +31,7 @@ public final class Main extends Application {
         Application.launch(args);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
+    /* (non-Javadoc)
      * @see javafx.application.Application#start(javafx.stage.Stage)
      */
     @Override
@@ -70,6 +69,10 @@ public final class Main extends Application {
         primaryStage.show();
     }
     
+    
+    /* (non-Javadoc)
+     * @see javafx.application.Application#stop()
+     */
     @Override
     public void stop() {
         saver.save();  

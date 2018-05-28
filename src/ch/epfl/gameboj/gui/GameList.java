@@ -46,10 +46,7 @@ public final class GameList {
         scroll.setVbarPolicy(ScrollBarPolicy.NEVER);
         scroll.setFitToWidth(true);
         
-        /* TODO Button button = new Button("Hide games");
-        HBox buttonContainer = new HBox(button);
-        HBox.setHgrow(button, Priority.ALWAYS);
-        */
+       
         pane = new VBox(scroll/*, buttonContainer*/);
         pane.setMaxHeight(GBScreen.HEIGHT);
     }

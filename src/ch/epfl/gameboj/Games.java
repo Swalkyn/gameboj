@@ -24,7 +24,7 @@ public final class Games {
     private static final String SAVE_PATH = "res/saves/";
     private static final String IMG_PATH = "res/img/";
     private static final String ROM_EXT = ".gb";
-    private static final String SAVE_EXT = "Save.bin";
+    private static final String SAVE_EXT = ".sav";
     private static final String IMG_EXT = ".jpg";
     private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.jpg")
             .toURI().toString());
