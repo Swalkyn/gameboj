@@ -34,6 +34,7 @@ public final class GBSaver {
             }
         } catch (IOException e) {
             System.err.println("Error happened during save");
+            e.printStackTrace();
         }
     }
     
