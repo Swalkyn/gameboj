@@ -83,6 +83,9 @@ public final class MBC1 extends MBC {
         }
     }
     
+    /**
+     * @return a byte array with contents of whole ram
+     */
     public byte[] readWholeRam() {
         byte[] ramData = new byte[ram.size()];
         
@@ -93,6 +96,11 @@ public final class MBC1 extends MBC {
         return ramData;
     }
     
+    /**
+     * Writes given byte array to whole ram
+     * @param data
+     * @throws IllegalArgumentException if array size is strictly larger than ram size
+     */
     public void writeWholeRam(byte[] data) {
         Preconditions.checkArgument(data.length <= ram.size());
         
