@@ -72,7 +72,7 @@ public final class Main extends Application {
     
     @Override
     public void stop() {
-        saver.save(); // TODO : static saver or cartridge variable ?      
+        saver.save();  
     }
     
     

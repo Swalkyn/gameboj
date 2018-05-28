@@ -20,7 +20,6 @@ public final class MBC1 extends MBC {
     private Mode mode;
     private int romLsb5, ramRom2;
     private final int romMask, ramMask;
-    private final int ramSize;
 
     /**
      * 
@@ -38,9 +37,7 @@ public final class MBC1 extends MBC {
         this.ramRom2 = 0;
 
         this.romMask = rom.size() - 1;
-        this.ramMask = ramSize - 1;
-        
-        this.ramSize = ramSize;
+        this.ramMask = ramSize - 1;        
     }
     
     /* (non-Javadoc)
