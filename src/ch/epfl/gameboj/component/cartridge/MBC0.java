@@ -12,7 +12,7 @@ import ch.epfl.gameboj.component.memory.Rom;
  * @author Sylvain Kuchen (282380)
  * @author Luca Bataillard (282152)
  */
-public final class MBC0 implements Component {
+public final class MBC0 extends MBC {
     
     public static final int ROM_SIZE = 32768;
     private final Rom rom;
@@ -24,10 +24,13 @@ public final class MBC0 implements Component {
      * @throws IllegalArgumentException if rom size is not 32768
      */
     public MBC0(Rom rom) {
+        super(0);
+        
         Objects.requireNonNull(rom);
         Preconditions.checkArgument(rom.size() == ROM_SIZE);
         
         this.rom = rom;
+        
     }
     
     /**

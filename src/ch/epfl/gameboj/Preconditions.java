@@ -26,7 +26,8 @@ public interface Preconditions {
      * @return the integer if correct
      */
     static int checkBits8(int v) {
-    		checkArgument(0 <= v && v <= 0xFF);
+        //System.out.println(v);
+        checkArgument(0 <= v && v <= 0xFF);
         return v;
     }
     
@@ -37,7 +38,7 @@ public interface Preconditions {
      * @return the integer if correct
      */
     static int checkBits16(int v) {
-    		checkArgument(0 <= v && v <= 0xFFFF);
+        checkArgument(0 <= v && v <= 0xFFFF);
         return v;
     }
 }

@@ -3,12 +3,12 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
+import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
-import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.Rom;
 
-public final class MBC1 implements Component {
+public final class MBC1 extends MBC {
     private static final int RAM_ENABLE = 0xA;
 
     private enum Mode { MODE_0, MODE_1 };
@@ -27,6 +27,7 @@ public final class MBC1 implements Component {
      * @param ramSize
      */
     public MBC1(Rom rom, int ramSize) {
+        super(ramSize);
         this.rom = rom;
         this.ram = new Ram(ramSize);
 
@@ -36,7 +37,7 @@ public final class MBC1 implements Component {
         this.ramRom2 = 0;
 
         this.romMask = rom.size() - 1;
-        this.ramMask = ramSize - 1;
+        this.ramMask = ramSize - 1;        
     }
     
     /* (non-Javadoc)
@@ -81,12 +82,38 @@ public final class MBC1 implements Component {
             break;
         }
     }
+    
+    /**
+     * @return a byte array with contents of whole ram
+     */
+    public byte[] readWholeRam() {
+        byte[] ramData = new byte[ram.size()];
+        
+        for (int i = 0; i < ram.size(); i++) {
+            ramData[i] = (byte) ram.read(i);
+        }
+        
+        return ramData;
+    }
+    
+    /**
+     * Writes given byte array to whole ram
+     * @param data
+     * @throws IllegalArgumentException if array size is strictly larger than ram size
+     */
+    public void writeWholeRam(byte[] data) {
+        Preconditions.checkArgument(data.length <= ram.size());
+        
+        for (int i = 0; i < data.length; i++) {
+            ram.write(i, Byte.toUnsignedInt(data[i]));
+        }
+    }
 
     private int msb2() {
         switch (mode) {
-        		case MODE_0: return 0;
-        		case MODE_1: return ramRom2;
-        		default: throw new Error();
+		case MODE_0: return 0;
+		case MODE_1: return ramRom2;
+		default: throw new Error();
         }
     }
 

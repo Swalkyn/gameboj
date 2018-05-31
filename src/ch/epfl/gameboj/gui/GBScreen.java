@@ -20,10 +20,11 @@ import javafx.scene.layout.Pane;
 public final class GBScreen {
 
     private static final int GUI_SCALE = 2;
-    public static final int SIZE = GUI_SCALE * LcdController.LCD_WIDTH;
+    public static final int WIDTH = GUI_SCALE * LcdController.LCD_WIDTH;
+    public static final int HEIGHT = GUI_SCALE * LcdController.LCD_HEIGHT;
     
     private final ImageView imgView;
-    private final Pane pane;
+    private final BorderPane pane;
     private final AnimationTimer timer = createTimer();
 
     private double previousTime = 0;
@@ -31,14 +32,16 @@ public final class GBScreen {
     private KeyboardHandler kh;
 
     /**
-     * Creates a new GBScreen using the given gameboy
+     * Creates a new GBScreen
      */
     public GBScreen() {
         this.imgView = new ImageView();
         this.pane = new BorderPane(imgView);
+        this.kh = new KeyboardHandler(pane);
         
-        imgView.setFitWidth(SIZE);
-        imgView.setFitHeight(SIZE);
+        imgView.setFitWidth(WIDTH);
+        imgView.setFitHeight(HEIGHT);
+        pane.getStyleClass().add("screen");
     }
     
     /**
@@ -47,7 +50,7 @@ public final class GBScreen {
      */
     public void attachGameboy(GameBoy gb) {
         this.gb = Objects.requireNonNull(gb);
-        kh = new KeyboardHandler(imgView, gb.joypad());
+        kh.attach(gb.joypad());
         
         previousTime = System.nanoTime();
         imgView.requestFocus();
@@ -58,11 +61,7 @@ public final class GBScreen {
      * Detaches the current gameboy and keyboard from the screen
      */
     public void detachGameboy() {
-    	if (kh != null) {
-    		kh.detach();    		
-    		kh = null;
-    	}
-    	
+		kh.detach();    		    	
     	timer.stop();
     	gb = null;
     }

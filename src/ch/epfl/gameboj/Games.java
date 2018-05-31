@@ -1,11 +1,14 @@
 package ch.epfl.gameboj;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.gui.GameItem;
 import javafx.scene.image.Image;
 
@@ -18,18 +21,19 @@ import javafx.scene.image.Image;
 public final class Games {
     
     private static final String ROM_PATH = "res/rom/";
+    private static final String SAVE_PATH = "res/saves/";
     private static final String IMG_PATH = "res/img/";
     private static final String ROM_EXT = ".gb";
+    private static final String SAVE_EXT = ".sav";
     private static final String IMG_EXT = ".jpg";
-    private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.jpg")
-            .toURI().toString());
+    private static final Image PLACEHOLDER = new Image(new File(IMG_PATH + "placeholder.jpg").toURI().toString());
     
     private static final List<String> IDS = buildIDs();
     
     private static final Map<String, String> NAMES = buildNames();
     private static final Map<String, File> ROMS = buildRoms();
+    private static final Map<String, Optional<File>> SAVES = buildSaves();
     private static final Map<String, Image> IMGS = buildImages();
-    
     private static final Map<String, GameItem> GAMES = buildGames();
     
     /**
@@ -67,7 +71,7 @@ public final class Games {
     }
     
     private static GameItem buildGame(String id) {
-        return new GameItem(id, NAMES.get(id), ROMS.get(id), IMGS.get(id));
+        return new GameItem(id, NAMES.get(id), ROMS.get(id), SAVES.get(id), IMGS.get(id));
     }
     
     private static Map<String, GameItem> buildGames() {
@@ -102,6 +106,22 @@ public final class Games {
         }
         
         return roms;
+    }
+    
+    private static Map<String, Optional<File>> buildSaves() {
+        Map<String, Optional<File>> saves = new HashMap<>();
+        
+        for (String id: IDS) {
+            try {
+                boolean canBeSaved = Cartridge.fileCanBeSaved(ROMS.get(id));
+                Optional<File> save = canBeSaved ? Optional.of(new File(SAVE_PATH + id + SAVE_EXT)) : Optional.empty();
+                saves.put(id, save);
+            } catch (IOException e) {
+                System.err.println("An error occured while determining if the game with id '" + id + "' could be saved");
+            }
+        }
+        
+        return saves;
     }
     
     private static Map<String, Image> buildImages() {
