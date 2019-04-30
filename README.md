@@ -12,5 +12,7 @@ A variety of games comes preloaded with the application, including:
   - Tetris
   - Donkey Kong
 
+![Application GUI Interface](https://github.com/bataillard/Gameboj/blob/master/res/img/Capture.PNG "The emulator interface")
+
 ## Launch
 To launch the application, simply run ch.epfl.gameboj.gui.Main
