@@ -7,7 +7,7 @@ This is a working Gameboy emulator creating for the CS-108: Practice of Object O
 It includes an easy to use GUI interface to select games and also supports cartridge saves for games such as Zelda.
 
 A variety of games comes preloaded with the application, including:
-  - Super Mario Bros 2
+  - Super Mario Land 2
   - Zelda: Link's Awakening
   - Tetris
   - Donkey Kong
