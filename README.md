@@ -16,3 +16,11 @@ A variety of games comes preloaded with the application, including:
 
 ## Launch
 To launch the application, simply run ch.epfl.gameboj.gui.Main
+
+### Controls
+| Keyboard         | Gameboy Button   |
+| :--------------: | ---------------- |
+| *Space*          | Start            |
+| *S*              | Select           |
+| *A*              | A                |
+| *B*              | B 		            |
