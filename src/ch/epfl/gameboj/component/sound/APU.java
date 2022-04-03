@@ -14,14 +14,25 @@ public class APU implements Component, Clocked {
 	private static final int CHANNEL_REGS = CReg.values().length;
 	private final RegisterFile<Reg> rf;
 	private final Ram waveRam;
+	private final Timer timer;
 	private final GBSpeaker speaker;
 
 	public enum Reg implements Register {
-		NR10, NR11, NR12, NR13, NR14,
-		xx20, NR21, NR22, NR23, NR24,
-		NR30, NR31, NR32, NR33, NR34,
-		xx40, NR41, NR42, NR43, NR44,
-		NR50, NR51, NR52;
+		NR10(0x80), NR11(0x3F), NR12(0x00), NR13(0xFF), NR14(0xBF),
+		xx20(0xFF), NR21(0x3F), NR22(0x00), NR23(0xFF), NR24(0xBF),
+		NR30(0x7F), NR31(0xFF), NR32(0x9F), NR33(0xFF), NR34(0xBF),
+		xx40(0xFF), NR41(0xFF), NR42(0x00), NR43(0x00), NR44(0xBF),
+		NR50(0x00), NR51(0x00), NR52(0x70);
+
+		private final int mask;
+
+		Reg(int mask) {
+			this.mask = mask;
+		}
+
+		public int getMask() {
+			return mask;
+		}
 
 		public static final Reg[] values = Reg.values();
 		public static Reg addressToReg(int address) {
@@ -71,6 +82,11 @@ public class APU implements Component, Clocked {
 		speaker.stop();
 	}
 
+	private int readReg(int address) {
+		Reg r = Reg.addressToReg(address);
+		return rf.get(r) | r.getMask();
+	}
+
 	private void writeToReg(int address, int data) {
 		Reg r = Reg.addressToReg(address);
 		if (!Reg.isSpecial(r)) {
@@ -95,11 +111,9 @@ public class APU implements Component, Clocked {
 	@Override
 	public int read(int address) {
 		Preconditions.checkBits16(address);
-//		System.out.printf("Read to %x%n", address);
-		// TODO: implement masking
 
 		if (AddressMap.REGS_SOUND_START <= address && address < AddressMap.REGS_SOUND_END) {
-			return rf.get(Reg.addressToReg(address));
+			return readReg(address);
 		} else if (AddressMap.WAVE_RAM_START <= address && address < AddressMap.WAVE_RAM_END) {
 			return waveRam.read(address - AddressMap.WAVE_RAM_START);
 		}
