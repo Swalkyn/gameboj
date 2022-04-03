@@ -5,12 +5,13 @@ import ch.epfl.gameboj.Preconditions;
 
 
 public class LengthCounter implements SoundUnit {
-	private static final int PERIOD = (int) (GameBoy.CYCLES_PER_SECOND / 512);
+	private final Timer timer;
 	private final int countMax;
 	private boolean enabled;
 	private int cycles;
 
-	public LengthCounter(int countMax) {
+	public LengthCounter(Timer timer, int countMax) {
+		this.timer = timer;
 		this.countMax = countMax;
 		configure(false, 0);
 	}
@@ -22,7 +23,7 @@ public class LengthCounter implements SoundUnit {
 
 	private void setCounter(int offset) {
 		Preconditions.checkArgument(offset < countMax);
-		this.cycles = (countMax - offset) * PERIOD;
+		this.cycles = countMax - offset;
 	}
 
 	@Override
@@ -30,7 +31,9 @@ public class LengthCounter implements SoundUnit {
 		if (!enabled) {
 			return i;
 		} else if (cycles > 0) {
-			cycles -= 1;
+			if (timer.lengthCounterTick()) {
+				cycles -= 1;
+			}
 			return i;
 		} else {
 			return 0;

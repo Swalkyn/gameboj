@@ -5,14 +5,17 @@ import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.bits.SBit;
 
 public class PulseB extends Channel {
-	private static final Pulse pulse = new Pulse();
-	private static final LengthCounter lengthCounter = new LengthCounter(64);
-	private static final Envelope envelope = new Envelope();
+	private final Pulse pulse;
+	private final LengthCounter lengthCounter;
+	private final Envelope envelope;
 
 	private final RegisterFile<APU.Reg> rf;
 
-	public PulseB(RegisterFile<APU.Reg> rf) {
+	public PulseB(Timer t, RegisterFile<APU.Reg> rf) {
 		this.rf = rf;
+		pulse = new Pulse();
+		lengthCounter = new LengthCounter(t, 64);
+		envelope = new Envelope(t);
 	}
 
 	@Override

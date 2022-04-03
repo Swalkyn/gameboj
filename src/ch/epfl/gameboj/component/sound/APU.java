@@ -68,10 +68,11 @@ public class APU implements Component, Clocked {
 	public APU() {
 		this.rf = new RegisterFile<>(Reg.values());
 		this.waveRam = new Ram(AddressMap.WAVE_RAM_SIZE);
+		this.timer = new Timer();
 
 		this.speaker = new GBSpeaker();
 
-		this.pulseA = new PulseB(rf);
+		this.pulseA = new PulseB(timer, rf);
 	}
 
 	public void start() {
@@ -103,6 +104,7 @@ public class APU implements Component, Clocked {
 	@Override
 	public void cycle(long cycle) {
 		// Mix channels output
+		timer.cycle(cycle);
 		int nextSample = pulseA.getAsInt();
 		Preconditions.checkBits8(nextSample);
 		speaker.play(nextSample, nextSample);
