@@ -52,8 +52,9 @@ public final class GBScreen {
         this.gb = Objects.requireNonNull(gb);
         kh.attach(gb.joypad());
         
-        previousTime = System.nanoTime();
         imgView.requestFocus();
+        gb.apu().start();
+        previousTime = System.nanoTime();
         timer.start();
     }
     
@@ -63,6 +64,9 @@ public final class GBScreen {
     public void detachGameboy() {
 		kh.detach();    		    	
     	timer.stop();
+    	if (gb != null) {
+            gb.apu().stop();
+        }
     	gb = null;
     }
     

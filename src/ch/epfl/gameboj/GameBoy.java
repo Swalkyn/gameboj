@@ -10,6 +10,7 @@ import ch.epfl.gameboj.component.lcd.LcdController;
 import ch.epfl.gameboj.component.memory.BootRomController;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
+import ch.epfl.gameboj.component.sound.APU;
 
 /**
  * Represents a gameboy
@@ -29,6 +30,7 @@ public final class GameBoy {
     private final RamController echoRam;
     private final BootRomController bootRom;
     private final LcdController lcd;
+    private final APU apu;
     private final Joypad joypad;
     
     private long numberOfCycles = 0;
@@ -51,6 +53,7 @@ public final class GameBoy {
         bootRom = new BootRomController(cartridge);
         
         lcd = new LcdController(mCpu);
+        apu = new APU();
         joypad = new Joypad(mCpu);
         
         mCpu.attachTo(mBus);
@@ -59,6 +62,7 @@ public final class GameBoy {
         echoRam.attachTo(mBus);
         bootRom.attachTo(mBus);
         lcd.attachTo(mBus);
+        apu.attachTo(mBus);
         joypad.attachTo(mBus);
     }
     
@@ -89,7 +93,14 @@ public final class GameBoy {
     public LcdController lcdController() {
         return lcd;
     }
-    
+
+    /**
+     * @return the audio processing unit of the gameboy
+     */
+    public APU apu() {
+        return apu;
+    }
+
     /**
      * @return the joypad of the gameboy
      */
@@ -115,6 +126,7 @@ public final class GameBoy {
         while(cycles() < cycle) {
             mTimer.cycle(numberOfCycles);
             lcd.cycle(numberOfCycles);
+            apu.cycle(numberOfCycles);
             mCpu.cycle(numberOfCycles);
             numberOfCycles++;
         }
