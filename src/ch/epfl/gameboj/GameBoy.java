@@ -126,8 +126,8 @@ public final class GameBoy {
         while(cycles() < cycle) {
             mTimer.cycle(numberOfCycles);
             lcd.cycle(numberOfCycles);
-            apu.cycle(numberOfCycles);
             mCpu.cycle(numberOfCycles);
+            apu.cycle(numberOfCycles);
             numberOfCycles++;
         }
     }

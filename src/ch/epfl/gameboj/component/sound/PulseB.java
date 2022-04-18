@@ -19,7 +19,8 @@ public class PulseB extends Channel {
 	}
 
 	@Override
-	public void enable() {
+	public void trigger() {
+		enable();
 		// Channel is enabled (see length counter).
 		// If length counter is zero, it is set to 64 (256 for wave channel).
 		lengthCounter.configure(rf.testBit(APU.Reg.NR24, SBit.B6), Bits.clip(6, rf.get(APU.Reg.NR21)));
@@ -32,7 +33,12 @@ public class PulseB extends Channel {
 	}
 
 	@Override
-	public int getAsInt() {
+	public boolean dacEnabled() {
+		return Bits.extract(rf.get(APU.Reg.NR22), 3, 5) != 0;
+	}
+
+	@Override
+	public int getSample() {
 		return pulse.andThen(lengthCounter).andThen(envelope).applyAsInt(0);
 	}
 }

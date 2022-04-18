@@ -1,5 +1,7 @@
 package ch.epfl.gameboj.component.sound;
 
+import ch.epfl.gameboj.Preconditions;
+
 public class Pulse implements SoundUnit {
 	private static final int TIMER_CYCLES_PER_WAVEFORM = 8;
 	private static final int FREQ_START = 2048;
@@ -13,6 +15,9 @@ public class Pulse implements SoundUnit {
 	}
 
 	public void configure(int duty, int freq) {
+		Preconditions.checkBits16(freq);
+		Preconditions.checkArgument(0 <= duty && duty <= 3);
+
 		this.duty = duty;
 		this.timer_period = FREQ_START - freq;
 		this.cycle = 0;

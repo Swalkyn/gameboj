@@ -48,13 +48,18 @@ public class GBSpeaker {
 		Preconditions.checkBits8(left);
 		Preconditions.checkBits8(right);
 
+		if (line == null) {
+			// Sound not started: don't play anything
+			return;
+		}
+
 		cycle %= divider;
 		if (cycle == 0) {
 			buffer[index++] = (byte) (left);
 			buffer[index++] = (byte) (right);
 			if (index > actualBufferSize / 2) {
 				int available = line.available();
-				System.err.printf("Writing %d, %d available\n", index, available);
+//				System.err.printf("Writing %d, %d available\n", index, available);
 				int toWrite = Math.min(available, index);
 				line.write(buffer, 0, toWrite);
 				index = 0;

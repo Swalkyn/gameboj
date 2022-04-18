@@ -6,5 +6,19 @@ import ch.epfl.gameboj.RegisterFile;
 import java.util.function.IntSupplier;
 
 public abstract class Channel implements IntSupplier {
-	public abstract void enable();
+	private boolean enabled = false;
+
+	public abstract int getSample();
+	public abstract void trigger();
+	public abstract boolean dacEnabled();
+	public void disable() { enabled = false; }
+	public void enable() { enabled = true; }
+	public boolean isEnabled() {
+		return enabled && dacEnabled();
+	}
+
+	@Override
+	public int getAsInt() {
+		return enabled ? getSample() : 0xFF;
+	}
 }

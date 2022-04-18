@@ -17,6 +17,8 @@ public class APU implements Component, Clocked {
 	private final Timer timer;
 	private final GBSpeaker speaker;
 
+	private boolean powered;
+
 	public enum Reg implements Register {
 		NR10(0x80), NR11(0x3F), NR12(0x00), NR13(0xFF), NR14(0xBF),
 		xx20(0xFF), NR21(0x3F), NR22(0x00), NR23(0xFF), NR24(0xBF),
@@ -63,7 +65,10 @@ public class APU implements Component, Clocked {
 		}
 	}
 
-	private final PulseB pulseA;
+	private final PulseA pulseA;
+	private final PulseB pulseB;
+	private final Wave wave;
+	private final Noise noise;
 
 	public APU() {
 		this.rf = new RegisterFile<>(Reg.values());
@@ -72,7 +77,12 @@ public class APU implements Component, Clocked {
 
 		this.speaker = new GBSpeaker();
 
-		this.pulseA = new PulseB(timer, rf);
+		this.pulseA = new PulseA(timer, rf);
+		this.pulseB = new PulseB(timer, rf);
+		this.wave = new Wave(rf, waveRam, timer);
+		this.noise = new Noise();
+
+		this.powered = true;
 	}
 
 	public void start() {
@@ -85,19 +95,109 @@ public class APU implements Component, Clocked {
 
 	private int readReg(int address) {
 		Reg r = Reg.addressToReg(address);
-		return rf.get(r) | r.getMask();
+		int value = rf.get(r) | r.getMask();
+		if (r == Reg.NR52) {
+			value = Bits.set(value, 0, pulseA.isEnabled());
+			value = Bits.set(value, 1, pulseB.isEnabled());
+			value = Bits.set(value, 2, wave.isEnabled());
+			value = Bits.set(value, 3, noise.isEnabled());
+		}
+		return value;
 	}
 
 	private void writeToReg(int address, int data) {
 		Reg r = Reg.addressToReg(address);
-		if (!Reg.isSpecial(r)) {
-			Channel c = Channel.addressToChannel(address);
-			CReg cr = CReg.getChannelRegister(r);
+		if (powered || r == Reg.NR52) {
 			rf.set(r, data);
-
-			if (c == Channel.PulseB && cr == CReg.Control && Bits.test(data, 7)) {
-				pulseA.enable();
-			}
+		}
+		switch (r) {
+			case NR10:
+				break;
+			case NR11:
+				break;
+			case NR12:
+				if (!pulseA.dacEnabled()) {
+					pulseA.disable();
+				}
+				break;
+			case NR13:
+				break;
+			case NR14:
+				if (Bits.test(data, 7)) {
+					pulseA.trigger();
+				} else {
+					pulseA.disable();
+				}
+				break;
+			case xx20:
+				break;
+			case NR21:
+				break;
+			case NR22:
+				if (!pulseB.dacEnabled()) {
+					pulseB.disable();
+				}
+				break;
+			case NR23:
+				break;
+			case NR24:
+				if (Bits.test(data, 7)) {
+					pulseB.trigger();
+				} else {
+					pulseB.disable();
+				}
+				break;
+			case NR30:
+				if (!wave.dacEnabled()) {
+					wave.disable();
+				}
+				break;
+			case NR31:
+				break;
+			case NR32:
+				break;
+			case NR33:
+				break;
+			case NR34:
+				if (Bits.test(data, 7)) {
+//					wave.trigger();
+				} else {
+					wave.disable();
+				}
+				break;
+			case xx40:
+				break;
+			case NR41:
+				break;
+			case NR42:
+				if (!noise.dacEnabled()) {
+					noise.disable();
+				}
+				break;
+			case NR43:
+				break;
+			case NR44:
+				if (Bits.test(data, 7)) {
+//					noise.trigger();
+				} else {
+					noise.disable();
+				}
+				break;
+			case NR50:
+				break;
+			case NR51:
+				break;
+			case NR52:
+				if (Bits.test(data, 7)) {
+					powered = true;
+				} else {
+					powered = false;
+					// Set all regsiters to 0
+					for (Reg reg: Reg.values()) {
+						rf.set(reg, 0);
+					}
+				}
+				break;
 		}
 	}
 
@@ -105,22 +205,33 @@ public class APU implements Component, Clocked {
 	public void cycle(long cycle) {
 		// Mix channels output
 		timer.cycle(cycle);
-		int nextSample = pulseA.getAsInt();
-		Preconditions.checkBits8(nextSample);
+		int pulseASample = pulseA.getAsInt();
+		int pulseBSample = pulseB.getAsInt();
+		int waveSample = wave.getAsInt();
+		int noiseSample = noise.getAsInt();
+		int nextSample = (pulseASample + pulseBSample + waveSample + noiseSample) / 4;
 		speaker.play(nextSample, nextSample);
 	}
 
 	@Override
 	public int read(int address) {
 		Preconditions.checkBits16(address);
+		int value;
 
 		if (AddressMap.REGS_SOUND_START <= address && address < AddressMap.REGS_SOUND_END) {
-			return readReg(address);
+			// APU Registers
+			value = readReg(address);
+		} else if (AddressMap.REGS_SOUND_END <= address && address < AddressMap.WAVE_RAM_START) {
+			// Unusable registers
+			value = 0xFF;
 		} else if (AddressMap.WAVE_RAM_START <= address && address < AddressMap.WAVE_RAM_END) {
-			return waveRam.read(address - AddressMap.WAVE_RAM_START);
+			// Wave ram
+			value = waveRam.read(address - AddressMap.WAVE_RAM_START);
+		} else {
+			value = Component.NO_DATA;
 		}
 
-		return Component.NO_DATA;
+		return value;
 	}
 
 	@Override
