@@ -24,7 +24,7 @@ public final class DebugMainLive extends Application {
 
     /** Configuration */
 
-    private static final String ROM_PATH = "test/testBlargg/flappyboy.gb";
+    private static String romPath;
 
     private static final float EMULATION_SPEED = 1f;
     private static final int CYCLES_PER_ITERATION = (int)(17_556 * EMULATION_SPEED);
@@ -34,7 +34,7 @@ public final class DebugMainLive extends Application {
 
     @Override public void start(Stage stage) throws IOException, InterruptedException {
         // Create GameBoy
-        File romFile = new File(ROM_PATH);
+        File romFile = new File(romPath);
         GameBoy gb = new GameBoy(Cartridge.ofFile(romFile));
 
         // Create Scene
@@ -80,6 +80,7 @@ public final class DebugMainLive extends Application {
     }
 
     public static void main(String[] args) {
+        romPath = args[0];
         Application.launch(args);
     }
 
