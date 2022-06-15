@@ -71,7 +71,7 @@ public class Wave extends Channel {
 
 	public Wave(RegisterFile<APU.Reg> rf, Ram ram, Timer timer) {
 		this.wave = new WaveGen(ram);
-		this.lengthCounter = new LengthCounter(timer, 256);
+		this.lengthCounter = new LengthCounter(this, timer, 256);
 		this.waveVolume = new WaveVolume();
 		this.rf = rf;
 	}

@@ -14,7 +14,7 @@ public class PulseA extends Channel {
 	public PulseA(Timer timer, RegisterFile<APU.Reg> rf) {
 		this.rf = rf;
 		this.pulse = new SweepPulse(timer);
-		this.lengthCounter = new LengthCounter(timer, 64);
+		this.lengthCounter = new LengthCounter(this, timer, 64);
 		this.envelope = new Envelope(timer);
 	}
 

@@ -5,12 +5,14 @@ import ch.epfl.gameboj.Preconditions;
 
 
 public class LengthCounter implements SoundUnit {
+	private final Channel channel;
 	private final Timer timer;
 	private final int countMax;
 	private boolean enabled;
 	private int cycles;
 
-	public LengthCounter(Timer timer, int countMax) {
+	public LengthCounter(Channel channel, Timer timer, int countMax) {
+		this.channel = channel;
 		this.timer = timer;
 		this.countMax = countMax;
 		configure(false, 0);
@@ -33,6 +35,9 @@ public class LengthCounter implements SoundUnit {
 		} else if (cycles > 0) {
 			if (timer.lengthCounterTick()) {
 				cycles -= 1;
+				if (cycles == 0) {
+					channel.disable();
+				}
 			}
 			return i;
 		} else {

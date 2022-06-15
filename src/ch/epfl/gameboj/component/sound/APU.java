@@ -46,7 +46,7 @@ public class APU implements Component, Clocked {
 		}
 	}
 
-	private enum CReg {
+	public enum CReg {
 		Sweep, Length, Volume, Frequency, Control;
 
 		public static final CReg[] values = CReg.values();
@@ -56,7 +56,7 @@ public class APU implements Component, Clocked {
 		}
 	}
 
-	private enum Channel {
+	public enum Channel {
 		PulseA, PulseB, Wave, Noise;
 
 		public static final Channel[] values = Channel.values();
@@ -141,11 +141,11 @@ public class APU implements Component, Clocked {
 			case NR23:
 				break;
 			case NR24:
-				if (Bits.test(data, 7)) {
-					pulseB.trigger();
-				} else {
-					pulseB.disable();
-				}
+//				if (Bits.test(data, 7)) {
+//					pulseB.trigger();
+//				} else {
+//					pulseB.disable();
+//				}
 				break;
 			case NR30:
 				if (!wave.dacEnabled()) {
@@ -160,7 +160,7 @@ public class APU implements Component, Clocked {
 				break;
 			case NR34:
 				if (Bits.test(data, 7)) {
-//					wave.trigger();
+					wave.trigger();
 				} else {
 					wave.disable();
 				}
@@ -178,7 +178,7 @@ public class APU implements Component, Clocked {
 				break;
 			case NR44:
 				if (Bits.test(data, 7)) {
-//					noise.trigger();
+					noise.trigger();
 				} else {
 					noise.disable();
 				}
