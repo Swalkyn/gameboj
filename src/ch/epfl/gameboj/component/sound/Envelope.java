@@ -1,18 +1,16 @@
 package ch.epfl.gameboj.component.sound;
 
-import ch.epfl.gameboj.GameBoy;
-
 public class Envelope implements SoundUnit {
 	private static final int MIN_VOLUME = 0x0;
 	private static final int MAX_VOLUME = 0xF;
-	private final Timer timer;
+	private final FrameSequencer frameSequencer;
 	private int volume;
 	private int period;
 	private int cycles;
 	private boolean addMode;
 
-	public Envelope(Timer timer) {
-		this.timer = timer;
+	public Envelope(FrameSequencer frameSequencer) {
+		this.frameSequencer = frameSequencer;
 		configure(false, 1, 0);
 	}
 
@@ -25,7 +23,7 @@ public class Envelope implements SoundUnit {
 
 	@Override
 	public int applyAsInt(int i) {
-		if (timer.envelopeTick()) {
+		if (frameSequencer.envelopeTick()) {
 			cycles -= 1;
 		}
 		if (cycles == 0) {

@@ -11,11 +11,11 @@ public class PulseA extends Channel {
 
 	private final RegisterFile<APU.Reg> rf;
 
-	public PulseA(Timer timer, RegisterFile<APU.Reg> rf) {
+	public PulseA(FrameSequencer frameSequencer, RegisterFile<APU.Reg> rf) {
 		this.rf = rf;
-		this.pulse = new SweepPulse(timer);
-		this.lengthCounter = new LengthCounter(this, timer, 64);
-		this.envelope = new Envelope(timer);
+		this.pulse = new SweepPulse(frameSequencer);
+		this.lengthCounter = new LengthCounter(this, frameSequencer, 64);
+		this.envelope = new Envelope(frameSequencer);
 	}
 
 	@Override

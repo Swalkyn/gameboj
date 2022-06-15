@@ -11,7 +11,7 @@ public class PulseB extends Channel {
 
 	private final RegisterFile<APU.Reg> rf;
 
-	public PulseB(Timer t, RegisterFile<APU.Reg> rf) {
+	public PulseB(FrameSequencer t, RegisterFile<APU.Reg> rf) {
 		this.rf = rf;
 		pulse = new Pulse();
 		lengthCounter = new LengthCounter(this, t, 64);

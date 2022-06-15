@@ -2,13 +2,13 @@ package ch.epfl.gameboj.component.sound;
 
 import ch.epfl.gameboj.GameBoy;
 
-public class Timer {
+public class FrameSequencer {
 	private static final int PERIOD = (int) GameBoy.CYCLES_PER_SECOND / 512;
 	private static final int STEPS = 8;
 	private int step;
 	private int clock;
 
-	public Timer() {
+	public FrameSequencer() {
 		this.step = 0;
 		this.clock = 0;
 	}

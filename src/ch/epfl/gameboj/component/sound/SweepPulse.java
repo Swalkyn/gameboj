@@ -1,10 +1,8 @@
 package ch.epfl.gameboj.component.sound;
 
-import ch.epfl.gameboj.GameBoy;
-
 public class SweepPulse implements SoundUnit {
 	private final Pulse pulse;
-	private final Timer timer;
+	private final FrameSequencer frameSequencer;
 	private int period;
 	private boolean negate;
 	private int shift;
@@ -13,9 +11,9 @@ public class SweepPulse implements SoundUnit {
 	private boolean enabled;
 	private int cycle;
 
-	public SweepPulse(Timer timer) {
+	public SweepPulse(FrameSequencer frameSequencer) {
 		this.pulse = new Pulse();
-		this.timer = timer;
+		this.frameSequencer = frameSequencer;
 		configure(0, false, 0, 0, 0);
 	}
 
@@ -43,7 +41,7 @@ public class SweepPulse implements SoundUnit {
 	@Override
 	public int applyAsInt(int i) {
 		if (enabled && period != 0) {
-			if (timer.sweepTick()) {
+			if (frameSequencer.sweepTick()) {
 				cycle -= 1;
 			}
 			if (cycle == 0 && shift != 0) {

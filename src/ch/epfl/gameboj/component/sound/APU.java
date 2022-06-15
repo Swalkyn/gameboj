@@ -13,7 +13,7 @@ import ch.epfl.gameboj.gui.GBSpeaker;
 public class APU implements Component, Clocked {
 	private final RegisterFile<Reg> rf;
 	private final Ram waveRam;
-	private final Timer timer;
+	private final FrameSequencer frameSequencer;
 	private final GBSpeaker speaker;
 
 	private boolean powered;
@@ -49,13 +49,13 @@ public class APU implements Component, Clocked {
 	public APU() {
 		this.rf = new RegisterFile<>(Reg.values());
 		this.waveRam = new Ram(AddressMap.WAVE_RAM_SIZE);
-		this.timer = new Timer();
+		this.frameSequencer = new FrameSequencer();
 
 		this.speaker = new GBSpeaker();
 
-		this.pulseA = new PulseA(timer, rf);
-		this.pulseB = new PulseB(timer, rf);
-		this.wave = new Wave(rf, waveRam, timer);
+		this.pulseA = new PulseA(frameSequencer, rf);
+		this.pulseB = new PulseB(frameSequencer, rf);
+		this.wave = new Wave(rf, waveRam, frameSequencer);
 		this.noise = new Noise();
 
 		this.powered = true;
@@ -148,7 +148,7 @@ public class APU implements Component, Clocked {
 	@Override
 	public void cycle(long cycle) {
 		// Mix channels output
-		timer.cycle(cycle);
+		frameSequencer.cycle(cycle);
 		int pulseASample = pulseA.getAsInt();
 		int pulseBSample = pulseB.getAsInt();
 		int waveSample = wave.getAsInt();
