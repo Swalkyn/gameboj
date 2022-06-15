@@ -11,7 +11,6 @@ import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.gui.GBSpeaker;
 
 public class APU implements Component, Clocked {
-	private static final int CHANNEL_REGS = CReg.values().length;
 	private final RegisterFile<Reg> rf;
 	private final Ram waveRam;
 	private final Timer timer;
@@ -39,29 +38,6 @@ public class APU implements Component, Clocked {
 		public static final Reg[] values = Reg.values();
 		public static Reg addressToReg(int address) {
 			return values[address - AddressMap.REGS_SOUND_START];
-		}
-		public static boolean isSpecial(Reg r) { return r.ordinal() >= 20; }
-		public static Reg getRegister(Channel c, CReg r) {
-			return values[c.ordinal() * CHANNEL_REGS + r.ordinal()];
-		}
-	}
-
-	public enum CReg {
-		Sweep, Length, Volume, Frequency, Control;
-
-		public static final CReg[] values = CReg.values();
-		public static CReg getChannelRegister(Reg r) {
-			return values[r.ordinal() % CHANNEL_REGS];
-
-		}
-	}
-
-	public enum Channel {
-		PulseA, PulseB, Wave, Noise;
-
-		public static final Channel[] values = Channel.values();
-		public static Channel addressToChannel(int address) {
-			return values[(address - AddressMap.REGS_SOUND_START) / CHANNEL_REGS];
 		}
 	}
 
@@ -116,41 +92,22 @@ public class APU implements Component, Clocked {
 			case NR11:
 				break;
 			case NR12:
-				if (!pulseA.dacEnabled()) {
-					pulseA.disable();
-				}
 				break;
 			case NR13:
 				break;
 			case NR14:
-				if (Bits.test(data, 7)) {
-					pulseA.trigger();
-				} else {
-					pulseA.disable();
-				}
 				break;
 			case xx20:
 				break;
 			case NR21:
 				break;
 			case NR22:
-				if (!pulseB.dacEnabled()) {
-					pulseB.disable();
-				}
 				break;
 			case NR23:
 				break;
 			case NR24:
-//				if (Bits.test(data, 7)) {
-//					pulseB.trigger();
-//				} else {
-//					pulseB.disable();
-//				}
 				break;
 			case NR30:
-				if (!wave.dacEnabled()) {
-					wave.disable();
-				}
 				break;
 			case NR31:
 				break;
@@ -159,29 +116,16 @@ public class APU implements Component, Clocked {
 			case NR33:
 				break;
 			case NR34:
-				if (Bits.test(data, 7)) {
-					wave.trigger();
-				} else {
-					wave.disable();
-				}
 				break;
 			case xx40:
 				break;
 			case NR41:
 				break;
 			case NR42:
-				if (!noise.dacEnabled()) {
-					noise.disable();
-				}
 				break;
 			case NR43:
 				break;
 			case NR44:
-				if (Bits.test(data, 7)) {
-					noise.trigger();
-				} else {
-					noise.disable();
-				}
 				break;
 			case NR50:
 				break;
