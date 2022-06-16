@@ -23,15 +23,17 @@ public class Envelope implements SoundUnit {
 
 	@Override
 	public int applyAsInt(int i) {
-		if (frameSequencer.envelopeTick()) {
-			cycles -= 1;
-		}
-		if (cycles == 0) {
-			cycles = period;
-			if (addMode && volume < MAX_VOLUME) {
-				volume += 1;
-			} else if (!addMode && volume > MIN_VOLUME) {
-				volume -= 1;
+		if (period != 0) {
+			if (frameSequencer.envelopeTick()) {
+				cycles -= 1;
+			}
+			if (cycles == 0) {
+				cycles = period;
+				if (addMode && volume < MAX_VOLUME) {
+					volume += 1;
+				} else if (!addMode && volume > MIN_VOLUME) {
+					volume -= 1;
+				}
 			}
 		}
 		return i / MAX_VOLUME * volume;
