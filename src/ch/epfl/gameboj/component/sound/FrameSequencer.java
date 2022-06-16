@@ -20,6 +20,11 @@ public class FrameSequencer {
 		}
 	}
 
+	public void reset() {
+		// When powered on, the frame sequencer is reset so that the next step will be 0
+		step = STEPS - 1;
+	}
+
 	public boolean lengthCounterTick() {
 		return step % 2 == 0 && clock == 0;
 	}

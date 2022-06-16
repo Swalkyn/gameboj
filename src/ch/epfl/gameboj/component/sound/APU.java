@@ -135,11 +135,13 @@ public class APU implements Component, Clocked {
 				if (Bits.test(data, 7)) {
 					powered = true;
 				} else {
+					// Power on
 					powered = false;
 					// Set all regsiters to 0
 					for (Reg reg: Reg.values()) {
 						rf.set(reg, 0);
 					}
+					frameSequencer.reset();
 				}
 				break;
 		}
