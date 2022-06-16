@@ -22,6 +22,7 @@ public abstract class Channel implements IntSupplier {
 
 	@Override
 	public int getAsInt() {
-		return enabled ? getSample() : 0x00;
+		int sample = getSample();
+		return enabled ? sample : 0x00;
 	}
 }

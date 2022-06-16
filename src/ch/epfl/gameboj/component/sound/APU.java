@@ -56,7 +56,7 @@ public class APU implements Component, Clocked {
 		this.pulseA = new PulseA(frameSequencer, rf);
 		this.pulseB = new PulseB(frameSequencer, rf);
 		this.wave = new Wave(rf, waveRam, frameSequencer);
-		this.noise = new Noise();
+		this.noise = new Noise(rf, frameSequencer);
 
 		this.powered = true;
 	}
@@ -90,12 +90,20 @@ public class APU implements Component, Clocked {
 			case NR10:
 				break;
 			case NR11:
+				pulseA.lengthCounter.loadCounter(Bits.clip(6, data));
 				break;
 			case NR12:
+				if (Bits.extract(data, 3, 5) == 0) {
+					pulseA.disable();
+				}
 				break;
 			case NR13:
 				break;
 			case NR14:
+				pulseA.lengthCounter.setEnabled(Bits.test(data, 6));
+				if (Bits.test(data, 7)) {
+					pulseA.trigger();
+				}
 				break;
 			case xx20:
 				break;

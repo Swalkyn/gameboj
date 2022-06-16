@@ -14,17 +14,21 @@ public class LengthCounter implements SoundUnit {
 		this.channel = channel;
 		this.frameSequencer = frameSequencer;
 		this.countMax = countMax;
-		configure(false, 0);
+		this.loadCounter(0);
+		this.setEnabled(false);
 	}
 
-	public void configure(boolean enabled, int offset) {
+	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
-		loadCounter(offset);
 	}
 
 	public void loadCounter(int offset) {
 		Preconditions.checkArgument(offset < countMax);
 		this.count = countMax - offset;
+	}
+
+	public boolean isZero() {
+		return count == 0;
 	}
 
 	@Override
