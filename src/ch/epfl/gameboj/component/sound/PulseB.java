@@ -5,28 +5,33 @@ import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.bits.SBit;
 
 public class PulseB extends Channel {
-	private final Pulse pulse;
-	private final LengthCounter lengthCounter;
-	private final Envelope envelope;
+	public final Pulse pulse;
+	public final LengthCounter lengthCounter;
+	public final Envelope envelope;
 
 	private final RegisterFile<APU.Reg> rf;
 
-	public PulseB(FrameSequencer t, RegisterFile<APU.Reg> rf) {
+	public PulseB(FrameSequencer frameSequencer, RegisterFile<APU.Reg> rf) {
 		this.rf = rf;
 		pulse = new Pulse();
-		lengthCounter = new LengthCounter(this, t, 64);
-		envelope = new Envelope(t);
+		lengthCounter = new LengthCounter(this, frameSequencer, 64);
+		envelope = new Envelope(frameSequencer);
 	}
 
 	@Override
 	public void trigger() {
-		enable();
+		if (dacEnabled()) {
+			enable();
+		}
 		// Channel is enabled (see length counter).
 		// If length counter is zero, it is set to 64 (256 for wave channel).
-		lengthCounter.configure(rf.testBit(APU.Reg.NR24, SBit.B6), Bits.clip(6, rf.get(APU.Reg.NR21)));
+		if (lengthCounter.isZero()) {
+			lengthCounter.loadCounter(0);
+		}
 		// Frequency timer is reloaded with period.
 		int freq = Bits.make16(Bits.clip(3, rf.get(APU.Reg.NR24)), rf.get(APU.Reg.NR23));
-		pulse.configure(Bits.extract(rf.get(APU.Reg.NR21), 6, 2), freq);
+		int duty = Bits.extract(rf.get(APU.Reg.NR21), 6, 2);
+		pulse.configure(duty, freq);
 		// Volume envelope timer is reloaded with period.
 		envelope.configure(rf.testBit(APU.Reg.NR22, SBit.B3), Bits.clip(3, rf.get(APU.Reg.NR22)), Bits.extract(rf.get(APU.Reg.NR22), 4, 4));
 		// Channel volume is reloaded from NRx2.

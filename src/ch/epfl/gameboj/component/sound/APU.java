@@ -108,12 +108,20 @@ public class APU implements Component, Clocked {
 			case xx20:
 				break;
 			case NR21:
+				pulseB.lengthCounter.loadCounter(Bits.clip(6, data));
 				break;
 			case NR22:
+				if (Bits.extract(data, 3, 5) == 0) {
+					pulseB.disable();
+				}
 				break;
 			case NR23:
 				break;
 			case NR24:
+				pulseB.lengthCounter.setEnabled(Bits.test(data, 6));
+				if (Bits.test(data, 7)) {
+					pulseB.trigger();
+				}
 				break;
 			case NR30:
 				break;
