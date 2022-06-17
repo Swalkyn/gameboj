@@ -124,14 +124,23 @@ public class APU implements Component, Clocked {
 				}
 				break;
 			case NR30:
+				if (!Bits.test(data, 7)) {
+					wave.disable();
+				}
 				break;
 			case NR31:
+				wave.lengthCounter.loadCounter(data);
 				break;
 			case NR32:
+				wave.waveVolume.configure(Bits.extract(data, 5, 2));
 				break;
 			case NR33:
 				break;
 			case NR34:
+				wave.lengthCounter.setEnabled(Bits.test(data, 6));
+				if (Bits.test(data, 7)) {
+					wave.trigger();
+				}
 				break;
 			case xx40:
 				break;

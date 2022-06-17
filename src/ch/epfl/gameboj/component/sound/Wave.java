@@ -6,7 +6,7 @@ import ch.epfl.gameboj.bits.SBit;
 import ch.epfl.gameboj.component.memory.Ram;
 
 public class Wave extends Channel {
-	private static class WaveGen implements SoundUnit {
+	public static class WaveGen implements SoundUnit {
 		private static final int SAMPLES = 32;
 		private static final int FREQ_START = 2048;
 		private final Ram ram;
@@ -26,20 +26,19 @@ public class Wave extends Channel {
 		}
 
 		private int getSample(int index) {
-//			int start = index % 2 == 0 ? 4 : 0;
-//			return Bits.extract(ram.read(index / 2), start, 4);
-			return 0;
+			int start = index % 2 == 0 ? 4 : 0;
+			return Bits.extract(ram.read(index / 2), start, 4);
 		}
 
 		@Override
 		public int applyAsInt(int i) {
 			cycle += 2;
-			sample_index = ((cycle / timer_period) + 1) % SAMPLES;
+			sample_index = (cycle / timer_period) % SAMPLES;
 			return getSample(sample_index);
 		}
 	}
 
-	private static class WaveVolume implements SoundUnit {
+	public static class WaveVolume implements SoundUnit {
 		private int volume;
 
 		public WaveVolume() {
@@ -63,9 +62,9 @@ public class Wave extends Channel {
 		}
 	}
 
-	private final WaveGen wave;
-	private final LengthCounter lengthCounter;
-	private final WaveVolume waveVolume;
+	public final WaveGen wave;
+	public final LengthCounter lengthCounter;
+	public final WaveVolume waveVolume;
 	private final RegisterFile<APU.Reg> rf;
 
 
@@ -83,10 +82,18 @@ public class Wave extends Channel {
 
 	@Override
 	public void trigger() {
-		enable();
+		// Channel is enabled, if the DAC is enabled
+		if (dacEnabled()) {
+			enable();
+		}
+		// If length counter is zero, it is set to 64 (256 for wave channel).
+		if (lengthCounter.isZero()) {
+			lengthCounter.loadCounter(0);
+		}
+		// Frequency timer is reloaded
 		int freq = Bits.make16(Bits.clip(3, rf.get(APU.Reg.NR34)), rf.get(APU.Reg.NR33));
 		wave.configure(freq);
-		lengthCounter.configure(rf.testBit(APU.Reg.NR34, SBit.B6), rf.get(APU.Reg.NR21));
+		// Channel volume is reloaded
 		waveVolume.configure(Bits.extract(rf.get(APU.Reg.NR32), 5, 2));
 	}
 
