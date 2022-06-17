@@ -136,12 +136,21 @@ public class APU implements Component, Clocked {
 			case xx40:
 				break;
 			case NR41:
+				noise.lengthCounter.loadCounter(Bits.clip(6, data));
 				break;
 			case NR42:
+				if (Bits.extract(data, 3, 5) == 0) {
+					noise.disable();
+				}
+				noise.envelope.configure(Bits.test(data, 3), Bits.clip(3, data), Bits.extract(data, 4, 4));
 				break;
 			case NR43:
 				break;
 			case NR44:
+				noise.lengthCounter.setEnabled(Bits.test(data, 6));
+				if (Bits.test(data, 7)) {
+					noise.trigger();
+				}
 				break;
 			case NR50:
 				break;
