@@ -16,18 +16,21 @@ public final class ImageConverter {
     /**
      * Converts an LcdImage to a writable javafx Image
      * @param image : an lcd image from the gameboy
+     * @param scaling : ration to scale image
      * @return the converted image
      * @throws NullPointerException if the image is null
      */
-    public static Image convert(LcdImage image) {
+    public static Image convert(LcdImage image, int scaling) {
         Objects.requireNonNull(image);
-        WritableImage wi = new WritableImage(LcdController.LCD_WIDTH, LcdController.LCD_HEIGHT);
+        WritableImage wi = new WritableImage(LcdController.LCD_WIDTH * 2, LcdController.LCD_HEIGHT * 2);
         PixelWriter pwriter = wi.getPixelWriter();
 
         for (int y = 0; y < LcdController.LCD_HEIGHT; y++) {
             for (int x = 0; x < LcdController.LCD_WIDTH; x++) {
                 int rgb = RGB_VALUES[image.get(x, y)];
-                pwriter.setArgb(x, y, rgb);
+                for (int i = 0; i < scaling*scaling; i++) {
+                    pwriter.setArgb(scaling*x + i % scaling, scaling*y + i / scaling, rgb);
+                }
             }
         }
 

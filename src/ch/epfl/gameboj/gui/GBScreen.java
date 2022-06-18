@@ -19,7 +19,7 @@ import javafx.scene.layout.Pane;
  */
 public final class GBScreen {
 
-    private static final int GUI_SCALE = 2;
+    private static final int GUI_SCALE = 4;
     public static final int WIDTH = GUI_SCALE * LcdController.LCD_WIDTH;
     public static final int HEIGHT = GUI_SCALE * LcdController.LCD_HEIGHT;
     
@@ -91,7 +91,7 @@ public final class GBScreen {
     
     private Image getImage(GameBoy gb) {
         LcdImage currentImage = gb.lcdController().currentImage();
-        return ImageConverter.convert(currentImage);
+        return ImageConverter.convert(currentImage, GUI_SCALE / 2);
     }
 
 }
