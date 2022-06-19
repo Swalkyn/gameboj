@@ -13,7 +13,7 @@ public class PulseA extends Channel {
 
 	public PulseA(FrameSequencer frameSequencer, RegisterFile<APU.Reg> rf) {
 		this.rf = rf;
-		this.pulse = new SweepPulse(frameSequencer);
+		this.pulse = new SweepPulse(this, frameSequencer);
 		this.lengthCounter = new LengthCounter(this, frameSequencer, 64);
 		this.envelope = new Envelope(frameSequencer);
 	}

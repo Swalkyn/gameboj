@@ -1,6 +1,7 @@
 package ch.epfl.gameboj.component.sound;
 
 public class SweepPulse implements SoundUnit {
+	private final Channel channel;
 	private final Pulse pulse;
 	private final FrameSequencer frameSequencer;
 	private int period;
@@ -11,7 +12,8 @@ public class SweepPulse implements SoundUnit {
 	private boolean enabled;
 	private int cycle;
 
-	public SweepPulse(FrameSequencer frameSequencer) {
+	public SweepPulse(Channel channel, FrameSequencer frameSequencer) {
+		this.channel = channel;
 		this.pulse = new Pulse();
 		this.frameSequencer = frameSequencer;
 		configure(0, false, 0, 0, 0);
@@ -23,15 +25,22 @@ public class SweepPulse implements SoundUnit {
 		this.duty = duty;
 		this.period = period;
 		this.negate = negate;
-		this.enabled = period != 0 || shift != 0;
 		this.shift = shift;
 		this.cycle = period;
-
+		if (shift > 0) {
+			calculateNewFreq();
+		}
 	}
 
-	private int calculateNewFreq() {
+	private void calculateNewFreq() {
 		int sign = negate ? -1 : 1;
-		return freq + sign * (freq >> shift);
+		int newFreq = freq + sign * (freq >> shift);
+		if (overflowCheck(newFreq) && shift != 0) {
+			freq = newFreq;
+			pulse.configure(duty, freq);
+		} else {
+			channel.disable();
+		}
 	}
 
 	private boolean overflowCheck(int freq) {
@@ -45,13 +54,9 @@ public class SweepPulse implements SoundUnit {
 				cycle -= 1;
 			}
 			if (cycle == 0 && shift != 0) {
-				int newFreq = calculateNewFreq();
-				if (overflowCheck(newFreq)) {
-					freq = newFreq;
-					pulse.configure(duty, freq);
-				}
+				calculateNewFreq();
 			}
 		}
-		return overflowCheck(calculateNewFreq()) ? pulse.applyAsInt(i) : pulse.applyAsInt(i);
+		return pulse.applyAsInt(i);
 	}
 }
