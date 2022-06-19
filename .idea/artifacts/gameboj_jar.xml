@@ -1,0 +1,17 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="gameboj:jar">
+    <output-path>$PROJECT_DIR$/classes/artifacts/gameboj_jar</output-path>
+    <root id="archive" name="gameboj.jar">
+      <element id="module-output" name="gameboj" />
+      <element id="extracted-dir" path="/usr/share/java/junit.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx-swt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.web.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.base.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.fxml.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.media.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.swing.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.controls.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="/usr/lib/jvm/java-11-openjfx/lib/javafx.graphics.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
