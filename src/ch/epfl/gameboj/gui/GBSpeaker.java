@@ -11,7 +11,7 @@ import javax.sound.sampled.SourceDataLine;
 public class GBSpeaker {
 	private static final int BUFFER_SIZE = 8 * 2048;
 	private static int actualBufferSize;
-	private final static float SAMPLING_RATE = 44100;
+	private final static float SAMPLING_RATE = 48000;
 	private final static AudioFormat FORMAT = new AudioFormat(SAMPLING_RATE, 8, 2, false, false);
 
 	private SourceDataLine line;
