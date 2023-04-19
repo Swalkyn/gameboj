@@ -67,7 +67,6 @@ public final class S6GameBoyTest {
                     long nextCycles = Math.min(gb.cycles() + 17_556, cycles);
                     gb.runUntil(nextCycles);
                     assertEquals(nextCycles, gb.cycles());
-                    System.out.println("a");
                     gb.cpu().requestInterrupt(Cpu.Interrupt.VBLANK);
                 }
             }
