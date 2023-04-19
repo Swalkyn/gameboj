@@ -30,28 +30,11 @@ A variety of games comes preloaded with the application, including:
 Make sure you have the following installed:
 
 - [Java 11](https://jdk.java.net/archive/)
-- [OpenJFX 17+](https://openjfx.io/openjfx-docs/#introduction)
+- [Maven 3.8+](https://maven.apache.org/download.cgi)
 
 ## Launch
 
-The easy option is to use IntelliJ, since it should use the configuration
-in this directory and provide you with the option to build and run Gameboj.
-You might need to edit the VM options and change the module path to your
-installation of OpenJFX.
-
-Otherwise, you can run the following commands from the project's root:
-
 ```
-export $PATH_TO_FX={path to your installation of OpenJFX, for example /usr/lib/jvm/java-11-openjfx/lib}
-# Compile
-javac --module-path /usr/lib/jvm/java-11-openjfx/lib \
-      --add-modules=java.desktop,javafx.fxml,javafx.controls \
-      -d mods/gameboj \
-      $(find src/ -name "*.java")
-
-# Run
-java --module-path /usr/lib/jvm/java-11-openjfx/lib:mods \
-     --add-modules=javafx.fxml,javafx.controls \
-     -m ch.epfl.gameboj/ch.epfl.gameboj.gui.Main
+mvn javafx:run
 ```
 
