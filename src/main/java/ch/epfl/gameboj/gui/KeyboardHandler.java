@@ -23,9 +23,17 @@ import javafx.scene.input.KeyEvent;
  */
 public final class KeyboardHandler {
     
-    private static final Map<String, Key> TEXT_KEY_MAP = buildTextKeyMap();
-    private static final Map<KeyCode, Key> CODE_KEY_MAP = buildCodeKeyMap();
-    
+    private static final Map<KeyCode, Key> CODE_KEY_MAP = Map.of(
+        KeyCode.A, Key.LEFT,
+        KeyCode.D, Key.RIGHT,
+        KeyCode.W, Key.UP,
+        KeyCode.S, Key.DOWN,
+        KeyCode.J, Key.A,
+        KeyCode.K, Key.B,
+        KeyCode.ENTER, Key.START,
+        KeyCode.BACK_SPACE, Key.SELECT
+    );
+
     private final EventHandler<KeyEvent> pressed; 
     private final EventHandler<KeyEvent> released;
     private Optional<Joypad> joypad = Optional.empty();
@@ -63,27 +71,9 @@ public final class KeyboardHandler {
     }
     
     private void handleKeyEvent(KeyEvent e, Consumer<Joypad.Key> c) {
-        Key k = TEXT_KEY_MAP.getOrDefault(e.getText(), CODE_KEY_MAP.getOrDefault(e.getCode(), null));
+        Key k = CODE_KEY_MAP.getOrDefault(e.getCode(), null);
         if (k != null) {
             c.accept(k);
         }
-    }
-    
-    private static Map<String, Key> buildTextKeyMap() {
-        Map<String, Key> keyMap = new HashMap<>();
-        keyMap.put("a", Key.A);
-        keyMap.put("b", Key.B);
-        keyMap.put("s", Key.START);
-        keyMap.put(" ", Key.SELECT);
-        return keyMap;
-    }
-    
-    private static Map<KeyCode, Key> buildCodeKeyMap() {
-        Map<KeyCode, Key> keyMap = new HashMap<>();
-        keyMap.put(KeyCode.LEFT, Key.LEFT);
-        keyMap.put(KeyCode.RIGHT, Key.RIGHT);
-        keyMap.put(KeyCode.UP, Key.UP);
-        keyMap.put(KeyCode.DOWN, Key.DOWN);
-        return keyMap;
     }
 }

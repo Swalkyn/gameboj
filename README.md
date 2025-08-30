@@ -20,10 +20,14 @@ A variety of games comes preloaded with the application, including:
 ### Controls
 | Keyboard         | Gameboy Button   |
 | :--------------: | ---------------- |
-| *Space*          | Start            |
-| *S*              | Select           |
-| *A*              | A                |
-| *B*              | B 		          |
+| *W*              | Up               |
+| *A*              | Left             |
+| *S*              | Down             |
+| *D*              | Right            |
+| *Enter*          | Start            |
+| *Backspace*      | Select           |
+| *J*              | A                |
+| *K*              | B 		          |
 
 ## Dependencies
 
