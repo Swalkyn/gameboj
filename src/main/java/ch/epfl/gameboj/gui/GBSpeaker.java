@@ -11,14 +11,15 @@ import javax.sound.sampled.SourceDataLine;
 public class GBSpeaker {
 	private static final int BUFFER_SIZE = 8 * 2048;
 	private static int actualBufferSize;
-	private final static float SAMPLING_RATE = 48000;
-	private final static AudioFormat FORMAT = new AudioFormat(SAMPLING_RATE, 8, 2, false, false);
+	private static final int EXP = 3;
+	private static final int divider = 1 << EXP;
+	private static final float SAMPLING_RATE = GameBoy.CYCLES_PER_SECOND >> EXP;
+	private static final AudioFormat FORMAT = new AudioFormat(SAMPLING_RATE, 8, 2, false, false);
 
 	private SourceDataLine line;
 	private byte[] buffer;
 	private int index;
 	private int cycle;
-	private int divider;
 
 	public void start() {
 		System.out.println("Sound starting");
@@ -34,7 +35,6 @@ public class GBSpeaker {
 		line.start();
 		actualBufferSize = line.getBufferSize();
 		buffer = new byte[line.getBufferSize()];
-		divider = (int) (GameBoy.CYCLES_PER_SECOND / FORMAT.getSampleRate()) + 1;
 	}
 
 	public void stop() {
